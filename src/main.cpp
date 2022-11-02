@@ -6,7 +6,7 @@
 int main(int argc, char **argv)
 {
     signal(SIGCHLD, SIG_IGN);
-    DispatchServer dispatchServer;
+    DispatchServer dispatchServer{};
     dispatchServer.init();
     dispatchServer.run();
 }
