@@ -21,6 +21,9 @@ using namespace std::string_literals;
     }
 
 #define RAPIDJSON_ASSERT_THROWS 1
+#ifndef RAPIDJSON_HAS_STDSTRING
+#define RAPIDJSON_HAS_STDSTRING 1
+#endif
 
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>

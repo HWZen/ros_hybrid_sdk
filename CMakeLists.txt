@@ -4,6 +4,10 @@ project(ros_hybird_sdk)
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++20)
 
+add_subdirectory(include/spdlog)
+add_subdirectory(include/RapidJSON)
+add_definitions(-DASIO_SEPARATE_COMPILATION)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -17,9 +21,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
 )
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /mnt/d/Github/socketor/cmake-build-release-wsl)
-find_package(socketor)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -124,15 +125,19 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
- include
   ${catkin_INCLUDE_DIRS}
-        /mnt/d/Github/sstl/include
+        /mnt/e/Github/sstl/include
+        include/RapidJSON/include
+        include/spdlog/include
+        include
 )
 
 ## Declare a C++ library
  add_library(${PROJECT_NAME}
      src/testlib.cpp
          src/json.h src/Agent.cpp src/Agent.h)
+
+add_library(asio STATIC src/asio.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -142,7 +147,15 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_server src/main.cpp src/DispatchServer.cpp src/DefaultAgent.cpp src/DefaultAgent.h src/Log.cpp src/Log.h)
+ add_executable(${PROJECT_NAME}_server
+         src/main.cpp
+         src/DispatchServer.cpp
+         src/DefaultAgent.cpp
+         src/Agent.cpp
+         src/Log.cpp
+         )
+
+
  add_executable(${PROJECT_NAME}_test src/test.cpp)
 
 ## Rename C++ executable without prefix
@@ -156,9 +169,13 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+
+target_link_libraries(asio pthread)
+
  target_link_libraries(${PROJECT_NAME}_server
    ${catkin_LIBRARIES}
-         ${SOCKETOR_LIBRARY}
+         spdlog
+         asio
  )
 
 target_link_libraries(${PROJECT_NAME}_test
@@ -167,9 +184,6 @@ target_link_libraries(${PROJECT_NAME}_test
         -lpthread
         )
 
-target_link_libraries(${PROJECT_NAME}
-        ${catkin_LIBRARIES}
-        )
 
 #############
 ## Install ##

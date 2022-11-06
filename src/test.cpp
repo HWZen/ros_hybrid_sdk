@@ -4,7 +4,7 @@
 
 #include <functional>
 #include <dlfcn.h>
-#include <sstl.h>
+#include <sstl/sstdio.h>
 #include <sys/prctl.h>
 
 int main(int argc, char **argv)

@@ -6,67 +6,102 @@
 #define ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_LOG_H
 
 #include <string>
-#include "spdlog/fmt/bundled/format.h"
+#include "RefSocketor.h"
+#include <spdlog/fmt/bundled/format.h>
+
+using fmt::v8::format_string;
+
+enum class LogFlag : int
+{
+    CONSOLE_LOGGER = 0X01,
+    FILE_LOGGER = 0X02,
+    ROS_LOGGER = 0X04,
+    CLIENT_LOGGER = 0X08,
+};
+
+constexpr inline auto operator|(const LogFlag &a, const LogFlag &b)
+{
+    return (int) a | (int) b;
+}
+
+constexpr inline auto operator&(const LogFlag &a, const LogFlag &b)
+{
+    return (int) a & (int) b;
+}
+
+using ref_client = RefSocketor;
 
 class Log
 {
 public:
-    Log(const std::string &name);
+    explicit Log(const std::string &name, LogFlag flag = LogFlag::CONSOLE_LOGGER, const ref_client &client = nullptr);
 
     void log(int level, const std::string &msg);
 
-    void log(int level, auto &&format, auto ...args);
+    template<class ...Args>
+    void log(int level, format_string<Args...> format, Args &&...args);
 
-    void debug(auto &&format, auto ...args);
+    template<class ...Args>
+    void debug(format_string<Args...> format, Args &&...args);
 
-    void info(auto &&format, auto ...args);
+    template<class ...Args>
+    void info(format_string<Args...> format, Args &&...args);
 
-    void warn(auto &&format, auto ...args);
+    template<class ...Args>
+    void warn(format_string<Args...> format, Args &&...args);
 
-    void error(auto &&format, auto ...args);
+    template<class ...Args>
+    constexpr void error(format_string<Args...> format, Args &&...args);
 
-    void critical(auto &&format, auto ...args);
+    template<class ...Args>
+    void critical(format_string<Args...> format, Args &&...args);
+
+    static void init();
 
 private:
     struct Impl;
-    Impl *impl;
+    Impl *implPtr{};
 };
-
-
 
 
 /*****************************
  * Implementation
  ***************************/
 
-void Log::debug(auto &&format, auto... args)
+template<class ...Args>
+void Log::debug(format_string<Args...> format, Args &&...args)
 {
-    log(1, std::forward<decltype(format)>(format), std::forward<decltype(args)>(args)...);
+    log(1, format, std::forward<decltype(args)>(args)...);
 }
 
-void Log::info(auto &&format, auto... args)
+template<class ...Args>
+void Log::info(format_string<Args...> format, Args &&...args)
 {
-    log(2, std::forward<decltype(format)>(format), std::forward<decltype(args)>(args)...);
+    log(2, format, std::forward<decltype(args)>(args)...);
 }
 
-void Log::warn(auto &&format, auto... args)
+template<class ...Args>
+void Log::warn(format_string<Args...> format, Args &&...args)
 {
-    log(3, std::forward<decltype(format)>(format), std::forward<decltype(args)>(args)...);
+    log(3, format, std::forward<decltype(args)>(args)...);
 }
 
-void Log::error(auto &&format, auto... args)
+template<class ...Args>
+constexpr void Log::error(format_string<Args...> format, Args &&...args)
 {
-    log(4, std::forward<decltype(format)>(format), std::forward<decltype(args)>(args)...);
+    log(4, format, std::forward<decltype(args)>(args)...);
 }
 
-void Log::critical(auto &&format, auto... args)
+template<class ...Args>
+void Log::critical(format_string<Args...> format, Args &&...args)
 {
-    log(5, std::forward<decltype(format)>(format), std::forward<decltype(args)>(args)...);
+    log(5, format, std::forward<decltype(args)>(args)...);
 }
 
-void Log::log(int level, auto &&format, auto ...args)
+template<class ...Args>
+void Log::log(int level, format_string<Args...> format, Args &&...args)
 {
-    log(level, fmt::format(std::forward<decltype(format)>(format), std::forward<decltype(args)>(args)...));
+    log(level, fmt::format(format, std::forward<decltype(args)>(args)...));
 }
 
 
