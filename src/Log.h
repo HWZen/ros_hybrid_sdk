@@ -13,10 +13,12 @@ using fmt::v8::format_string;
 
 enum class LogFlag : int
 {
-    CONSOLE_LOGGER = 0X01,
-    FILE_LOGGER = 0X02,
-    ROS_LOGGER = 0X04,
-    CLIENT_LOGGER = 0X08,
+    CONSOLE_LOGGER          = 0X01,
+    FILE_LOGGER             = 0X02,
+    ROS_LOGGER              = 0X04,
+    CLIENT_LOGGER           = 0X08,
+    CONSOLE_CLIENT          = CONSOLE_LOGGER | CLIENT_LOGGER,
+
 };
 
 constexpr inline auto operator|(const LogFlag &a, const LogFlag &b)

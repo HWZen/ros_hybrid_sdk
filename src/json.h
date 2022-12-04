@@ -5,6 +5,7 @@
 #ifndef ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_JSON_H
 #define ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_JSON_H
 
+#include "SDKException.h"
 #include <ros/console.h>
 using namespace std::string_literals;
 
@@ -16,11 +17,12 @@ using namespace std::string_literals;
 #define RAPIDJSON_ASSERT(x) \
     if (!(x)) {     \
         auto fun = __func__; \
-        auto str = "Rapidjson assert failed at: "  __FILE__ "@" _STR(__LINE__) "@"s + __func__;\
-        throw ros::Exception(str); \
+        auto str = "Rapidjson assert failed at: "  __FILE__ "@" _STR(__LINE__) "@"s + fun;\
+        throw SDKException(str); \
     }
 
 #define RAPIDJSON_ASSERT_THROWS 1
+
 #ifndef RAPIDJSON_HAS_STDSTRING
 #define RAPIDJSON_HAS_STDSTRING 1
 #endif
@@ -32,8 +34,8 @@ using namespace std::string_literals;
 class JsonParse : public rapidjson::Document
 {
 public:
-    explicit JsonParse(const char *str) : rapidjson::Document(){
-        Parse(str);
+    explicit JsonParse(std::string_view str) : rapidjson::Document(){
+        Parse(str.data(), str.size());
     }
 };
 

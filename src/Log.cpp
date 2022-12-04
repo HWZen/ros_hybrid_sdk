@@ -3,6 +3,7 @@
 //
 
 #include "Log.h"
+#include "SDKException.h"
 #include <ros/console.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
@@ -26,7 +27,10 @@ protected:
 class client_sink : public spdlog::sinks::base_sink<std::mutex>
 {
 public:
-    explicit client_sink(ref_client client) : client(std::move(client)) {}
+    explicit client_sink(ref_client client) : client(std::move(client)) {
+        // json pattern
+        set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
+    }
 
     ~client_sink() override = default;
 
@@ -100,12 +104,12 @@ Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
         sinks.push_back(g_ros_sink);
     if (flag & LogFlag::FILE_LOGGER) {
         if (!g_file_sink)
-            throw std::runtime_error("File log is not initialized");
+            throw SDKException("File log is not initialized");
         sinks.push_back(g_file_sink);
     }
     if (flag & LogFlag::CLIENT_LOGGER) {
         if (!client)
-            throw std::runtime_error("Client is not initialized");
+            throw SDKException("Client is not initialized");
         sinks.push_back(std::make_shared<client_sink>(client));
     }
 

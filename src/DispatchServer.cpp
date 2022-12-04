@@ -3,7 +3,7 @@
 //
 
 #include "DispatchServer.h"
-#include <ros/console.h>
+#include "SDKException.h"
 #include <sstl/ref_ptr.h>
 #include "json.h"
 #include "DefaultAgent.h"
@@ -42,7 +42,7 @@ struct DispatchServer::Impl
     void run();
 
 
-    enum class DispatchResult : int
+    enum class DispatchResultCode : int
     {
         FAIL = -1,
         DEFAULT_AGENT = 0,
@@ -51,11 +51,18 @@ struct DispatchServer::Impl
 
     int send_fd(int pipe_fd, SOCKET fd);
 
-    awaitable<int> dispatch(const ref_client &client);
+    struct DispatchResult
+    {
+        DispatchResultCode code;
+        std::string agentName;
+    };
 
-    int toDefaultAgent(const ref_client &client);
 
-    int toNewAgent(const ref_client &client);
+    awaitable<DispatchResult> dispatch(const ref_client &client);
+
+    void toDefaultAgent(const ref_client &client);
+
+    void toNewAgent(const ref_client &client, const std::string &agentName);
 
     void sendSocketor(const ref_client &client);
 
@@ -138,14 +145,14 @@ void DispatchServer::Impl::init(uint16_t port)
 
     if (socketpair(PF_UNIX, SOCK_DGRAM, 0, pipfd) < 0){
         logger.error("socketpair error");
-        throw ros::Exception("socketpair error");
+        throw SDKException("socketpair error");
     }
 
 
     auto pid = fork();
 
     if (pid < 0)
-        throw ros::Exception("fork failed");
+        throw SDKException("fork failed");
 
     // child
     if (pid == 0){
@@ -167,7 +174,7 @@ void DispatchServer::Impl::run()
 {
     if (!this || !acceptor->is_open())[[unlikely]] {
         this->logger.error("Server no init or not listen");
-        throw ros::Exception("Server no init or not listen");
+        throw SDKException("Server no init or not listen");
     }
     co_spawn(ctx, DispatchServer::Impl::listen(), asio::detached);
     ctx.run();
@@ -178,29 +185,30 @@ awaitable<void> DispatchServer::Impl::listen()
     logger.info("in DispatchServer::Impl::listen");
     for(;;){
         auto [ec, client] = co_await acceptor->async_accept(use_nothrow_awaitable);
-        if (ec) {
+        if (ec) [[unlikely]] {
             logger.error("Accept error: {}", ec.message());
-            continue;
+            break;
         }
 
-        co_spawn(client.get_executor(),[this, client = std::move(client)]() mutable -> awaitable<void> {
+        auto executor = client.get_executor();
+        co_spawn(executor,[this, client = std::move(client)]() mutable -> awaitable<void> {
             try{
                 auto ref_client = std::make_shared<decltype(client)>(std::move(client));
-                auto res = (Impl::DispatchResult) co_await dispatch(ref_client);
-                if (res == DispatchResult::FAIL)
+                auto [res, agentName] = co_await dispatch(ref_client);
+                if (res == DispatchResultCode::FAIL)
                     logger.error("Dispatch failed");
-                else if (res == DispatchResult::DEFAULT_AGENT)
+                else if (res == DispatchResultCode::DEFAULT_AGENT)
                     toDefaultAgent(ref_client);
-                else if (res == DispatchResult::NEW_AGENT) {
+                else if (res == DispatchResultCode::NEW_AGENT) {
                     auto pid = fork();
-                    if (pid == -1) {
+                    if (pid == -1) [[unlikely]] {
                         auto errCode = errno;
                         auto errMsg = strerror(errCode);
                         logger.error("Fork failed, error code: {}, error message: {}", errCode, errMsg);
-                        throw ros::Exception("Fork failed");
+                        throw SDKException("Fork failed");
                     }
                     if (pid == 0)  // sub process
-                        toNewAgent(ref_client);
+                        toNewAgent(ref_client, agentName);
                     // parent process, continue
                 }
             }
@@ -213,12 +221,13 @@ awaitable<void> DispatchServer::Impl::listen()
 }
 
 
-awaitable<int> DispatchServer::Impl::dispatch(const ref_client &client)
+
+awaitable<DispatchServer::Impl::DispatchResult> DispatchServer::Impl::dispatch(const ref_client &client)
 {
 
     if (!client->is_open()) {
         logger.error("Accept error");
-        throw ros::Exception("Accept error");
+        throw SDKException("Accept error");
     }
     logger.info("Accept a client, from: {}", client->remote_endpoint().address().to_string());
 
@@ -226,7 +235,7 @@ awaitable<int> DispatchServer::Impl::dispatch(const ref_client &client)
     auto [ec, len] = co_await (*client).async_read_some(asio::buffer(buff_), use_nothrow_awaitable);
     if (ec){
         logger.error("Read error: {}", ec.message());
-        co_return static_cast<int>(DispatchResult::FAIL);
+        co_return DispatchResult{DispatchResultCode::FAIL, ""};
     }
     buff_[len] = '\0';
 
@@ -241,46 +250,43 @@ awaitable<int> DispatchServer::Impl::dispatch(const ref_client &client)
                          + std::to_string(json.GetErrorOffset()) + ", error: "s + rapidjson::GetParseError_En(json.GetParseError());
         logger.error("{}", error_str.c_str());
         co_await client->async_write_some(asio::buffer(error_str), use_nothrow_awaitable);
-        co_return static_cast<int>(DispatchResult::FAIL);
+        co_return DispatchResult{DispatchResultCode::FAIL, ""};
     }
 
     if (!json.HasMember("node") || !json["node"].IsString()) {
         logger.error("can not found json key: node");
         co_await client->async_write_some(asio::buffer("can not found json key: node"), use_nothrow_awaitable);
-        co_return static_cast<int>(DispatchResult::FAIL);
+        co_return DispatchResult{DispatchResultCode::FAIL, ""};
     }
 
     /*******************************
      * parse param over
      ******************************/
 
-    auto node = std::string_view{json["node"].GetString()};
+    auto node = std::string{json["node"].GetString()};
 
     if (node == "default")
-        co_return static_cast<int>(DispatchResult::DEFAULT_AGENT);
+        co_return DispatchResult{DispatchResultCode::DEFAULT_AGENT, ""};
     else
-        co_return static_cast<int>(DispatchResult::NEW_AGENT);
-
+        co_return DispatchResult{DispatchResultCode::NEW_AGENT, std::move(node)};
 }
 
 
 
-int DispatchServer::Impl::toDefaultAgent(const ref_client &client)
+void DispatchServer::Impl::toDefaultAgent(const ref_client &client)
 {
     logger.debug("in {}", __FUNCTION__);
     sendSocketor(client);
-    return static_cast<int>(DispatchResult::DEFAULT_AGENT);
 }
 
-int DispatchServer::Impl::toNewAgent(const ref_client &client)
+void DispatchServer::Impl::toNewAgent(const ref_client &client, const std::string &agentName)
 {
     logger.debug("in {}", __FUNCTION__);
     // close parent acceptor
     acceptor->close();
 
-    Agent agent(client);
+    Agent agent(client, agentName);
 
     agent.MAIN();
-
 }
 

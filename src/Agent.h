@@ -5,16 +5,12 @@
 #ifndef ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_AGENT_H
 #define ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_AGENT_H
 
-#include <cstdlib>
 #include "RefSocketor.h"
-
-
 
 class Agent
 {
 public:
-    Agent() = default;
-    Agent(const RefSocketor& client);
+    Agent(const RefSocketor &client, const std::string &agentName);
 
     [[noreturn]]void MAIN();
 
