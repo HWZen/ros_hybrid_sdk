@@ -5,8 +5,8 @@
 #include "DispatchServer.h"
 #include "SDKException.h"
 #include "json.h"
-#include "DefaultAgent.h"
-#include "Agent.h"
+#include "DefaultAgent/DefaultAgentManager.h"
+#include "Agent/Agent.h"
 #include "RefSocketor.h"
 #include "Log.h"
 
@@ -67,7 +67,7 @@ struct DispatchServer::Impl
 
     awaitable<void> listen();
 
-    DefaultAgent defaultAgent;
+    DefaultAgentManager defaultAgent;
 
     Log logger{ "DispatchServer", LogFlag::CONSOLE_LOGGER };
 
@@ -84,16 +84,16 @@ struct DispatchServer::Impl
 
 void DispatchServer::init(uint16_t port)
 {
-    impl_ = new Impl;
-    impl_->init(port);
+    implPtr = new Impl;
+    implPtr->init(port);
 }
 void DispatchServer::run()
 {
-    impl_->run();
+    implPtr->run();
 }
 DispatchServer::~DispatchServer()
 {
-    delete impl_;
+    delete implPtr;
 }
 
 
@@ -126,7 +126,7 @@ int DispatchServer::Impl::send_fd(int pipe_fd, SOCKET fd)
     if (res == -1) {
         auto errCode = errno;
         auto reason = hstrerror(errCode);
-        logger.error("send error, code: {}, reason: {}", errCode, reason);
+        logger.error("send fd error, code: {}, reason: {}", errCode, reason);
         return errCode;
     }
     return 0;
@@ -147,6 +147,10 @@ void DispatchServer::Impl::init(uint16_t port)
         throw SDKException("socketpair error");
     }
 
+
+    /*****************
+     * init DefaultAgentManager
+     ****************/
 
     auto pid = fork();
 
