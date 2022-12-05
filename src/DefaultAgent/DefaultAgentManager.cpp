@@ -1,15 +1,18 @@
 //
 // Created by HWZ on 2022/11/3.
 //
-#include "DefaultAgent.h"
-#include "Log.h"
+#include "DefaultAgentManager.h"
+#include "ConnectInstance.h"
+#include "../Log.h"
 #include <sstl/thread.h>
 #include <sstl/atomic_queue.h>
-#include "RefSocketor.h"
+#include <ros/ros.h>
+#include <unordered_set>
+#include "asio.hpp"
+#include "asio/experimental/as_tuple.hpp"
+#include "asio/experimental/awaitable_operators.hpp"
 
-#include <asio.hpp>
-#include <asio/experimental/as_tuple.hpp>
-#include <asio/experimental/awaitable_operators.hpp>
+#include <sys/prctl.h>
 
 using asio::awaitable;
 using asio::buffer;
@@ -23,6 +26,9 @@ using namespace std::string_literals;
 
 constexpr auto use_nothrow_awaitable = asio::experimental::as_tuple(asio::use_awaitable);
 
+extern int g_argc;
+extern char **g_argv;
+
 
 awaitable<void> timeout(steady_clock::duration duration)
 {
@@ -31,12 +37,12 @@ awaitable<void> timeout(steady_clock::duration duration)
     co_await timer.async_wait(use_nothrow_awaitable);
 }
 
-struct DefaultAgent::Impl
+struct DefaultAgentManager::Impl
 {
 
     int recv_fd();
 
-    Log logger{"DefaultAgent"};
+    Log logger{"DefaultAgentManager", static_cast<LogFlag>(LogFlag::CONSOLE_LOGGER | LogFlag::ROS_LOGGER)};
 
     [[noreturn]] void MAIN();
 
@@ -52,25 +58,39 @@ struct DefaultAgent::Impl
 
     asio::io_context ctx{};
 
+    std::unordered_set<RefConnectInstance> connectInstances{};
+
 };
 
 
-[[noreturn]] void DefaultAgent::MAIN()
+[[noreturn]] void DefaultAgentManager::MAIN()
 {
     implPtr->MAIN();
 }
 
-DefaultAgent::DefaultAgent() : implPtr(new DefaultAgent::Impl)
+DefaultAgentManager::DefaultAgentManager() : implPtr(new DefaultAgentManager::Impl)
 {
 }
 
-void DefaultAgent::setSocketPipe(int pipe)
+void DefaultAgentManager::setSocketPipe(int pipe)
 {
     implPtr->setSocketPipe(pipe);
 }
 
-[[noreturn]]void DefaultAgent::Impl::MAIN()
+DefaultAgentManager::~DefaultAgentManager()
 {
+    delete implPtr;
+}
+
+[[noreturn]]void DefaultAgentManager::Impl::MAIN()
+{
+    // change process name
+    g_argv[0] = new char[]{"HybridDefaultAgent"};
+    prctl(PR_SET_NAME, "DefaultAgent", 0, 0, 0);
+
+    ros::init(g_argc, g_argv, "DefaultAgent");
+
+
     this->logger.info("DefaultAgent::MAIN");
 
     co_spawn(ctx, listenFd(), asio::detached);
@@ -79,7 +99,7 @@ void DefaultAgent::setSocketPipe(int pipe)
     exit(0);
 }
 
-void DefaultAgent::Impl::setSocketPipe(int pipe)
+void DefaultAgentManager::Impl::setSocketPipe(int pipe)
 {
     pipeFd = pipe;
     recvFdThread =
@@ -99,7 +119,7 @@ void DefaultAgent::Impl::setSocketPipe(int pipe)
                                               });
 }
 
-int DefaultAgent::Impl::recv_fd()
+int DefaultAgentManager::Impl::recv_fd()
 {
     iovec iov[1];
     msghdr msg{};
@@ -130,7 +150,7 @@ int DefaultAgent::Impl::recv_fd()
     return fd;
 }
 
-awaitable<void> DefaultAgent::Impl::listenFd()
+awaitable<void> DefaultAgentManager::Impl::listenFd()
 {
     auto waitTime = 10ms;
     for (;;) {
@@ -147,10 +167,19 @@ awaitable<void> DefaultAgent::Impl::listenFd()
                      client->remote_endpoint().port());
 
         // TODO: create clientContext and push it into contextManager
-        co_spawn(client->get_executor(), [client, this]() -> awaitable<void>
+        auto executor = client->get_executor();
+        co_spawn(executor, [client = std::move(client), this]() -> awaitable<void>
         {
-            co_await client->async_send(buffer("in DefaultAgent, next operation not implement."s),
-                                        use_nothrow_awaitable);
+            auto refConnectInstance = std::make_shared<ConnectInstance>(client);
+            connectInstances.insert(refConnectInstance);
+            try {
+                refConnectInstance->MAIN();
+            }
+            catch (std::exception &e) {
+                logger.error("ConnectInstance::MAIN error, reason: {}", e.what());
+            }
+            connectInstances.erase(refConnectInstance);
+            co_return ;
         }, asio::detached);
 
     }

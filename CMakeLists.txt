@@ -138,7 +138,7 @@ target_compile_options(cxx14wrapper PRIVATE -std=c++14)
 
  add_library(${PROJECT_NAME}
      src/testlib.cpp
-         src/json.h src/Agent.cpp src/Agent.h)
+         src/json.h src/Agent/Agent.cpp src/Agent/Agent.h)
 
 add_library(asio STATIC src/asio.cpp)
 target_compile_options(asio PRIVATE -std=c++20)
@@ -155,9 +155,10 @@ target_compile_options(asio PRIVATE -std=c++20)
  add_executable(${PROJECT_NAME}_server
          src/main.cpp
          src/DispatchServer.cpp
-         src/DefaultAgent.cpp
-         src/Agent.cpp
+         src/DefaultAgent/DefaultAgentManager.cpp
+         src/Agent/Agent.cpp
          src/Log.cpp
+         src/DefaultAgent/ConnectInstance.cpp
          )
 target_compile_options(${PROJECT_NAME}_server PRIVATE -std=c++20)
 

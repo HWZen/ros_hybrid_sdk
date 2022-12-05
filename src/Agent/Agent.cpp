@@ -3,8 +3,8 @@
 //
 
 #include "Agent.h"
-#include "Log.h"
-#include "SDKException.h"
+#include "../Log.h"
+#include "../SDKException.h"
 
 struct Agent::Impl
 {
@@ -46,6 +46,11 @@ void Agent::Impl::MAIN()
 
 Agent::Agent(const RefSocketor &client, const std::string &agentName) : implPtr(new Impl(client, agentName))
 {
+}
+
+Agent::~Agent()
+{
+    delete implPtr;
 }
 
 
