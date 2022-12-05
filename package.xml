@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>ros_hybird_sdk</name>
+  <name>ros_hybrid_sdk</name>
   <version>0.0.0</version>
-  <description>The ros_hybird_sdk package</description>
+  <description>The ros_hybrid_sdk package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
