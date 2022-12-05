@@ -60,6 +60,8 @@ public:
 
     static void init();
 
+    ~Log();
+
 private:
     struct Impl;
     Impl *implPtr{};

@@ -3,13 +3,14 @@
 //
 
 #include "Log.h"
+#include "cxx14_wrapper/rosmsgs_log.h"
 #include "SDKException.h"
-#include <ros/console.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <unistd.h>
+#include <rosgraph_msgs/Log.h>
 
 
 class ros_log_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
@@ -26,10 +27,7 @@ protected:
 class client_sink : public spdlog::sinks::base_sink<std::mutex>
 {
 public:
-    explicit client_sink(ref_client client) : client(std::move(client)) {
-        // json pattern
-        set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
-    }
+    explicit client_sink(ref_client client);
 
     ~client_sink() override = default;
 
@@ -40,19 +38,6 @@ protected:
 
     ref_client client;
 };
-
-void client_sink::sink_it_(const spdlog::details::log_msg &msg)
-{
-    if (!should_log(msg.level))
-        return;
-    spdlog::memory_buf_t formatted;
-    formatter_->format(msg, formatted);
-    client->async_write_some(asio::buffer(formatted.data(), formatted.size()), [](const asio::error_code &ec, size_t) {
-        if (ec)
-            throw std::runtime_error(ec.message());
-    });
-}
-
 
 struct Log::Impl : public std::shared_ptr<spdlog::logger>
 {
@@ -70,8 +55,30 @@ void ros_log_sink::sink_it_(const spdlog::details::log_msg &msg)
     spdlog::memory_buf_t formatted;
     formatter_->format(msg, formatted);
     int level = msg.level == 0 ? 0 : msg.level - 1;
-    ROS_LOG((ros::console::Level) level, ROSCONSOLE_DEFAULT_NAME, "%s", formatted.data());
+//    ROS_LOG((ros::console::Level) level, ROSCONSOLE_DEFAULT_NAME, "%s", formatted.data());
+    static RosLogPublisher publisher;
+    publisher.publish({(char)level, msg.logger_name.data(), std::string(formatted.data(), formatted.size())});
 }
+
+void client_sink::sink_it_(const spdlog::details::log_msg &msg)
+{
+    if (!should_log(msg.level))
+        return;
+    spdlog::memory_buf_t formatted;
+    formatter_->format(msg, formatted);
+    client->async_write_some(asio::buffer(formatted.data(), formatted.size()), [](const asio::error_code &ec, size_t) {
+        if (ec)
+            throw std::runtime_error(ec.message());
+    });
+}
+
+client_sink::client_sink(ref_client client) : client(std::move(client)) {
+    // json pattern
+    set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
+
+    // TODO: protobuf pattern
+}
+
 
 spdlog::sink_ptr g_ros_sink = std::make_shared<ros_log_sink>();
 spdlog::sink_ptr g_stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -91,7 +98,7 @@ void Log::init()
     g_file_sink->set_level(spdlog::level::trace);
     g_stdout_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%L] P:%-6P t:%-6t %28n: %$  %v");
     g_stdout_sink->set_level(spdlog::level::debug);
-    g_ros_sink->set_pattern("P:%-6P t:-6%t %28n: %v");
+    g_ros_sink->set_pattern("P:%-6P t:%-6t %28n: %v");
     g_ros_sink->set_level(spdlog::level::info);
     // TODO: client sink config
 }
@@ -115,4 +122,9 @@ Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
     }
 
     implPtr = new Impl(std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end()));
+}
+
+Log::~Log()
+{
+    delete implPtr;
 }
