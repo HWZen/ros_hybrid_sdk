@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(ros_hybrid_sdk)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
- add_compile_options(-std=c++20)
+
 
 add_subdirectory(include/spdlog)
 add_subdirectory(include/RapidJSON)
@@ -132,11 +132,17 @@ include_directories(
 )
 
 ## Declare a C++ library
+
+add_library(cxx14wrapper STATIC src/cxx14wrapper.cpp)
+target_compile_options(cxx14wrapper PRIVATE -std=c++14)
+
  add_library(${PROJECT_NAME}
      src/testlib.cpp
          src/json.h src/Agent.cpp src/Agent.h)
 
 add_library(asio STATIC src/asio.cpp)
+target_compile_options(asio PRIVATE -std=c++20)
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -153,9 +159,11 @@ add_library(asio STATIC src/asio.cpp)
          src/Agent.cpp
          src/Log.cpp
          )
+target_compile_options(${PROJECT_NAME}_server PRIVATE -std=c++20)
 
 
- add_executable(${PROJECT_NAME}_test src/test.cpp)
+add_executable(${PROJECT_NAME}_test src/test.cpp)
+target_compile_options(${PROJECT_NAME}_test PRIVATE -std=c++20)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -169,13 +177,16 @@ add_library(asio STATIC src/asio.cpp)
 
 ## Specify libraries to link a library or executable target against
 
+target_link_libraries(cxx14wrapper ${catkin_LIBRARIES})
+
 target_link_libraries(asio pthread)
 
- target_link_libraries(${PROJECT_NAME}_server
-   ${catkin_LIBRARIES}
-         spdlog
-         asio
- )
+target_link_libraries(${PROJECT_NAME}_server
+        ${catkin_LIBRARIES}
+        spdlog
+        asio
+        cxx14wrapper
+        )
 
 target_link_libraries(${PROJECT_NAME}_test
 #        ${catkin_LIBRARIES}
