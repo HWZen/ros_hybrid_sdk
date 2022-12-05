@@ -10,7 +10,6 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <unistd.h>
-#include <sstl/thread.h>
 
 
 class ros_log_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
@@ -55,10 +54,12 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
 }
 
 
-struct Log::Impl : public sstd::ref_ptr<spdlog::logger>
+struct Log::Impl : public std::shared_ptr<spdlog::logger>
 {
-    explicit Impl(sstd::ref_ptr<spdlog::logger> &&logger) : sstd::ref_ptr<spdlog::logger>(
-            std::move(logger)) { (*this)->set_level(spdlog::level::trace); }
+    explicit Impl(std::shared_ptr<spdlog::logger> &&logger) : std::shared_ptr<spdlog::logger>(std::move(logger))
+    {
+        (*this)->set_level(spdlog::level::trace);
+    }
 };
 
 
@@ -113,5 +114,5 @@ Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
         sinks.push_back(std::make_shared<client_sink>(client));
     }
 
-    implPtr = new Impl(sstd::ref_ptr{new spdlog::logger(name, sinks.begin(), sinks.end())});
+    implPtr = new Impl(std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end()));
 }

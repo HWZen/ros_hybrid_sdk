@@ -4,7 +4,6 @@
 
 #include "DispatchServer.h"
 #include "SDKException.h"
-#include <sstl/ref_ptr.h>
 #include "json.h"
 #include "DefaultAgent.h"
 #include "Agent.h"

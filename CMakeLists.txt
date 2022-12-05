@@ -126,7 +126,6 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   ${catkin_INCLUDE_DIRS}
-        /mnt/e/Github/sstl/include
         include/RapidJSON/include
         include/spdlog/include
         include
