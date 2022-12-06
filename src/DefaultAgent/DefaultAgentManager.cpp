@@ -50,11 +50,13 @@ struct DefaultAgentManager::Impl
 
     int pipeFd{};
 
-    std::shared_ptr<sstd::BaseThread> recvFdThread{};
-
-    sstd::atomic_queue<SOCKET> socketQueue{};
-
     awaitable<void> listenFd();
+
+    std::shared_ptr<sstd::BaseThread> recvFdThread{};
+    sstd::atomic_queue<std::shared_ptr<std::function<void(SOCKET)>>> task_queue;
+
+    template <asio::completion_token_for<void(SOCKET)> CompletionToken>
+    auto async_get_socket(CompletionToken&& token);
 
     asio::io_context ctx{};
 
@@ -106,8 +108,9 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
             std::shared_ptr<sstd::BaseThread>(new sstd::thread([this]
                                                                {
                                                                    for (;;) {
-                                                                       auto socketFd = this->recv_fd();
-                                                                       socketQueue.push(socketFd);
+                                                                       auto fd = recv_fd();
+                                                                       auto task = task_queue.pop();
+                                                                       (*task)(fd);
                                                                    }
                                                                }),
                                               // destroy thread
@@ -117,6 +120,61 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
                                                       th->terminate();
                                                   delete th;
                                               });
+
+}
+
+template <asio::completion_token_for<void(SOCKET)> CompletionToken>
+auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
+{
+
+    // Define a function object that contains the code to launch the asynchronous
+    // operation. This is passed the concrete completion handler, followed by any
+    // additional arguments that were passed through the call to async_initiate.
+    auto init = [this](asio::completion_handler_for<void(SOCKET)> auto handler){
+        // According to the rules for asynchronous operations, we need to track
+        // outstanding work against the handler's associated executor until the
+        // asynchronous operation is complete.
+
+        auto ref_handler = std::make_shared<decltype(handler)>(std::move(handler));
+
+        auto work = asio::make_work_guard(*ref_handler);
+
+        std::function<void(SOCKET)> callback = [
+                work = std::move(work),
+                ref_handler = std::move(ref_handler)
+        ](SOCKET socketFd) mutable
+        {
+            // Get the handler's associated allocator. If the handler does not
+            // specify an allocator, use the recycling allocator as the default.
+            auto alloc = asio::get_associated_allocator(
+                    *ref_handler, asio::recycling_allocator<void>());
+
+            // Dispatch the completion handler through the handler's associated
+            // executor, using the handler's associated allocator.
+            asio::dispatch(work.get_executor(),
+                           asio::bind_allocator(alloc,
+                                                [
+                                                        ref_handle = std::move(ref_handler),
+                                                        socketFd
+                                                ]() mutable
+                                                {
+                                                    std::move(*ref_handle)(socketFd);
+                                                }));
+        };
+
+        task_queue.push(std::make_shared<std::function<void(SOCKET)>>(std::move(callback)));
+
+    };
+
+    // The async_initiate function is used to transform the supplied completion
+    // token to the completion handler. When calling this function we explicitly
+    // specify the completion signature of the operation. We must also return the
+    // result of the call since the completion token may produce a return value,
+    // such as a future.
+    return asio::async_initiate<CompletionToken, void(SOCKET)>(
+            init, // First, pass the function object that launches the operation,
+            token);// then the completion token that will be transformed to a handler
+
 }
 
 int DefaultAgentManager::Impl::recv_fd()
@@ -152,35 +210,37 @@ int DefaultAgentManager::Impl::recv_fd()
 
 awaitable<void> DefaultAgentManager::Impl::listenFd()
 {
-    auto waitTime = 10ms;
     for (;;) {
-        SOCKET fd;
-        if (auto fdOpt = socketQueue.try_pop(); !fdOpt.has_value()) {
-            co_await timeout(waitTime);
-            waitTime = min(waitTime + 1ms, 1000ms);
-            continue;
-        } else
-            fd = fdOpt.value();
+        try{
 
-        RefSocketor client = std::make_shared<tcp::socket>(co_await this_coro::executor, asio::ip::tcp::v4(), fd);
-        logger.debug("recv a socketor, address: {}, port: {}", client->remote_endpoint().address().to_string(),
-                     client->remote_endpoint().port());
+            auto fd = co_await async_get_socket(asio::use_awaitable);
 
-        // TODO: create clientContext and push it into contextManager
-        auto executor = client->get_executor();
-        co_spawn(executor, [client = std::move(client), this]() -> awaitable<void>
-        {
-            auto refConnectInstance = std::make_shared<ConnectInstance>(client);
-            connectInstances.insert(refConnectInstance);
-            try {
-                refConnectInstance->MAIN();
-            }
-            catch (std::exception &e) {
-                logger.error("ConnectInstance::MAIN error, reason: {}", e.what());
-            }
-            connectInstances.erase(refConnectInstance);
-            co_return ;
-        }, asio::detached);
+            RefSocketor client = std::make_shared<tcp::socket>(co_await this_coro::executor, asio::ip::tcp::v4(), fd);
+            logger.debug("recv a socketor, address: {}, port: {}", client->remote_endpoint().address().to_string(),
+                         client->remote_endpoint().port());
+
+            // TODO: create clientContext and push it into contextManager
+            auto executor = client->get_executor();
+            co_spawn(executor, [client = std::move(client), this]() -> awaitable<void>
+            {
+                auto refConnectInstance = std::make_shared<ConnectInstance>(client);
+                connectInstances.insert(refConnectInstance);
+                try {
+                    refConnectInstance->MAIN();
+                }
+                catch (std::exception &e) {
+                    logger.error("ConnectInstance::MAIN error, reason: {}", e.what());
+                }
+                connectInstances.erase(refConnectInstance);
+                co_return;
+            }, asio::detached);
+        }
+        catch(std::exception &e){
+            logger.error("catch exception in {}@{} : {}", __FILE__, __LINE__, e.what());
+        }
 
     }
+
 }
+
+
