@@ -6,6 +6,7 @@
 #include "cxx14_wrapper/rosmsgs_log.h"
 #include "SDKException.h"
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -24,7 +25,7 @@ protected:
     void flush_() override {}
 };
 
-class client_sink : public spdlog::sinks::base_sink<std::mutex>
+class client_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
 {
 public:
     explicit client_sink(ref_client client);
@@ -67,8 +68,9 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
     spdlog::memory_buf_t formatted;
     formatter_->format(msg, formatted);
     client->async_write_some(asio::buffer(formatted.data(), formatted.size()), [](const asio::error_code &ec, size_t) {
-        if (ec)
-            throw std::runtime_error(ec.message());
+        if (ec){
+            spdlog::error("client sink error: {}", ec.message());
+        }
     });
 }
 
@@ -100,6 +102,9 @@ void Log::init()
     g_stdout_sink->set_level(spdlog::level::debug);
     g_ros_sink->set_pattern("P:%-6P t:%-6t %28n: %v");
     g_ros_sink->set_level(spdlog::level::info);
+    spdlog::set_default_logger(spdlog::stdout_color_mt("Default"));
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%L] P:%-6P t:%-6t %28n: %$  %v");
+    spdlog::set_level(spdlog::level::trace);
     // TODO: client sink config
 }
 
