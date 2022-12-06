@@ -109,8 +109,8 @@ namespace sstd{
 
     template<typename T>
     constexpr T atomic_queue<T>::pop() {
-        m_producer_lock.acquire();
         m_consumer_lock.acquire();
+        m_producer_lock.acquire();
         auto res = std::move(m_data.front());
         m_data.pop();
         if(!m_data.empty())
