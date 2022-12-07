@@ -87,10 +87,11 @@ DefaultAgentManager::~DefaultAgentManager()
 [[noreturn]]void DefaultAgentManager::Impl::MAIN()
 {
     // change process name
-    g_argv[0] = new char[]{"HybridDefaultAgent"};
+    g_argv[0] = new char[]{"DefaultAgent"};
     prctl(PR_SET_NAME, "DefaultAgent", 0, 0, 0);
 
     ros::init(g_argc, g_argv, "DefaultAgent");
+    ros::start();
 
 
     this->logger.info("DefaultAgent::MAIN");
