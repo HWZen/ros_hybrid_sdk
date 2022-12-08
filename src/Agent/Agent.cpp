@@ -5,10 +5,10 @@
 #include "Agent.h"
 #include "../Log.h"
 #include "../SDKException.h"
+using namespace std::string_literals;
 
 struct Agent::Impl
 {
-    Impl();
     Impl(const RefSocketor &client, std::string agentName);
 
     [[noreturn]]void MAIN();
@@ -16,13 +16,16 @@ struct Agent::Impl
     std::string agentName;
 
     Log logger;
+
+    RefSocketor client;
 };
 
 
-Agent::Impl::Impl(const RefSocketor &client, std::string agentName) : logger("Agent",
+Agent::Impl::Impl(const RefSocketor &client, std::string agentName) : logger("Agent_"s + Impl::agentName,
                                                                              LogFlag::CONSOLE_CLIENT,
                                                                              client),
-                                                                    agentName(std::move(agentName))
+                                                                    agentName(std::move(agentName)),
+                                                                    client(client)
 {
 }
 
@@ -33,13 +36,11 @@ void Agent::MAIN()
     implPtr->MAIN();
 }
 
-Agent::Impl::Impl() : logger("Agent")
-{
-}
 
 void Agent::Impl::MAIN()
 {
     logger.info("Agent::MAIN: {} start", agentName);
+    logger.info("next operation no implement");
     exit(0);
 }
 
