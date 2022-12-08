@@ -3,15 +3,14 @@
 //
 
 #include "Log.h"
-#include "cxx14_wrapper/rosmsgs_log.h"
+#include <Log/Log.h>
 #include "SDKException.h"
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/base_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <unistd.h>
-#include <rosgraph_msgs/Log.h>
+
 
 
 class ros_log_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
@@ -55,10 +54,16 @@ void ros_log_sink::sink_it_(const spdlog::details::log_msg &msg)
         return;
     spdlog::memory_buf_t formatted;
     formatter_->format(msg, formatted);
-    int level = msg.level == 0 ? 0 : msg.level - 1;
 //    ROS_LOG((ros::console::Level) level, ROSCONSOLE_DEFAULT_NAME, "%s", formatted.data());
-    static RosLogPublisher publisher;
-    publisher.publish({(char)level, msg.logger_name.data(), std::string(formatted.data(), formatted.size())});
+    hybrid::Log log;
+    log.header = getHeader();
+    log.name = msg.logger_name.data();
+    log.msg = {formatted.data(), formatted.size()};
+    int level = msg.level == 0 ? 0 : msg.level - 1;
+    log.level = level;
+    static hybrid::LogPublisher pub("/rosout",1000, 0);
+    pub.publish(log);
+
 }
 
 void client_sink::sink_it_(const spdlog::details::log_msg &msg)

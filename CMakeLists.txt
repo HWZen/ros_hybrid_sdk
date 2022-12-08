@@ -56,11 +56,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   MyMsg.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -77,10 +76,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   actionlib_msgs#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs#   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -129,14 +128,14 @@ include_directories(
         include/RapidJSON/include
         include/spdlog/include
         include
+        src/MsgWrapper
 )
 
 ## Declare a C++ library
 
-add_library(cxx14wrapper STATIC src/cxx14wrapper.cpp)
-target_compile_options(cxx14wrapper PRIVATE -std=c++14)
+add_subdirectory(src/MsgWrapper/Log)
 
- add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
      src/testlib.cpp
          src/json.h src/Agent/Agent.cpp src/Agent/Agent.h)
 
@@ -152,7 +151,7 @@ target_compile_options(asio PRIVATE -std=c++20)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_server
+add_executable(${PROJECT_NAME}_server
          src/main.cpp
          src/DispatchServer.cpp
          src/DefaultAgent/DefaultAgentManager.cpp
@@ -163,8 +162,11 @@ target_compile_options(asio PRIVATE -std=c++20)
 target_compile_options(${PROJECT_NAME}_server PRIVATE -std=c++20)
 
 
-add_executable(${PROJECT_NAME}_test src/test.cpp)
-target_compile_options(${PROJECT_NAME}_test PRIVATE -std=c++20)
+add_executable(${PROJECT_NAME}_test src/test.cpp )
+target_compile_options(${PROJECT_NAME}_test PRIVATE -std=c++14)
+
+add_executable(${PROJECT_NAME}_protoc src/messageGenerator/main.cpp)
+target_compile_options(${PROJECT_NAME}_protoc PRIVATE -std=c++17)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -178,19 +180,17 @@ target_compile_options(${PROJECT_NAME}_test PRIVATE -std=c++20)
 
 ## Specify libraries to link a library or executable target against
 
-target_link_libraries(cxx14wrapper ${catkin_LIBRARIES})
-
 target_link_libraries(asio pthread)
 
 target_link_libraries(${PROJECT_NAME}_server
         ${catkin_LIBRARIES}
         spdlog
         asio
-        cxx14wrapper
+        wrapperLog
         )
 
 target_link_libraries(${PROJECT_NAME}_test
-#        ${catkin_LIBRARIES}
+        ${catkin_LIBRARIES}
         -ldl
         -lpthread
         )
