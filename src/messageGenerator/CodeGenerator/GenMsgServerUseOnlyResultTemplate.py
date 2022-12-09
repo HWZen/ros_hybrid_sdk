@@ -1,33 +1,9 @@
-//
-// Created by HWZen on 2022/12/8.
-// Copyright (c) 2022 HWZen All rights reserved.
-// MIT License
-// 
-
-#ifndef ROS_HYBRID_SDK_MSGGENERATOR_H
-#define ROS_HYBRID_SDK_MSGGENERATOR_H
-
-#include <vector>
-#include "../Parser/typedef.h"
-
-using namespace std::string_literals;
-
-struct GenMsgServerUseOnlyResult
-{
-    std::string path;
-    std::vector<std::string> files;
-
-};
-
-inline GenMsgServerUseOnlyResult GenMsgServerUseOnly(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
-{
-    auto msgFileNamePython = R"(msgFileName = ")" + msgFileName + "\"\n";
-    std::string GenMsgServerUseOnlyResult_py_path1 =
-            R"(
+msgFileName = "/home/pi/MyMsg.msg"  # will be replaced
 import re
 import sys
 import os
 import time
+
 msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
 
 
@@ -59,11 +35,22 @@ class TypeTrail:
             res = 'static const {} = {}'.format(res, self.constData)
         return '    ' + res + ';\n'
 
-
-
-)";
-    std::string GenMsgServerUseOnlyResult_py_path2 =
-            R"(
+# will be replaced
+msgVars = [
+    TypeTrail(17, 2, '', '', 0, '1', 'DEBUG'),
+    TypeTrail(17, 2, '', '', 0, '2', 'INFO'),
+    TypeTrail(17, 2, '', '', 0, '4', 'WARN'),
+    TypeTrail(17, 2, '', '', 0, '8', 'ERROR'),
+    TypeTrail(17, 2, '', '', 0, '16', 'FATAL'),
+    TypeTrail(2, 0, 'Header', 'std_msgs', 0, '', 'header'),
+    TypeTrail(1, 2, '', '', 0, '', 'level'),
+    TypeTrail(1, 12, '', '', 0, '', 'name'),
+    TypeTrail(1, 12, '', '', 0, '', 'msg'),
+    TypeTrail(1, 12, '', '', 0, '', 'file'),
+    TypeTrail(1, 12, '', '', 0, '', 'function'),
+    TypeTrail(1, 7, '', '', 0, '', 'line'),
+    TypeTrail(65, 12, '', '', 0, '', 'topics'),
+]
 
 header = '''
 //
@@ -184,13 +171,14 @@ for var in msgVars:
             coverMsgContent += \
                 '''
                     Msg1.{0}.reserve(Msg2.{0}.size());
-                    for (int i = 0; i < Msg2.{0}.size(); ++i) {{
+                    for (int i = 0; i < Msg2.{0}.size(); ++i) {{ 
                         Msg1.{0}.push_back({1}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{0}[i]));
                     }}
                 '''.format(var.varName, var.msgPackage)
         else:
             coverMsgContent += \
-                '    Msg1.{0} = {1}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{0});\n'.format(var.varName, var.msgType)
+                '    Msg1.{0} = {1}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{0});\n'.format(var.varName,
+                                                                                                      var.msgType)
 
 coverMsgStartEnd = '''
 template <typename TypeMsg1, typename TypeMsg2>
@@ -280,52 +268,3 @@ with open('result.txt', 'w') as f:
     f.write('{}.cpp'.format(msgName))
     f.write('\n')
     f.write('CMakeLists.txt')
-
-)";
-    std::string msgVars = R"(
-msgVars = [
-)";
-
-    auto toPythonTypeTrail = [](const TypeTrail &var) -> std::string
-    {
-        std::string result = "TypeTrail(";
-        result += std::to_string(static_cast<int>(var.fieldType)) + ", ";
-        result += std::to_string(static_cast<int>(var.builtInType)) + ", ";
-        result += "'" + var.msgType + "', ";
-        result += "'" + var.msgPackage + "', ";
-        result += std::to_string(var.arraySize) + ", ";
-        result += "'" + var.constData + "', ";
-        result += "'" + var.name + "'";
-        result += ")";
-        return result;
-    };
-
-    for (auto &var: vars) {
-        msgVars += "    " + toPythonTypeTrail(var) + ",\n";
-    }
-
-    msgVars += "]\n";
-
-    // write to file
-    auto GenMsgServerUseOnlyResult_py =
-            msgFileNamePython + GenMsgServerUseOnlyResult_py_path1 + msgVars + GenMsgServerUseOnlyResult_py_path2;
-    std::ofstream GenMsgServerUseOnlyResult_py_file("GenMsgServerUseOnlyResult.py");
-    GenMsgServerUseOnlyResult_py_file << GenMsgServerUseOnlyResult_py;
-    GenMsgServerUseOnlyResult_py_file.close();
-
-    // run python script
-    auto systemRes = system("python3 GenMsgServerUseOnlyResult.py");
-    if (systemRes != 0)
-        throw std::runtime_error("run python script failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-
-    std::ifstream result_file("result.txt");
-    GenMsgServerUseOnlyResult result;
-    result_file >> result.path;
-    std::string tmp;
-    while (result_file >> tmp)
-        result.files.emplace_back(std::move(tmp));
-    result_file.close();
-    return result;
-}
-
-#endif //ROS_HYBRID_SDK_MSGGENERATOR_H

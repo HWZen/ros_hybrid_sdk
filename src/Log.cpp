@@ -3,7 +3,7 @@
 //
 
 #include "Log.h"
-#include <Log/Log.h>
+#include "MsgWrapper/rosgraph_msgs/Log.h"
 #include "SDKException.h"
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -56,6 +56,15 @@ void ros_log_sink::sink_it_(const spdlog::details::log_msg &msg)
     formatter_->format(msg, formatted);
 //    ROS_LOG((ros::console::Level) level, ROSCONSOLE_DEFAULT_NAME, "%s", formatted.data());
     hybrid::Log log;
+
+    auto getHeader = [](const std::string& frame_id = ""){
+        static std::atomic_uint32_t seq{0};
+        hybrid::Header header;
+        header.seq = ++seq;
+        header.stamp = ros::Time::now();
+        header.frame_id = frame_id;
+        return header;
+    };
     log.header = getHeader();
     log.name = msg.logger_name.data();
     log.msg = {formatted.data(), formatted.size()};
