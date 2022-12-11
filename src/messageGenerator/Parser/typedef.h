@@ -52,24 +52,6 @@ enum class BuiltInType : int
     Duration,
 };
 
-// bind BuiltInType and c++ type name
-inline std::unordered_map<BuiltInType, std::string> BuiltInTypeCppTypeMap{
-        {BuiltInType::None,     "None"},
-        {BuiltInType::Bool,     "uint8_t"},
-        {BuiltInType::Int8,     "int8_t"},
-        {BuiltInType::UInt8,    "uint8_t"},
-        {BuiltInType::Int16,    "int16_t"},
-        {BuiltInType::UInt16,   "uint16_t"},
-        {BuiltInType::Int32,    "int32_t"},
-        {BuiltInType::UInt32,   "uint32_t"},
-        {BuiltInType::Int64,    "int64_t"},
-        {BuiltInType::UInt64,   "uint64_t"},
-        {BuiltInType::Float32,  "float"},
-        {BuiltInType::Float64,  "double"},
-        {BuiltInType::String,   "std::string"},
-        {BuiltInType::Time,     "ros::Time"},
-        {BuiltInType::Duration, "ros::Duration"},
-};
 
 //bind ros type name and BuiltInType
 inline std::unordered_map<std::string, BuiltInType> RosTypeBuiltInTypeMap{
@@ -138,7 +120,9 @@ inline TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strT
     }
     else
     {
-        res.msgPackage = std::regex_replace(strType, std::regex{R"((.*/)?(\w+))"} , "$1");
+        if (std::regex_match(strType, std::regex{R"((.*)/.*)"}))
+            res.msgPackage = std::regex_replace(strType, std::regex{R"((.*)/.*)"} , "$1");
+
         if (res.msgPackage.empty()){
             // get msg package by system call 'rosmsg show'
             auto systemRes = system(("rosmsg show " + removeSuffixType + " > rosmsg.tmp").c_str());

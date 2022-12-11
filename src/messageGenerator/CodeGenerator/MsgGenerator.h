@@ -174,23 +174,26 @@ for var in msgVars:
     if var.fieldType & 0x10:  # FieldTypes::Constexpr
         continue
     if var.fieldType & 0x01:  # FieldTypes::Builtin
-        coverMsgContent += '    Msg1.{0} = Msg2.{0};\n'.format(var.varName)
+        if var.fieldType & 0x20:  # FieldTypes::Array
+            coverMsgContent += '    std::copy(Msg2.{0}.begin(), Msg2.{0}.end(), Msg1.{0}.begin());\n'.format(var.varName)
+        else:
+            coverMsgContent += '    Msg1.{0} = Msg2.{0};\n'.format(var.varName)
     elif var.fieldType & 0x02:  # FieldTypes::Msg
         if var.fieldType & 0x20:  # FieldTypes::Array
             coverMsgContent += \
-                '    for (int i = 0; i < {0}; ++i) {{ Msg1.{1}[i] = {2}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{1}[i]); }}\n' \
-                    .format(var.arraySize, var.varName, var.msgPackage)
+'    for (int i = 0; i < {0}; ++i) {{ Msg1.{1}[i] = {2}Cover<typename decltype(Msg1.{1})::value_type, typename decltype(Msg2.{1})::value_type>(Msg2.{1}[i]); }}\n' \
+                    .format(var.arraySize, var.varName, var.msgType)
         elif var.fieldType & 0x40:  # FieldTypes::Vector
             coverMsgContent += \
-                '''
-                    Msg1.{0}.reserve(Msg2.{0}.size());
-                    for (int i = 0; i < Msg2.{0}.size(); ++i) {{
-                        Msg1.{0}.push_back({1}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{0}[i]));
-                    }}
-                '''.format(var.varName, var.msgPackage)
+'''
+    Msg1.{0}.reserve(Msg2.{0}.size());
+    for (int i = 0; i < Msg2.{0}.size(); ++i) {{
+        Msg1.{0}.push_back({1}Cover<typename decltype(Msg1.{0})::value_type, typename decltype(Msg2.{0})::value_type>(Msg2.{0}[i]));
+    }}
+'''.format(var.varName, var.msgType)
         else:
             coverMsgContent += \
-                '    Msg1.{0} = {1}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{0});\n'.format(var.varName, var.msgType)
+'    Msg1.{0} = {1}Cover<decltype(Msg1.{0}), decltype(Msg2.{0})>(Msg2.{0});\n'.format(var.varName, var.msgType)
 
 coverMsgStartEnd = '''
 template <typename TypeMsg1, typename TypeMsg2>
