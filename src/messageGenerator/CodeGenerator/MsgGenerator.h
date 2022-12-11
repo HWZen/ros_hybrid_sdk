@@ -331,4 +331,15 @@ msgVars = [
     return result;
 }
 
+
+
+
+using GenMsgServerResult = std::vector<std::string>;
+
+inline  GenMsgServerResult GenMsgServer(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
+{
+
+}
+
+
 #endif //ROS_HYBRID_SDK_MSGGENERATOR_H

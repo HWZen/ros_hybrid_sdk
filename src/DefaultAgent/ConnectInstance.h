@@ -9,6 +9,7 @@
 
 #include "../RefSocketor.h"
 #include <memory>
+#include <asio/experimental/awaitable_operators.hpp>
 
 class ConnectInstance
 {
@@ -17,7 +18,7 @@ public:
 
     ~ConnectInstance();
 
-    int MAIN();
+    asio::awaitable<int> MAIN();
 private:
     struct Impl;
     Impl *implPtr;

@@ -11,6 +11,9 @@ add_definitions(-DASIO_SEPARATE_COMPILATION)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+find_package(Protobuf CONFIG REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   actionlib_msgs
@@ -128,12 +131,12 @@ include_directories(
         include/RapidJSON/include
         include/spdlog/include
         include
-        src/MsgWrapper
 )
 
 ## Declare a C++ library
 
-add_subdirectory(src/MsgWrapper/Log)
+add_subdirectory(src/MsgWrapper/rosgraph_msgs)
+add_subdirectory(src/MsgWrapper/std_msgs)
 
 add_library(${PROJECT_NAME}
      src/testlib.cpp
@@ -158,7 +161,9 @@ add_executable(${PROJECT_NAME}_server
          src/Agent/Agent.cpp
          src/Log.cpp
          src/DefaultAgent/ConnectInstance.cpp
-         )
+         src/DefaultAgent/DefaultCommand.cpp
+         src/CommandMsg/Command.pb.cc
+        )
 target_compile_options(${PROJECT_NAME}_server PRIVATE -std=c++20)
 
 
@@ -187,6 +192,9 @@ target_link_libraries(${PROJECT_NAME}_server
         spdlog
         asio
         wrapperLog
+        wrapperHeader
+        protobuf::libprotobuf
+        dl
         )
 
 target_link_libraries(${PROJECT_NAME}_test

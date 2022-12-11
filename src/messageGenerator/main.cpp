@@ -108,6 +108,8 @@ void parseFile(const std::string &fileName, const std::string &fileContent)
                 std::cerr << e.what();
             }
         }
+    } else if (g_config.server){
+
     }
 
     // TODO: gen code for transfer

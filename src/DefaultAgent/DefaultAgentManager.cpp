@@ -42,7 +42,7 @@ struct DefaultAgentManager::Impl
 
     int recv_fd();
 
-    Log logger{"DefaultAgentManager", static_cast<LogFlag>(LogFlag::CONSOLE_LOGGER | LogFlag::ROS_LOGGER)};
+    Log logger{"DefaultAgentManager", LogFlag::CONSOLE_LOGGER | LogFlag::ROS_LOGGER};
 
     [[noreturn]] void MAIN();
 
@@ -227,7 +227,7 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
                 auto refConnectInstance = std::make_shared<ConnectInstance>(client);
                 connectInstances.insert(refConnectInstance);
                 try {
-                    refConnectInstance->MAIN();
+                    co_await refConnectInstance->MAIN();
                 }
                 catch (std::exception &e) {
                     logger.error("ConnectInstance::MAIN error, reason: {}", e.what());

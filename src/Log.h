@@ -23,7 +23,7 @@ enum class LogFlag : int
 
 constexpr inline auto operator|(const LogFlag &a, const LogFlag &b)
 {
-    return (int) a | (int) b;
+    return static_cast<LogFlag>(((int) a | (int) b));
 }
 
 constexpr inline auto operator&(const LogFlag &a, const LogFlag &b)
