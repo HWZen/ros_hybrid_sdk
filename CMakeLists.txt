@@ -15,15 +15,15 @@ add_definitions(-DASIO_SEPARATE_COMPILATION)
 find_package(Protobuf CONFIG REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  actionlib_msgs
-  dynamic_reconfigure
-  message_generation
-  message_runtime
-  roscpp
-  rospy
-  std_msgs
-)
+        actionlib
+        actionlib_msgs
+        dynamic_reconfigure
+        message_generation
+        message_runtime
+        roscpp
+        rospy
+        std_msgs
+        )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -59,10 +59,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   MyMsg.msg
- )
+add_message_files(
+        FILES
+        MyMsg.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -79,10 +79,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs#   std_msgs
- )
+generate_messages(
+        DEPENDENCIES
+        std_msgs#   std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -114,10 +114,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ros_hybird_sdk_server
-  CATKIN_DEPENDS actionlib actionlib_msgs dynamic_reconfigure message_generation message_runtime roscpp rospy std_msgs
-#  DEPENDS system_lib
+        #  INCLUDE_DIRS include
+        #  LIBRARIES ros_hybird_sdk_server
+        CATKIN_DEPENDS actionlib actionlib_msgs dynamic_reconfigure message_generation message_runtime roscpp rospy std_msgs
+        #  DEPENDS system_lib
 )
 
 ###########
@@ -127,7 +127,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
         include/RapidJSON/include
         include/spdlog/include
         include
@@ -139,8 +139,8 @@ add_subdirectory(src/MsgWrapper/rosgraph_msgs)
 add_subdirectory(src/MsgWrapper/std_msgs)
 
 add_library(${PROJECT_NAME}
-     src/testlib.cpp
-         src/json.h src/Agent/Agent.cpp src/Agent/Agent.h)
+        src/testlib.cpp
+        src/json.h src/Agent/Agent.cpp src/Agent/Agent.h)
 
 add_library(asio STATIC src/asio.cpp)
 target_compile_options(asio PRIVATE -std=c++20)
@@ -155,22 +155,29 @@ target_compile_options(asio PRIVATE -std=c++20)
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_server
-         src/main.cpp
-         src/DispatchServer.cpp
-         src/DefaultAgent/DefaultAgentManager.cpp
-         src/Agent/Agent.cpp
-         src/Log.cpp
-         src/DefaultAgent/ConnectInstance.cpp
-         src/DefaultAgent/DefaultCommand.cpp
-         src/CommandMsg/Command.pb.cc
+        src/main.cpp
+        src/DispatchServer.cpp
+        src/DefaultAgent/DefaultAgentManager.cpp
+        src/Agent/Agent.cpp
+        src/Log.cpp
+        src/DefaultAgent/ConnectInstance.cpp
+        src/DefaultAgent/DefaultCommand.cpp
+        src/CommandMsg/Command.pb.cc
         )
 target_compile_options(${PROJECT_NAME}_server PRIVATE -std=c++20)
 
 
-add_executable(${PROJECT_NAME}_test src/test.cpp )
+add_executable(${PROJECT_NAME}_test src/test.cpp)
 target_compile_options(${PROJECT_NAME}_test PRIVATE -std=c++14)
 
-add_executable(${PROJECT_NAME}_protoc src/messageGenerator/main.cpp)
+add_executable(${PROJECT_NAME}_protoc
+        src/messageGenerator/main.cpp
+        src/messageGenerator/Parser/MsgParser.cpp
+        src/messageGenerator/CodeGenerator/GenMsgServerUseOnly.cpp
+        src/messageGenerator/CodeGenerator/GenGoogleProtobuf.cpp
+        src/messageGenerator/Parser/typedef.cpp
+        src/messageGenerator/Parser/Preprocessor.cpp
+        )
 target_compile_options(${PROJECT_NAME}_protoc PRIVATE -std=c++17)
 
 ## Rename C++ executable without prefix

@@ -1,28 +1,17 @@
 //
-// Created by HWZen on 2022/12/8.
+// Created by HWZen on 2022/12/12.
 // Copyright (c) 2022 HWZen All rights reserved.
 // MIT License
-// 
-
-#ifndef ROS_HYBRID_SDK_MSGGENERATOR_H
-#define ROS_HYBRID_SDK_MSGGENERATOR_H
-
-#include <vector>
-#include "../Parser/typedef.h"
+//
+#include "GenMsgServerUseOnly.h"
+#include <fstream>
 
 using namespace std::string_literals;
 
-struct GenMsgServerUseOnlyResult
-{
-    std::string path;
-    std::vector<std::string> files;
-
-};
-
-inline GenMsgServerUseOnlyResult GenMsgServerUseOnly(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
+GenCodeResult GenMsgServerUseOnly(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
 {
     auto msgFileNamePython = R"(msgFileName = ")" + msgFileName + "\"\n";
-    std::string GenMsgServerUseOnlyResult_py_path1 =
+    std::string GenMsgServerUseOnlyResult_py_part1 =
             R"(
 import re
 import sys
@@ -62,7 +51,7 @@ class TypeTrail:
 
 
 )";
-    std::string GenMsgServerUseOnlyResult_py_path2 =
+    std::string GenMsgServerUseOnlyResult_py_part2 =
             R"(
 
 header = '''
@@ -311,7 +300,7 @@ msgVars = [
 
     // write to file
     auto GenMsgServerUseOnlyResult_py =
-            msgFileNamePython + GenMsgServerUseOnlyResult_py_path1 + msgVars + GenMsgServerUseOnlyResult_py_path2;
+            msgFileNamePython + GenMsgServerUseOnlyResult_py_part1 + msgVars + GenMsgServerUseOnlyResult_py_part2;
     std::ofstream GenMsgServerUseOnlyResult_py_file("GenMsgServerUseOnlyResult.py");
     GenMsgServerUseOnlyResult_py_file << GenMsgServerUseOnlyResult_py;
     GenMsgServerUseOnlyResult_py_file.close();
@@ -322,7 +311,7 @@ msgVars = [
         throw std::runtime_error("run python script failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
 
     std::ifstream result_file("result.txt");
-    GenMsgServerUseOnlyResult result;
+    GenCodeResult result;
     result_file >> result.path;
     std::string tmp;
     while (result_file >> tmp)
@@ -330,16 +319,3 @@ msgVars = [
     result_file.close();
     return result;
 }
-
-
-
-
-using GenMsgServerResult = std::vector<std::string>;
-
-inline  GenMsgServerResult GenMsgServer(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
-{
-
-}
-
-
-#endif //ROS_HYBRID_SDK_MSGGENERATOR_H

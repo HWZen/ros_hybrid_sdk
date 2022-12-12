@@ -7,24 +7,9 @@
 #ifndef ROS_HYBRID_SDK_MSGPARSER_H
 #define ROS_HYBRID_SDK_MSGPARSER_H
 
-#include "Preprocessing.h"
 #include "typedef.h"
-#include <regex>
+#include <vector>
 
-
-
-
-inline std::vector<TypeTrail> MsgParser(const std::string& fileBuf){
-
-    auto preprocessRes = Preprocessing(fileBuf);
-
-    std::vector<TypeTrail> res;
-    for (auto& var : preprocessRes){
-        res.emplace_back(TypeTrailParser(var));
-    }
-
-    return res;
-
-}
+std::vector<TypeTrail> MsgParser(const std::string& fileBuf);
 
 #endif //ROS_HYBRID_SDK_MSGPARSER_H

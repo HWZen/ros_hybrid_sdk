@@ -1,20 +1,11 @@
 //
-// Created by HWZen on 2022/12/8.
+// Created by HWZen on 2022/12/12.
 // Copyright (c) 2022 HWZen All rights reserved.
 // MIT License
-// 
-
-#ifndef ROS_HYBRID_SDK_PREPROCESSING_H
-#define ROS_HYBRID_SDK_PREPROCESSING_H
-
-#include <string>
-#include <vector>
-#include <stdexcept>
+//
+#include "Preprocessor.h"
 #include <regex>
-
-using namespace std::string_literals;
-
-inline std::vector<std::pair<std::string, std::string>> Preprocessing(const std::string &fileBuf)
+std::vector<std::pair<std::string, std::string>> Preprocessor(const std::string &fileBuf)
 {
 
     std::string buf;
@@ -55,6 +46,3 @@ inline std::vector<std::pair<std::string, std::string>> Preprocessing(const std:
 
     return res;
 }
-
-
-#endif //ROS_HYBRID_SDK_PREPROCESSING_H
