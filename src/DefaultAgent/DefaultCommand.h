@@ -9,7 +9,6 @@
 
 #include "../CommandMsg/Command.pb.h"
 #include "../Log.h"
-#include <ros/ros.h>
 
 namespace hybrid{
     class MsgPublisher{
@@ -17,10 +16,6 @@ namespace hybrid{
         MsgPublisher(const std::string &topic, uint32_t queue_size, bool latch = false){};
         virtual void publish(const std::string &msg) = 0;
         virtual ~MsgPublisher() = default;
-
-    protected:
-        ros::NodeHandle nh{};
-        ros::Publisher pub{};
     };
 
     class MsgSubscriber{

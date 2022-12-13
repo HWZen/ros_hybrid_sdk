@@ -3,6 +3,7 @@ import re
 import sys
 import os
 import time
+from enum import IntEnum
 
 msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
 
@@ -16,23 +17,6 @@ class TypeTrail:
         self.arraySize = arraySize
         self.constData = constData
         self.varName = varName
-
-    def addVarDef(self) -> str:
-        if self.fieldType & 0x01:  # FieldTypes::Builtin
-            typeName = builtInTypeCppTypeMap[self.builtinType]
-        else:
-            typeName = self.msgType
-
-        if self.fieldType & 0x20:  # FieldTypes::Array
-            res = 'std::array<{}, {}> {}'.format(typeName, self.arraySize, self.varName)
-        elif self.fieldType & 0x40:  # FieldTypes::Vector
-            res = 'std::vector<{}> {}'.format(typeName, self.varName)
-        else:
-            res = '{} {}'.format(typeName, self.varName)
-
-        if self.fieldType & 0x10:  # FieldTypes::Constexpr
-            res = 'static const {} = {}'.format(res, self.constData)
-        return '    ' + res + ';\n'
 
 # will be replaced
 msgVars = [
@@ -49,8 +33,21 @@ msgVars = [
     TypeTrail(1, 12, '', '', 0, '', 'function'),
     TypeTrail(1, 7, '', '', 0, '', 'line'),
     TypeTrail(65, 12, '', '', 0, '', 'topics'),
+    TypeTrail(0x01 | 0x40, 6, '', '', 0, '', 'vi'),
+    TypeTrail(0x01 | 0x20, 12, '', '', 5, '', 'strs'),
+    TypeTrail(0x02 | 0x40, 0, 'Byte', 'std_msgs', 0, '', 'bytes'),
+    TypeTrail(0x02 | 0x20, 0, 'Int32', 'std_msgs', 5, '', 'int5'),
+    TypeTrail(0x01, 12, '', '', 0, '', 'stamp'),
+    TypeTrail(0x01, 2, '', '', 0, '', 'data')
 ]
 
+
+class FieldTypes(IntEnum):
+    BuiltIn         = 0x01
+    Msg             = 0x02
+    Constexpr       = 0x10
+    Array           = 0x20
+    Vector          = 0x40
 
 header = '''
 //
@@ -81,8 +78,6 @@ builtInTypeCppTypeMap = [
     "ros::Duration"
 ]
 
-hybridMsgType = 'hybrid::' + msgName
-
 systemRes = os.system('rosmsg show {} > {}.tmp'.format(msgName, msgName))
 if systemRes != 0:
     print('rosmsg show {} failed!'.format(msgName))
@@ -90,5 +85,228 @@ if systemRes != 0:
 
 with open('{}.tmp'.format(msgName), 'r') as f:
     [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
-    rosMsgType = rosNamespace + '::' + rosMsgType
+    rosMsgType = '::' + rosNamespace + '::' + rosMsgType
 os.remove('{}.tmp'.format(msgName))
+hybridMsgType = '::hybrid' + rosMsgType
+
+defineStart = \
+'''
+#ifndef HYBRID_MSG_{0}_CPP
+#define HYBRID_MSG_{0}_CPP
+'''.format(msgName.upper())
+
+defineEnd = \
+'''
+#endif // HYBRID_MSG_{}_CPP
+'''.format(msgName.upper())
+
+include = '#include "{}.pb.h"\n'.format(msgName)
+
+include += \
+'''
+#include <memory>
+#include <functional>
+#include <ros/node_handle.h>
+#include <interface.h>
+'''
+
+include += '#include <{}/{}.h>\n'.format(rosNamespace, msgName)
+
+for var in msgVars:
+    if var.fieldType & FieldTypes.Msg:  # FieldTypes::Msg
+        include += '#include <{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
+
+xxxCoverToProtoContent = ''
+for var in msgVars:
+    if var.fieldType & FieldTypes.Constexpr:
+        continue
+    if var.fieldType & FieldTypes.BuiltIn:
+        if var.builtinType == 13:  # Time
+            if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
+                xxxCoverToProtoContent += \
+'''
+    for (auto &data : rosMsg.{0}) {{
+        auto *p = protoMsg.add_{0}();
+        p->set_seconds(data.sec);
+        p->set_nanos(static_cast<int32_t>(data.nsec));    
+'''.format(var.varName)
+                continue
+            else:
+                xxxCoverToProtoContent += \
+'''
+    protoMsg.mutable_{0}()->set_seconds(rosMsg.{0}.sec);
+    protoMsg.mutable_{0}()->set_nanos(static_cast<int32_t>(rosMsg.{0}.nsec));
+'''.format(var.varName)
+                continue
+            # TODO: duration
+        if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
+            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) protoMsg.add_{0}(data); \n'.format(var.varName)
+        else:
+            xxxCoverToProtoContent += '    protoMsg.set_{0}(rosMsg.{0}); \n'.format(var.varName)
+    elif var.fieldType & FieldTypes.Msg:
+        if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
+            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) *protoMsg.add_{0}() = {1}CoverToHybrid(data); \n'.format(
+                var.varName, var.msgType)
+        else:
+            xxxCoverToProtoContent += '    *protoMsg.mutable_{0}() = {1}CoverToHybrid(rosMsg.{0}); \n'\
+                .format(var.varName, var.msgType)
+
+
+xxxCoverToProtoStartEnd = \
+'''
+{0} {1}CoverToProto(const {2} &rosMsg)
+{{
+    {0} protoMsg;
+{3}
+    return protoMsg;
+}}
+'''.format(hybridMsgType, msgName, rosMsgType, xxxCoverToProtoContent)
+
+xxxCoverToRosContent = ''
+for var in msgVars:
+    if var.fieldType & FieldTypes.Constexpr:
+        continue
+    if var.fieldType & FieldTypes.BuiltIn:
+        if var.builtinType == 13:  # Time
+            if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
+                xxxCoverToRosContent += \
+'''
+    for (auto &data : protoMsg.{0}())
+        rosMsg.{0}.emplace_back(ros::Time(data.seconds(), data.nanos()));
+'''.format(var.varName)
+                continue
+            else:
+                xxxCoverToRosContent += \
+'''
+    rosMsg.{0}.sec = protoMsg.{0}().seconds();
+    rosMsg.{0}.nsec = protoMsg.{0}().nanos();
+'''.format(var.varName)
+                continue
+        if var.fieldType & FieldTypes.Array:
+            xxxCoverToRosContent += \
+'''
+    if (protoMsg.{0}_size() != {1}::_{0}_type::size())
+        throw std::runtime_error("size of {0} is not match!");
+    for (size_t i = 0; i < {1}::_{0}_type::size(); ++i)
+        rosMsg.{0}[i] = protoMsg.{0}(static_cast<int>(i));    
+'''.format(var.varName, rosMsgType)
+        elif var.fieldType & FieldTypes.Vector:
+            xxxCoverToRosContent += '    std::copy(protoMsg.{0}().begin(), protoMsg.{0}().end(), std::back_inserter(rosMsg.{0}));\n'\
+                .format(var.varName)
+    else:
+        if var.fieldType & FieldTypes.Array:
+            xxxCoverToRosContent += \
+'''
+    if (protoMsg.{0}_size() != {1}::_{0}_type::size())
+        throw std::runtime_error("size of {0} is not match!");
+    for (size_t i = 0; i < {1}::_{0}_type::size(); ++i)
+        rosMsg.{0}[i] = {2}CoverToRos(protoMsg.{0}(static_cast<int>(i)));
+'''.format(var.varName, rosMsgType, var.msgType)
+        elif var.fieldType & FieldTypes.Vector:
+            xxxCoverToRosContent += \
+'''
+    rosMsg.{0}.reserve(protoMsg.{0}_size());
+    for (const auto &data : protoMsg.{0}())
+        rosMsg.{0}.emplace_back({1}CoverToRos(data));
+'''.format(var.varName, var.msgType)
+
+
+xxxCoverToRosStartEnd = \
+'''
+{0} {1}CoverToRos(const {2} &protoMsg)
+{{
+    {0} rosMsg;
+{3}
+    return rosMsg;
+}}
+'''.format(rosMsgType, msgName, hybridMsgType, xxxCoverToRosContent)
+
+
+Build_xxx_SHARED_LIB_defineStart = '#ifdef BUILD_{}_SHARED_LIB\n'.format(msgName.upper())
+
+namespaceStart = 'namespace hybrid\n{'
+namespaceEnd = '} // namespace hybrid'
+
+Build_xxx_SHARED_LIB_defineEnd = '#endif // BUILD_{}_SHARED_LIB\n'.format(msgName.upper())
+
+classMsgPublisher = \
+'''
+class {0}Publisher : public MsgPublisher
+{{
+public:
+    {0}Publisher(const std::string &topic, uint32_t queue_size, bool latch = false) : MsgPublisher(topic,
+                                                                                                  queue_size,
+                                                                                                  latch)
+    {{
+        pub = nh.advertise<{3}>(topic, queue_size, latch);
+    }}
+    
+    void publish(const std::string &msgBuf) override
+    {{
+        {1}  protoMsg;
+        if (!protoMsg.ParseFromString(msgBuf))
+            throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
+
+        pub.publish({2}CoverToRos(protoMsg));
+    }}
+    
+    ~{0}Publisher() override = default;
+    private:
+        ros::NodeHandle nh{{}};
+        ros::Publisher pub{{}};
+}};                                                                            
+'''.format(msgName, hybridMsgType, msgName, rosMsgType)
+
+classMsgSubscriber = \
+'''
+class {0}Subscriber : public MsgSubscriber
+{{
+public:
+    {0}Subscriber(const std::string &topic, uint32_t queue_size, const std::function<void(std::string)> &callback)
+                : MsgSubscriber(topic,
+                                queue_size,
+                                callback)
+    {{
+        sub = nh.subscribe(topic, queue_size,
+                               boost::function<void(const {1}::ConstPtr &ros_msg)>(
+                                       [callback](const {1}::ConstPtr &ros_msg)
+                                       {{
+                                           callback(MyMsgCoverToProto(*ros_msg).SerializeAsString());
+                                       }}
+                               )
+       );
+    }}
+    
+    ~{0}Subscriber() override = default;
+private:
+    ros::NodeHandle nh{{}};
+    ros::Subscriber sub{{}};
+}};
+'''.format(msgName, rosMsgType)
+
+externCInterface = \
+'''
+extern "C" {{
+hybrid::MsgPublisher *make_publisher(const std::string &topic, uint32_t queue_size, bool latch)
+{{
+    return new hybrid::{0}Publisher(topic, queue_size, latch);
+}}
+hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_size, const std::function<void(std::string)> &callback)
+{{
+    return new hybrid::{0}Subscriber(topic, queue_size, callback);
+}}
+}}
+'''.format(msgName)
+
+# output file
+xxx_server_cpp = header + defineStart + include + xxxCoverToProtoStartEnd + xxxCoverToRosStartEnd + \
+                 Build_xxx_SHARED_LIB_defineStart + namespaceStart + classMsgPublisher + classMsgSubscriber + \
+                 namespaceEnd + externCInterface + Build_xxx_SHARED_LIB_defineEnd + defineEnd
+
+with open('{}.server.cpp'.format(msgName), 'w') as f:
+    f.write(xxx_server_cpp)
+
+with open('result.txt', 'w') as f:
+    f.write(rosNamespace)
+    f.write('{}.server.cpp'.format(msgName))
+

@@ -8,8 +8,9 @@
 #include <fstream>
 #include <filesystem>
 #include "Parser/MsgParser.h"
-#include "CodeGenerator/MsgGenerator.h"
+#include "CodeGenerator/CodeGenerator.h"
 #include "Config.h"
+using namespace std::string_literals;
 
 
 void parseParam(int argc, char **argv);
@@ -44,72 +45,22 @@ catch (std::exception &e) {
     std::cerr << "catch exception: " << e.what();
 }
 
+static void MsgMode(const std::string &fileName, const std::string &fileContent);
+static void SrvMode(const std::string &fileName, const std::string &fileContent);
+static void ActionMode(const std::string &fileName, const std::string &fileContent);
+
+
 void parseFile(const std::string &fileName, const std::string &fileContent)
 {
-
-    enum class FileType
-    {
-        None,
-        Msg,
-        Srv,
-        Action
-    };
-    // 1. specify the file type by suffix
-    FileType fileType = FileType::None;
     if (auto res = fileName.find(".msg");res != std::string::npos && res == fileName.size() - 4) {
-        fileType = FileType::Msg;
+        MsgMode(fileName, fileContent);
     } else if (res = fileName.find(".srv");res != std::string::npos && res == fileName.size() - 4) {
-        fileType = FileType::Srv;
+        SrvMode(fileName, fileContent);
     } else if (res = fileName.find(".action");res != std::string::npos && res == fileName.size() - 7) {
-        fileType = FileType::Action;
+        ActionMode(fileName, fileContent);
     } else {
         std::cerr << "unknown file type\n";
         return;
-    }
-
-    // 2. parse the file
-    std::vector<TypeTrail> parseRes;
-    switch (fileType) {
-        case FileType::Msg:
-            std::cout << "parse msg file\n";
-            parseRes = MsgParser(fileContent);
-            break;
-        case FileType::Srv:
-            std::cout << "parse srv file\n";
-            break;
-        case FileType::Action:
-            std::cout << "parse action file\n";
-            break;
-        default:
-            throw std::logic_error("unknown file type" " file: " __FILE__ " line: "s + std::to_string(__LINE__));
-    }
-
-    if (g_config.onlyServer) {
-        auto res = GenMsgServerUseOnly(fileName, parseRes);
-        std::string outPath = g_config.output + "/" + res.path;
-        // move  files to outPath
-        std::filesystem::create_directories(outPath);
-        for (auto &file: res.files) {
-            try {
-                if (file == "CMakeLists.txt"){
-                    auto systemRes = std::system(("cat "s + file + " >> "s + outPath + "/" + file).c_str());
-                    if (systemRes != 0) {
-                        throw std::runtime_error("cat file fail"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-                    }
-                    std::filesystem::remove(file);
-                    continue;
-                }
-                auto systemRes = std::system(("mv "s + file + " "s + outPath + "/"s).c_str());
-                if (systemRes != 0)
-                    throw std::runtime_error(
-                            "move file: " + file + " fail"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-            }
-            catch (std::exception &e) {
-                std::cerr << e.what();
-            }
-        }
-    } else if (g_config.server){
-
     }
 
     // TODO: gen code for transfer
@@ -165,5 +116,49 @@ void parseParam(int argc, char **argv)
         std::cout << "--only-for-server is only available for server\n";
         std::cout << options.help() << "\n";
         exit(0);
+    }
+}
+
+static void MsgMode(const std::string &fileName, const std::string &fileContent)
+{
+
+    auto parseRes = MsgParser(fileContent);
+    if (g_config.onlyServer) {
+        auto res = GenMsgServerUseOnly(fileName, parseRes);
+        std::string outPath = g_config.output + "/" + res.path;
+        // move  files to outPath
+        std::filesystem::create_directories(outPath);
+        for (auto &file: res.files) {
+            try {
+                if (file == "CMakeLists.txt"){
+                    auto systemRes = std::system(("cat "s + file + " >> "s + outPath + "/" + file).c_str());
+                    if (systemRes != 0) {
+                        throw std::runtime_error("cat file fail"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
+                    }
+                    std::filesystem::remove(file);
+                    continue;
+                }
+                auto systemRes = std::system(("mv "s + file + " "s + outPath + "/"s).c_str());
+                if (systemRes != 0)
+                    throw std::runtime_error(
+                            "move file: " + file + " fail"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
+            }
+            catch (std::exception &e) {
+                std::cerr << e.what();
+            }
+        }
+    } else if (g_config.server){
+        // if outPath not exist, create it as ros package
+        if(!std::filesystem::exists(g_config.output))
+            GenServerMsgBuildPackage(g_config.output);
+        // 1. generate xxx.proto
+        auto res = GenGoogleProtobuf(fileName, parseRes);
+        // TODO: in this case, add a param: ros_package_dir, same as -o
+        std::string outPath = g_config.output + "/" + res.path;
+        // move  files to outPath
+        for (auto &file : res.files)
+            std::filesystem::rename(file, outPath + "/"s + file);
+        // 2. generate xxx.h, xxx.cpp
+
     }
 }

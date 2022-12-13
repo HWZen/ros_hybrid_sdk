@@ -7,13 +7,10 @@
 #ifndef ROS_HYBRID_SDK_GOOGLEPROTOBUFGENERATOR_H
 #define ROS_HYBRID_SDK_GOOGLEPROTOBUFGENERATOR_H
 
+#include "GenCodeResult.h"
 #include "../Parser/typedef.h"
-#include <vector>
 
-inline std::string GoogleProtobufGenerator(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
-{
-
-}
+GenCodeResult GenGoogleProtobuf(const std::string &msgFileName, const std::vector<TypeTrail> &vars);
 
 
 #endif //ROS_HYBRID_SDK_GOOGLEPROTOBUFGENERATOR_H
