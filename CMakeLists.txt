@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(ros_hybrid_sdk)
 
+set(PROJECT_PREFIX ros_hybrid)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 
 
@@ -138,9 +140,9 @@ include_directories(
 add_subdirectory(src/MsgWrapper/rosgraph_msgs)
 add_subdirectory(src/MsgWrapper/std_msgs)
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_PREFIX}_dlltest
         src/testlib.cpp
-        src/json.h src/Agent/Agent.cpp src/Agent/Agent.h)
+        src/json.h src/Agent/Agent.cpp src/Agent/Agent.h src/messageGenerator/CodeGenerator/CodeGenerator.h)
 
 add_library(asio STATIC src/asio.cpp)
 target_compile_options(asio PRIVATE -std=c++20)
@@ -154,7 +156,7 @@ target_compile_options(asio PRIVATE -std=c++20)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_server
+add_executable(${PROJECT_PREFIX}_server
         src/main.cpp
         src/DispatchServer.cpp
         src/DefaultAgent/DefaultAgentManager.cpp
@@ -164,21 +166,21 @@ add_executable(${PROJECT_NAME}_server
         src/DefaultAgent/DefaultCommand.cpp
         src/CommandMsg/Command.pb.cc
         )
-target_compile_options(${PROJECT_NAME}_server PRIVATE -std=c++20)
+target_compile_options(${PROJECT_PREFIX}_server PRIVATE -std=c++20)
 
 
-add_executable(${PROJECT_NAME}_test src/test.cpp)
-target_compile_options(${PROJECT_NAME}_test PRIVATE -std=c++14)
+add_executable(${PROJECT_PREFIX}_test src/test.cpp)
+target_compile_options(${PROJECT_PREFIX}_test PRIVATE -std=c++14)
 
-add_executable(${PROJECT_NAME}_protoc
+add_executable(${PROJECT_PREFIX}_protoc
         src/messageGenerator/main.cpp
         src/messageGenerator/Parser/MsgParser.cpp
         src/messageGenerator/CodeGenerator/GenMsgServerUseOnly.cpp
         src/messageGenerator/CodeGenerator/GenGoogleProtobuf.cpp
         src/messageGenerator/Parser/typedef.cpp
         src/messageGenerator/Parser/Preprocessor.cpp
-        )
-target_compile_options(${PROJECT_NAME}_protoc PRIVATE -std=c++17)
+        src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.cpp src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.h src/messageGenerator/CodeGenerator/GenMsgServer.cpp src/messageGenerator/CodeGenerator/GenMsgServer.h)
+target_compile_options(${PROJECT_PREFIX}_protoc PRIVATE -std=c++17)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -194,7 +196,7 @@ target_compile_options(${PROJECT_NAME}_protoc PRIVATE -std=c++17)
 
 target_link_libraries(asio pthread)
 
-target_link_libraries(${PROJECT_NAME}_server
+target_link_libraries(${PROJECT_PREFIX}_server
         ${catkin_LIBRARIES}
         spdlog
         asio
@@ -204,7 +206,7 @@ target_link_libraries(${PROJECT_NAME}_server
         dl
         )
 
-target_link_libraries(${PROJECT_NAME}_test
+target_link_libraries(${PROJECT_PREFIX}_test
         ${catkin_LIBRARIES}
         -ldl
         -lpthread
