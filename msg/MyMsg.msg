@@ -1,0 +1,13 @@
+Header header
+string str
+int8 c
+int16 s
+int32 i
+int64 l
+time t
+duration du
+int32[] vi
+string[5] strs
+std_msgs/Byte[] bytes
+std_msgs/Int32[5] int5
+std_msgs/MultiArrayLayout layout
