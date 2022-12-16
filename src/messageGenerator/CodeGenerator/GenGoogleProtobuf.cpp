@@ -10,6 +10,7 @@ using namespace std::string_literals;
 
 GenCodeResult GenGoogleProtobuf(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
 {
+    std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
     auto GoogleProtobufGenerator_py_part1 = R"(
 import re
 import sys
@@ -155,6 +156,7 @@ with open('{}.proto'.format(msgName), 'w') as f:
 
 with open('result.txt', 'w') as f:
     f.write(rosNamespace)
+    f.write('\n')
     f.write('{}.proto'.format(msgName))
 
 )"s;
@@ -184,7 +186,7 @@ msgVars = [
     msgVars += "]\n";
 
     // write to file
-    auto GoogleProtobufGenerator_py = GoogleProtobufGenerator_py_part1 + msgVars + GoogleProtobufGenerator_py_part2;
+    auto GoogleProtobufGenerator_py = msgFileNamePy + GoogleProtobufGenerator_py_part1 + msgVars + GoogleProtobufGenerator_py_part2;
     std::ofstream ofs("GoogleProtobufGenerator.py");
     ofs << GoogleProtobufGenerator_py;
     ofs.close();

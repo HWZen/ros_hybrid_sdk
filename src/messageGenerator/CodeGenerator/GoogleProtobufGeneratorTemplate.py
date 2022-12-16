@@ -3,6 +3,7 @@ import re
 import sys
 import os
 import time
+from enum import IntEnum
 
 msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
 
@@ -26,20 +27,26 @@ msgVars = [
     TypeTrail(17, 2, '', '', 0, '8', 'ERROR'),
     TypeTrail(17, 2, '', '', 0, '16', 'FATAL'),
     TypeTrail(2, 0, 'Header', 'std_msgs', 0, '', 'header'),
-    TypeTrail(1, 2, '', '', 0, '', 'level'),
-    TypeTrail(1, 12, '', '', 0, '', 'name'),
-    TypeTrail(1, 12, '', '', 0, '', 'msg'),
-    TypeTrail(1, 12, '', '', 0, '', 'file'),
-    TypeTrail(1, 12, '', '', 0, '', 'function'),
-    TypeTrail(1, 7, '', '', 0, '', 'line'),
-    TypeTrail(65, 12, '', '', 0, '', 'topics'),
+    TypeTrail(1, 12, '', '', 0, '', 'str'),
+    TypeTrail(1, 2, '', '', 0, '', 'c'),
+    TypeTrail(1, 4, '', '', 0, '', 's'),
+    TypeTrail(1, 6, '', '', 0, '', 'i'),
+    TypeTrail(1, 8, '', '', 0, '', 'l'),
+    TypeTrail(1, 13, '', '', 0, '', 't'),
+    TypeTrail(1, 14, '', '', 0, '', 'du'),
     TypeTrail(0x01 | 0x40, 6, '', '', 0, '', 'vi'),
     TypeTrail(0x01 | 0x20, 12, '', '', 5, '', 'strs'),
     TypeTrail(0x02 | 0x40, 0, 'Byte', 'std_msgs', 0, '', 'bytes'),
     TypeTrail(0x02 | 0x20, 0, 'Int32', 'std_msgs', 5, '', 'int5'),
-    TypeTrail(0x01, 12, '', '', 0, '', 'stamp'),
-    TypeTrail(0x01, 2, '', '', 0, '', 'data')
+    TypeTrail(0x02, 0, 'MultiArrayLayout', 'std_msgs', 0, '', 'layout'),
 ]
+
+class FieldTypes(IntEnum):
+    BuiltIn         = 0x01
+    Msg             = 0x02
+    Constexpr       = 0x10
+    Array           = 0x20
+    Vector          = 0x40
 
 rosTypeBuiltInTypeProtoTypeMap = [
     'none',
@@ -164,4 +171,5 @@ with open('{}.proto'.format(msgName), 'w') as f:
 
 with open('result.txt', 'w') as f:
     f.write(rosNamespace)
+    f.write('\n')
     f.write('{}.proto'.format(msgName))
