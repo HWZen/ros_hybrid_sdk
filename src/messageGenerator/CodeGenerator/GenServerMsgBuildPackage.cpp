@@ -32,6 +32,10 @@ find_package(catkin REQUIRED COMPONENTS
         ros_hybrid_sdk
         )
 include_directories(./ ${catkin_INCLUDE_DIRS})
+add_library(HybridOption SHARED HybridOption.pb.cc)
+target_link_libraries(HybridOption PRIVATE  protobuf::libprotobuf)
+target_compile_options(HybridOption PRIVATE -std=c++17 -fPIC )
+
 )"s;
 
     auto package_xml =
@@ -53,7 +57,7 @@ R"(<?xml version="1.0"?>
     <!-- Url tags are optional, but multiple are allowed, one per tag -->
     <!-- Optional attribute type can be: website, bugtracker, or repository -->
     <!-- Example: -->
-    <!-- <url type="website">http://wiki.ros.org/ros_hybrid_sdk_server</url> -->
+    <!-- <url type="website">http://wiki.ros.org/ros_hybrid_sdk</url> -->
 
 
     <!-- Author tags are optional, multiple are allowed, one per tag -->
