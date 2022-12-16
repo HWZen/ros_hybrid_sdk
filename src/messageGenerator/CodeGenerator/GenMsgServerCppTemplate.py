@@ -167,7 +167,7 @@ for var in msgVars:
     if var.fieldType & FieldTypes.Constexpr:
         continue
     if var.fieldType & FieldTypes.BuiltIn:
-        if var.builtinType == 13:  # Time
+        if var.builtinType == 13 or var.builtinType == 14:  # Time or Duration
             if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
                 xxxCoverToRosContent += \
 '''
@@ -193,6 +193,8 @@ for var in msgVars:
         elif var.fieldType & FieldTypes.Vector:
             xxxCoverToRosContent += '    std::copy(protoMsg.{0}().begin(), protoMsg.{0}().end(), std::back_inserter(rosMsg.{0}));\n'\
                 .format(var.varName)
+        else:
+            xxxCoverToRosContent += '    rosMsg.{0} = protoMsg.{0}(); \n'.format(var.varName)
     else:
         if var.fieldType & FieldTypes.Array:
             xxxCoverToRosContent += \
@@ -209,6 +211,9 @@ for var in msgVars:
     for (const auto &data : protoMsg.{0}())
         rosMsg.{0}.emplace_back({1}CoverToRos(data));
 '''.format(var.varName, var.msgType)
+        else:
+            xxxCoverToRosContent += '    rosMsg.{0} = {1}CoverToRos(protoMsg.{0}()); \n'\
+                .format(var.varName, var.msgType)
 
 
 xxxCoverToRosStartEnd = \
@@ -271,7 +276,7 @@ public:
                                boost::function<void(const {1}::ConstPtr &ros_msg)>(
                                        [callback](const {1}::ConstPtr &ros_msg)
                                        {{
-                                           callback(MyMsgCoverToProto(*ros_msg).SerializeAsString());
+                                           callback({0}CoverToProto(*ros_msg).SerializeAsString());
                                        }}
                                )
        );
