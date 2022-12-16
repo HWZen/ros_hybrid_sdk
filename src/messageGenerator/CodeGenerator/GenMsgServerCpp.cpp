@@ -1,4 +1,18 @@
-msgFileName = "/home/pi/MyMsg.msg"  # will be replaced
+//
+// Created by HWZen on 2022/12/12.
+// Copyright (c) 2022 HWZen All rights reserved.
+// MIT License
+// 
+
+#include "GenMsgServerCpp.h"
+#include <fstream>
+using namespace std::string_literals;
+
+GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
+{
+    std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
+    std::string GenMsgServerCpp_py_part1 =
+R"(
 import re
 import sys
 import os
@@ -18,29 +32,9 @@ class TypeTrail:
         self.constData = constData
         self.varName = varName
 
-# will be replaced
-msgVars = [
-    TypeTrail(17, 2, '', '', 0, '1', 'DEBUG'),
-    TypeTrail(17, 2, '', '', 0, '2', 'INFO'),
-    TypeTrail(17, 2, '', '', 0, '4', 'WARN'),
-    TypeTrail(17, 2, '', '', 0, '8', 'ERROR'),
-    TypeTrail(17, 2, '', '', 0, '16', 'FATAL'),
-    TypeTrail(2, 0, 'Header', 'std_msgs', 0, '', 'header'),
-    TypeTrail(1, 2, '', '', 0, '', 'level'),
-    TypeTrail(1, 12, '', '', 0, '', 'name'),
-    TypeTrail(1, 12, '', '', 0, '', 'msg'),
-    TypeTrail(1, 12, '', '', 0, '', 'file'),
-    TypeTrail(1, 12, '', '', 0, '', 'function'),
-    TypeTrail(1, 7, '', '', 0, '', 'line'),
-    TypeTrail(65, 12, '', '', 0, '', 'topics'),
-    TypeTrail(0x01 | 0x40, 6, '', '', 0, '', 'vi'),
-    TypeTrail(0x01 | 0x20, 12, '', '', 5, '', 'strs'),
-    TypeTrail(0x02 | 0x40, 0, 'Byte', 'std_msgs', 0, '', 'bytes'),
-    TypeTrail(0x02 | 0x20, 0, 'Int32', 'std_msgs', 5, '', 'int5'),
-    TypeTrail(0x01, 12, '', '', 0, '', 'stamp'),
-    TypeTrail(0x01, 2, '', '', 0, '', 'data')
-]
-
+)";
+    std::string GenMsgServerCpp_py_part2 =
+R"(
 
 class FieldTypes(IntEnum):
     BuiltIn         = 0x01
@@ -116,19 +110,21 @@ for var in msgVars:
     if var.fieldType & FieldTypes.Msg:  # FieldTypes::Msg
         include += '#include <{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
 
+include += 'using namespace std::string_literals;\n'
+
 xxxCoverToProtoContent = ''
 for var in msgVars:
     if var.fieldType & FieldTypes.Constexpr:
         continue
     if var.fieldType & FieldTypes.BuiltIn:
-        if var.builtinType == 13:  # Time
+        if var.builtinType == 13 or var.builtinType == 14:  # Time or Duration
             if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
                 xxxCoverToProtoContent += \
 '''
     for (auto &data : rosMsg.{0}) {{
         auto *p = protoMsg.add_{0}();
         p->set_seconds(data.sec);
-        p->set_nanos(static_cast<int32_t>(data.nsec));    
+        p->set_nanos(static_cast<int32_t>(data.nsec));
 '''.format(var.varName)
                 continue
             else:
@@ -138,17 +134,16 @@ for var in msgVars:
     protoMsg.mutable_{0}()->set_nanos(static_cast<int32_t>(rosMsg.{0}.nsec));
 '''.format(var.varName)
                 continue
-            # TODO: duration
         if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
             xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) protoMsg.add_{0}(data); \n'.format(var.varName)
         else:
             xxxCoverToProtoContent += '    protoMsg.set_{0}(rosMsg.{0}); \n'.format(var.varName)
     elif var.fieldType & FieldTypes.Msg:
         if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
-            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) *protoMsg.add_{0}() = {1}CoverToHybrid(data); \n'.format(
+            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) *protoMsg.add_{0}() = {1}CoverToProto(data); \n'.format(
                 var.varName, var.msgType)
         else:
-            xxxCoverToProtoContent += '    *protoMsg.mutable_{0}() = {1}CoverToHybrid(rosMsg.{0}); \n'\
+            xxxCoverToProtoContent += '    *protoMsg.mutable_{0}() = {1}CoverToProto(rosMsg.{0}); \n'\
                 .format(var.varName, var.msgType)
 
 
@@ -188,7 +183,7 @@ for var in msgVars:
     if (protoMsg.{0}_size() != {1}::_{0}_type::size())
         throw std::runtime_error("size of {0} is not match!");
     for (size_t i = 0; i < {1}::_{0}_type::size(); ++i)
-        rosMsg.{0}[i] = protoMsg.{0}(static_cast<int>(i));    
+        rosMsg.{0}[i] = protoMsg.{0}(static_cast<int>(i));
 '''.format(var.varName, rosMsgType)
         elif var.fieldType & FieldTypes.Vector:
             xxxCoverToRosContent += '    std::copy(protoMsg.{0}().begin(), protoMsg.{0}().end(), std::back_inserter(rosMsg.{0}));\n'\
@@ -240,7 +235,7 @@ public:
     {{
         pub = nh.advertise<{3}>(topic, queue_size, latch);
     }}
-    
+
     void publish(const std::string &msgBuf) override
     {{
         {1}  protoMsg;
@@ -249,12 +244,12 @@ public:
 
         pub.publish({2}CoverToRos(protoMsg));
     }}
-    
+
     ~{0}Publisher() override = default;
     private:
         ros::NodeHandle nh{{}};
         ros::Publisher pub{{}};
-}};                                                                            
+}};
 '''.format(msgName, hybridMsgType, msgName, rosMsgType)
 
 classMsgSubscriber = \
@@ -276,7 +271,7 @@ public:
                                )
        );
     }}
-    
+
     ~{0}Subscriber() override = default;
 private:
     ros::NodeHandle nh{{}};
@@ -308,5 +303,54 @@ with open('{}.server.cpp'.format(msgName), 'w') as f:
 
 with open('result.txt', 'w') as f:
     f.write(rosNamespace)
+    f.write('\n')
     f.write('{}.server.cpp'.format(msgName))
 
+
+)";
+
+    std::string msgVars = R"(
+msgVars = [
+)";
+
+    auto toPythonTypeTrail = [](const TypeTrail &var) -> std::string
+    {
+        std::string result = "TypeTrail(";
+        result += std::to_string(static_cast<int>(var.fieldType)) + ", ";
+        result += std::to_string(static_cast<int>(var.builtInType)) + ", ";
+        result += "'" + var.msgType + "', ";
+        result += "'" + var.msgPackage + "', ";
+        result += std::to_string(var.arraySize) + ", ";
+        result += "'" + var.constData + "', ";
+        result += "'" + var.name + "'";
+        result += ")";
+        return result;
+    };
+
+    for (auto &var: vars) {
+        msgVars += "    " + toPythonTypeTrail(var) + ",\n";
+    }
+
+    msgVars += "]\n";
+
+    auto GenMsgServerCpp_py = msgFileNamePy + GenMsgServerCpp_py_part1 + msgVars + GenMsgServerCpp_py_part2;
+
+    // output file
+    std::ofstream ofs("GenServerCpp.py");
+    ofs << GenMsgServerCpp_py;
+    ofs.close();
+
+    // run script
+    auto sysRes = system("python3 GenServerCpp.py");
+    if (sysRes != 0)
+        throw std::runtime_error("run python script failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
+
+    std::ifstream result_file("result.txt");
+    GenCodeResult result;
+    result_file >> result.path;
+    std::string tmp;
+    while (result_file >> tmp)
+        result.files.emplace_back(std::move(tmp));
+    result_file.close();
+    return result;
+}

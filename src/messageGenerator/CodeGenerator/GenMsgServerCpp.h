@@ -10,6 +10,6 @@
 #include "GenCodeResult.h"
 #include "../Parser/typedef.h"
 
-GenCodeResult GenMsgServer(const std::string &msgFileName, const std::vector<TypeTrail> &vars);
+GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<TypeTrail> &vars);
 
 #endif //ROS_HYBRID_SDK_GENMSGSERVER_H
