@@ -7,6 +7,7 @@
 #include "GenServerMsgBuildPackage.h"
 #include <fstream>
 #include <filesystem>
+#include "../Config.h"
 
 using namespace std::string_literals;
 
@@ -20,10 +21,21 @@ void GenServerMsgBuildPackage(const std::string &path)
 # generated automatic by ros_hybrid_protoc in )"s + __DATE__ + "  "s + __TIME__ + R"(
 cmake_minimum_required(VERSION 3.0.2)
 project(ros_hybrid_dynamic_msgs)
+find_package(Protobuf CONFIG REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+        actionlib
+        actionlib_msgs
+        dynamic_reconfigure
+        message_runtime
+        roscpp
+        std_msgs
+        ros_hybrid_sdk
+        )
+include_directories(./ ${catkin_INCLUDE_DIRS})
 )"s;
 
-    auto package_xml = R"(
-<?xml version="1.0"?>
+    auto package_xml =
+R"(<?xml version="1.0"?>
 <package format="2">
     <name>ros_hybrid_dynamic_msgs</name>
     <version>0.0.0</version>
@@ -41,7 +53,7 @@ project(ros_hybrid_dynamic_msgs)
     <!-- Url tags are optional, but multiple are allowed, one per tag -->
     <!-- Optional attribute type can be: website, bugtracker, or repository -->
     <!-- Example: -->
-    <!-- <url type="website">http://wiki.ros.org/ros_hybird_sdk_server</url> -->
+    <!-- <url type="website">http://wiki.ros.org/ros_hybrid_sdk_server</url> -->
 
 
     <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -111,12 +123,12 @@ import "google/protobuf/descriptor.proto";
 package hybrid;
 
 extend google.protobuf.FieldOptions {
-  optional uint64 array_size = 50000;
+  uint64 array_size = 50000;
 }
 
 extend google.protobuf.FieldOptions{
-  optional int64 data_range_min = 50001;
-  optional int64 data_range_max = 50002;
+  int64 data_range_min = 50001;
+  int64 data_range_max = 50002;
 }
 )"s;
 
@@ -202,4 +214,10 @@ namespace hybrid
     std::ofstream interface_h_file(path + "/interface.h");
     interface_h_file << interface_h;
     interface_h_file.close();
+
+    /**********************
+     * build HybridOption.proto
+     **********************/
+    std::string cmd =  g_config.protocPath +  " -I=" + path +  " --cpp_out=" + path +  "  HybridOption.proto";
+    ::system(cmd.c_str());
 }
