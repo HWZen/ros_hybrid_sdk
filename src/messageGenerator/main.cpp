@@ -96,6 +96,7 @@ int main(int argc, char **argv) try
         }
     }
 
+    std::vector<GenCodeResult> cmakeResults;
     if (g_config.genCmake){
         for (const auto &[fileName, fileContent] : files) {
             auto vars = MsgParser(fileContent);
@@ -104,23 +105,36 @@ int main(int argc, char **argv) try
             std::filesystem::create_directories(output);
             for (const auto &file : res.files)
                 std::filesystem::rename(file, output + "/"s + file);
+            cmakeResults.emplace_back(std::move(res));
         }
     }
 
     if (g_config.server){
-//        for (const auto &[fileName, fileContent] : files) {
-//            auto vars = MsgParser(fileContent);
-//            auto res = GenMsgServerCpp(fileName, vars);
-//            auto output = g_config.output + "/"s + res.path;
-//            std::filesystem::create_directories(output);
-//            for (const auto &file : res.files)
-//                std::filesystem::rename(file, output + "/"s + file);
-//        }
+        std::unordered_set<std::string> includeLines;
+        for (const auto &cmake : cmakeResults)
+            includeLines.insert("include("s + cmake.path + "/"s + cmake.files[0] + ")"s);
+        // read CMakeLists.txt
+        std::ifstream ifs( g_config.output + "/CMakeLists.txt");
+        if (!ifs.is_open()) {
+            std::cerr << "open file " <<  g_config.output + "/CMakeLists.txt" << " fail\n";
+            return 1;
+        }
+        // read line
+        for(std::string line; std::getline(ifs, line);)
+            includeLines.erase(line);
+        ifs.close();
+
+        // write line
+        std::ofstream ofs( g_config.output + "/CMakeLists.txt", std::ios::app);
+        ofs << "\n";
+        for (const auto &line : includeLines)
+            ofs << line << "\n";
+        ofs.close();
     }
 
     if (g_config.buildServerMsg){
         std::string cmd;
-        cmd += "cd "s + g_config.output;
+        cmd += "cd "s + g_config.output + "/../../"s;
         cmd += " && catkin_make";
         system(cmd.c_str());
     }
@@ -190,10 +204,13 @@ void parseParam(int argc, char **argv)
     auto result = options.parse(argc, argv);
 
     if (g_config.server){
+        if (!std::filesystem::exists(g_config.output))
+            g_config.packagePath = g_config.output;
         g_config.buildServerMsg = true;
         g_config.buildProtobuf = true;
         g_config.genProtobuf = true;
         g_config.genServerCode = true;
+        g_config.genCmake = true;
     }
 
 
