@@ -15,11 +15,12 @@ std::vector<std::pair<std::string, std::string>> Preprocessor(const std::string 
         if (fileBuf[i] == '#') {
             while (fileBuf[i] != '\n') {
                 ++i;
-                if (i == fileBuf.size()) {
+                if (i == fileBuf.size())
                     break;
-                }
             }
         }
+        if (i == fileBuf.size())
+            break;
         buf.push_back(fileBuf[i]);
     }
 
@@ -27,8 +28,10 @@ std::vector<std::pair<std::string, std::string>> Preprocessor(const std::string 
     {
         std::string line;
         for (auto c : buf) {
-            if (c == '\n') {
-                lines.emplace_back(std::move(line));
+            if (c == '\n' || c == '\r') {
+                if (line.empty())
+                    continue;
+                lines.emplace_back(line);
                 line.clear();
             } else
                 line.push_back(c);
