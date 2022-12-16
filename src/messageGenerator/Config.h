@@ -12,7 +12,17 @@
 struct Config{
     std::vector<std::string> inputs;
     std::string output;
-    bool server{false}, client{false}, onlyServer{false};
+    bool server{false};
+    bool client{false};
+    bool onlyServer{false};
+    std::string packagePath;
+    bool genProtobuf{false};
+    bool genServerCode{false};
+    bool genCmake{false};
+    bool buildProtobuf{false};
+    bool buildServerMsg{false};
+    std::string protocPath{"protoc"};
+
 };
 
 inline Config g_config;
