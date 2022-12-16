@@ -117,7 +117,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
         #  INCLUDE_DIRS include
-        #  LIBRARIES ros_hybird_sdk_server
+        #  LIBRARIES ros_hybrid_sdk_server
         CATKIN_DEPENDS actionlib actionlib_msgs dynamic_reconfigure message_generation message_runtime roscpp rospy std_msgs
         #  DEPENDS system_lib
 )
@@ -139,10 +139,6 @@ include_directories(
 
 add_subdirectory(src/MsgWrapper/rosgraph_msgs)
 add_subdirectory(src/MsgWrapper/std_msgs)
-
-add_library(${PROJECT_PREFIX}_dlltest
-        src/testlib.cpp
-        src/json.h src/Agent/Agent.cpp src/Agent/Agent.h src/messageGenerator/CodeGenerator/CodeGenerator.h)
 
 add_library(asio STATIC src/asio.cpp)
 target_compile_options(asio PRIVATE -std=c++20)
@@ -168,10 +164,6 @@ add_executable(${PROJECT_PREFIX}_server
         )
 target_compile_options(${PROJECT_PREFIX}_server PRIVATE -std=c++20)
 
-
-add_executable(${PROJECT_PREFIX}_test src/test.cpp)
-target_compile_options(${PROJECT_PREFIX}_test PRIVATE -std=c++14)
-
 add_executable(${PROJECT_PREFIX}_protoc
         src/messageGenerator/main.cpp
         src/messageGenerator/Parser/MsgParser.cpp
@@ -179,7 +171,9 @@ add_executable(${PROJECT_PREFIX}_protoc
         src/messageGenerator/CodeGenerator/GenGoogleProtobuf.cpp
         src/messageGenerator/Parser/typedef.cpp
         src/messageGenerator/Parser/Preprocessor.cpp
-        src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.cpp src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.h src/messageGenerator/CodeGenerator/GenMsgServer.cpp src/messageGenerator/CodeGenerator/GenMsgServer.h)
+        src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.cpp
+        src/messageGenerator/CodeGenerator/GenMsgServerCpp.cpp
+        )
 target_compile_options(${PROJECT_PREFIX}_protoc PRIVATE -std=c++17)
 
 ## Rename C++ executable without prefix
@@ -204,12 +198,6 @@ target_link_libraries(${PROJECT_PREFIX}_server
         wrapperHeader
         protobuf::libprotobuf
         dl
-        )
-
-target_link_libraries(${PROJECT_PREFIX}_test
-        ${catkin_LIBRARIES}
-        -ldl
-        -lpthread
         )
 
 
