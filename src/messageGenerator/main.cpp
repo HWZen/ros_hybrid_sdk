@@ -97,7 +97,14 @@ int main(int argc, char **argv) try
     }
 
     if (g_config.genCmake){
-
+        for (const auto &[fileName, fileContent] : files) {
+            auto vars = MsgParser(fileContent);
+            auto res = GenCmake(fileName, vars);
+            auto output = g_config.output + "/"s + res.path;
+            std::filesystem::create_directories(output);
+            for (const auto &file : res.files)
+                std::filesystem::rename(file, output + "/"s + file);
+        }
     }
 
     if (g_config.server){
@@ -162,7 +169,7 @@ void parseParam(int argc, char **argv)
         ("h,help", "Print help")
         ("i,input", "Input files", cxxopts::value<std::vector<std::string>>(g_config.inputs), "<xxx.msg,xxx.srv>")
         ("server",
-         "Generate code for server, (will enable --create-package, --protobuf, --gen-server-code, --protobuf-cc,build-server-msg)",
+         "Generate code for server, (will enable --create-package, --protobuf, --gen-server-code, --protobuf-cc, --build-server-msg, --gen-cmake)",
          cxxopts::value<bool>(g_config.server))
         ("client", "Generate code for client", cxxopts::value<bool>(g_config.client))
         ("o,output", "Output directory", cxxopts::value<std::string>(g_config.output), "<path>")

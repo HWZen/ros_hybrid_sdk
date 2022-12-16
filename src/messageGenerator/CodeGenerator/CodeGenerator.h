@@ -12,5 +12,6 @@
 #include "GenGoogleProtobuf.h"
 #include "GenMsgServerUseOnly.h"
 #include "GenMsgServerCpp.h"
+#include "GenCmake.h"
 
 #endif //ROS_HYBRID_SDK_CODEGENERATOR_H

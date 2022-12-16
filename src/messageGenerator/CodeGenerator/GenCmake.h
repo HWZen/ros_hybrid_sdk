@@ -1,0 +1,11 @@
+//
+// Created by HWZ on 2022/12/16.
+//
+
+#ifndef ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_MESSAGEGENERATOR_CODEGENERATOR_GENCMAKE_H
+#define ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_MESSAGEGENERATOR_CODEGENERATOR_GENCMAKE_H
+#include "GenCodeResult.h"
+#include "../Parser/typedef.h"
+
+GenCodeResult GenCmake(const std::string &msgFileName, const std::vector<TypeTrail> &vars);
+#endif //ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_MESSAGEGENERATOR_CODEGENERATOR_GENCMAKE_H

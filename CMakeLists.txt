@@ -117,7 +117,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
         #  INCLUDE_DIRS include
-        #  LIBRARIES ros_hybrid_sdk_server
+        #  LIBRARIES ros_hybrid_sdk
         CATKIN_DEPENDS actionlib actionlib_msgs dynamic_reconfigure message_generation message_runtime roscpp rospy std_msgs
         #  DEPENDS system_lib
 )
@@ -173,7 +173,7 @@ add_executable(${PROJECT_PREFIX}_protoc
         src/messageGenerator/Parser/Preprocessor.cpp
         src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.cpp
         src/messageGenerator/CodeGenerator/GenMsgServerCpp.cpp
-        )
+        src/messageGenerator/CodeGenerator/GenCmake.cpp )
 target_compile_options(${PROJECT_PREFIX}_protoc PRIVATE -std=c++17)
 
 ## Rename C++ executable without prefix
