@@ -137,10 +137,10 @@ include_directories(
 
 ## Declare a C++ library
 
-add_subdirectory(src/MsgWrapper/rosgraph_msgs)
-add_subdirectory(src/MsgWrapper/std_msgs)
+add_subdirectory(src/server/MsgWrapper/rosgraph_msgs)
+add_subdirectory(src/server/MsgWrapper/std_msgs)
 
-add_library(asio STATIC src/asio.cpp)
+add_library(asio STATIC src/server/asio.cpp)
 target_compile_options(asio PRIVATE -std=c++20)
 
 
@@ -153,27 +153,27 @@ target_compile_options(asio PRIVATE -std=c++20)
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_PREFIX}_server
-        src/main.cpp
-        src/DispatchServer.cpp
-        src/DefaultAgent/DefaultAgentManager.cpp
-        src/Agent/Agent.cpp
-        src/Log.cpp
-        src/DefaultAgent/ConnectInstance.cpp
-        src/DefaultAgent/DefaultCommand.cpp
-        src/CommandMsg/Command.pb.cc
+        src/server/main.cpp
+        src/server/DispatchServer.cpp
+        src/server/DefaultAgent/DefaultAgentManager.cpp
+        src/server/Agent/Agent.cpp
+        src/server/Log.cpp
+        src/server/DefaultAgent/ConnectInstance.cpp
+        src/server/DefaultAgent/DefaultCommand.cpp
+        src/server/CommandMsg/Command.pb.cc
         )
 target_compile_options(${PROJECT_PREFIX}_server PRIVATE -std=c++20)
 
 add_executable(${PROJECT_PREFIX}_protoc
-        src/messageGenerator/main.cpp
-        src/messageGenerator/Parser/MsgParser.cpp
-        src/messageGenerator/CodeGenerator/GenMsgServerUseOnly.cpp
-        src/messageGenerator/CodeGenerator/GenGoogleProtobuf.cpp
-        src/messageGenerator/Parser/typedef.cpp
-        src/messageGenerator/Parser/Preprocessor.cpp
-        src/messageGenerator/CodeGenerator/GenServerMsgBuildPackage.cpp
-        src/messageGenerator/CodeGenerator/GenMsgServerCpp.cpp
-        src/messageGenerator/CodeGenerator/GenCmake.cpp )
+        src/protoc/main.cpp
+        src/protoc/Parser/MsgParser.cpp
+        src/protoc/CodeGenerator/GenMsgServerUseOnly.cpp
+        src/protoc/CodeGenerator/GenGoogleProtobuf.cpp
+        src/protoc/Parser/typedef.cpp
+        src/protoc/Parser/Preprocessor.cpp
+        src/protoc/CodeGenerator/GenServerMsgBuildPackage.cpp
+        src/protoc/CodeGenerator/GenMsgServerCpp.cpp
+        src/protoc/CodeGenerator/GenCmake.cpp)
 target_compile_options(${PROJECT_PREFIX}_protoc PRIVATE -std=c++17)
 
 ## Rename C++ executable without prefix
