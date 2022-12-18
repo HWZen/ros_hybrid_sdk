@@ -8,29 +8,12 @@
 #define ROS_HYBRID_SDK_DEFAULTCOMMAND_H
 
 #include "../Log.h"
-
-namespace hybrid{
-    class MsgPublisher{
-    public:
-        MsgPublisher(const std::string &topic, uint32_t queue_size, bool latch = false){};
-        virtual void publish(const std::string &msg) = 0;
-        virtual ~MsgPublisher() = default;
-    };
-
-    class MsgSubscriber{
-    public:
-        MsgSubscriber(const std::string &topic, uint32_t queue_size, const std::function<void(std::string)>& callback){};
-        virtual ~MsgSubscriber() = default;
-    };
-
-}
+#include "../Interface.h"
 
 class DefaultCommand
 {
 public:
     std::string test(const std::string &buffer);
-    auto getPublisher(const std::string& name);
-    auto getSubscriber(const std::string& name);
 private:
     Log logger{"DefaultCommand", LogFlag::CONSOLE_LOGGER | LogFlag::ROS_LOGGER};
 

@@ -6,55 +6,11 @@
 
 #include "DefaultCommand.h"
 #include "../CommandMsg/Command.pb.h"
-#include <dlfcn.h>
-#include <functional>
+#include "../MsgLoader.h"
 
 struct Test{
 
 };
-
-
-
-
-
-auto DefaultCommand::getPublisher(const std::string& name){
-
-    if (pubFuncMap.count(name))
-        return pubFuncMap[name];
-    auto dllName = "lib" + name + ".so";
-    auto res = dlopen(dllName.c_str(), RTLD_LAZY);
-    if (!res){
-        logger.error("dlopen error: {}", dlerror());
-        return (hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool)) nullptr;
-    }
-    auto pVoid = dlsym(res, "make_publisher");
-    if (!pVoid){
-        logger.error("dlsym error: {}", dlerror());
-        return (hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool)) nullptr;
-    }
-    auto func = reinterpret_cast<hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool)>(pVoid);
-    pubFuncMap[name] = func;
-    return func;
-}
-
-auto DefaultCommand::getSubscriber(const std::string& name){
-    static std::unordered_map<std::string, hybrid::MsgSubscriber *(*)(const std::string &, uint32_t, const std::function<void(std::string)>&)> subFuncMap{};
-    if (subFuncMap.count(name))
-        return subFuncMap[name];
-    auto res = dlopen(name.c_str(), RTLD_LAZY);
-    if (!res){
-        logger.error("dlopen error: %s", dlerror());
-        return (hybrid::MsgSubscriber *(*)(const std::string &, uint32_t, const std::function<void(std::string)>&)) nullptr;
-    }
-    auto pVoid = dlsym(res, "make_subscriber");
-    if (!pVoid){
-        logger.error("dlsym error: %s", dlerror());
-        return (hybrid::MsgSubscriber *(*)(const std::string &, uint32_t, const std::function<void(std::string)>&)) nullptr;
-    }
-    auto func = reinterpret_cast<hybrid::MsgSubscriber *(*)(const std::string &, uint32_t, const std::function<void(std::string)>&)>(pVoid);
-    subFuncMap[name] = func;
-    return func;
-}
 
 
 std::string DefaultCommand::test(const std::string &buffer)
@@ -80,16 +36,18 @@ std::string DefaultCommand::test(const std::string &buffer)
                 break;
             }
 
-            auto &advertise = command.advertise();
+            const auto &advertise = command.advertise();
 
-            auto publisher_maker = getPublisher(command.advertise().type());
-            if(!publisher_maker){
-                logger.error("get publisher maker error");
-                res.mutable_log()->set_message("get publisher maker error");
+            try{
+                auto publisher_maker = MsgLoader::getPublisher(command.advertise().type());
+                pubMap[advertise.topic()] = std::shared_ptr<hybrid::MsgPublisher>{publisher_maker(advertise.topic(), advertise.queue_size(), advertise.latch())};
+                res = command;
+            }
+            catch (std::runtime_error &e){
+                logger.error("publish exception: {}", e.what());
+                res.mutable_log()->set_message(e.what());
                 break;
             }
-            pubMap[advertise.topic()] = std::shared_ptr<hybrid::MsgPublisher>{publisher_maker(advertise.topic(), advertise.queue_size(), advertise.latch())};
-            res = command;
             break;
         }
         case hybrid::Command_Type_PUBLISH:
@@ -99,7 +57,7 @@ std::string DefaultCommand::test(const std::string &buffer)
                 res.mutable_log()->set_message("Command has no publish");
                 break;
             }
-            auto &publish = command.publish();
+            const auto &publish = command.publish();
             if (!pubMap.count(publish.topic())){
                 logger.error("topic not found");
                 res.mutable_log()->set_message("topic not found");
