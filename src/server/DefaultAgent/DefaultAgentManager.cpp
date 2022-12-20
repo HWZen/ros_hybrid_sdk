@@ -17,13 +17,6 @@ extern int g_argc;
 extern char **g_argv;
 
 
-awaitable<void> timeout(steady_clock::duration duration)
-{
-    asio::steady_timer timer(co_await this_coro::executor);
-    timer.expires_after(duration);
-    co_await timer.async_wait(use_nothrow_awaitable);
-}
-
 struct DefaultAgentManager::Impl
 {
 
