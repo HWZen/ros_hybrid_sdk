@@ -821,6 +821,7 @@ class Command_Subscribe final :
   enum : int {
     kTopicFieldNumber = 1,
     kTypeFieldNumber = 2,
+    kDataFieldNumber = 4,
     kQueueSizeFieldNumber = 3,
   };
   // string topic = 1;
@@ -851,6 +852,24 @@ class Command_Subscribe final :
   std::string* _internal_mutable_type();
   public:
 
+  // optional bytes data = 4;
+  bool has_data() const;
+  private:
+  bool _internal_has_data() const;
+  public:
+  void clear_data();
+  const std::string& data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_data();
+  PROTOBUF_NODISCARD std::string* release_data();
+  void set_allocated_data(std::string* data);
+  private:
+  const std::string& _internal_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_data(const std::string& value);
+  std::string* _internal_mutable_data();
+  public:
+
   // optional uint32 queue_size = 3;
   bool has_queue_size() const;
   private:
@@ -876,6 +895,7 @@ class Command_Subscribe final :
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr topic_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr type_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
     uint32_t queue_size_;
   };
   union { Impl_ _impl_; };
@@ -2807,7 +2827,7 @@ inline void Command_Subscribe::set_allocated_type(std::string* type) {
 
 // optional uint32 queue_size = 3;
 inline bool Command_Subscribe::_internal_has_queue_size() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Command_Subscribe::has_queue_size() const {
@@ -2815,7 +2835,7 @@ inline bool Command_Subscribe::has_queue_size() const {
 }
 inline void Command_Subscribe::clear_queue_size() {
   _impl_.queue_size_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000001u;
+  _impl_._has_bits_[0] &= ~0x00000002u;
 }
 inline uint32_t Command_Subscribe::_internal_queue_size() const {
   return _impl_.queue_size_;
@@ -2825,12 +2845,80 @@ inline uint32_t Command_Subscribe::queue_size() const {
   return _internal_queue_size();
 }
 inline void Command_Subscribe::_internal_set_queue_size(uint32_t value) {
-  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_._has_bits_[0] |= 0x00000002u;
   _impl_.queue_size_ = value;
 }
 inline void Command_Subscribe::set_queue_size(uint32_t value) {
   _internal_set_queue_size(value);
   // @@protoc_insertion_point(field_set:hybrid.Command.Subscribe.queue_size)
+}
+
+// optional bytes data = 4;
+inline bool Command_Subscribe::_internal_has_data() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Command_Subscribe::has_data() const {
+  return _internal_has_data();
+}
+inline void Command_Subscribe::clear_data() {
+  _impl_.data_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& Command_Subscribe::data() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.Subscribe.data)
+  return _internal_data();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Command_Subscribe::set_data(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000001u;
+ _impl_.data_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.Command.Subscribe.data)
+}
+inline std::string* Command_Subscribe::mutable_data() {
+  std::string* _s = _internal_mutable_data();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.Subscribe.data)
+  return _s;
+}
+inline const std::string& Command_Subscribe::_internal_data() const {
+  return _impl_.data_.Get();
+}
+inline void Command_Subscribe::_internal_set_data(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Command_Subscribe::_internal_mutable_data() {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Command_Subscribe::release_data() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.Subscribe.data)
+  if (!_internal_has_data()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* p = _impl_.data_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.data_.IsDefault()) {
+    _impl_.data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void Command_Subscribe::set_allocated_data(std::string* data) {
+  if (data != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.data_.SetAllocated(data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.data_.IsDefault()) {
+    _impl_.data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.Subscribe.data)
 }
 
 // -------------------------------------------------------------------
