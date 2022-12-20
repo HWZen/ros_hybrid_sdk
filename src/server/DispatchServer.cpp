@@ -49,9 +49,9 @@ struct DispatchServer::Impl
 
     void toDefaultAgent(const ref_client &client);
 
-    awaitable<void> toNewAgent(const ref_client &client, const std::string &agentName);
+    void toNewAgent(const ref_client &client, const std::string &agentName);
 
-    void sendSocketor(const ref_client &client);
+    void sendSocketor(int pip, const ref_client &client);
 
     awaitable<void> listen();
 
@@ -59,7 +59,9 @@ struct DispatchServer::Impl
 
     Log logger{ "DispatchServer", LogFlag::CONSOLE_LOGGER };
 
-    int pip{};
+    int defaultAgentPip{};
+
+    int preBootAgentPip{};
 
     std::shared_ptr<tcp::acceptor> acceptor{};
 
@@ -120,7 +122,7 @@ int DispatchServer::Impl::send_fd(int pipe_fd, SOCKET fd)
     return 0;
 }
 
-void DispatchServer::Impl::sendSocketor(const ref_client &client)
+void DispatchServer::Impl::sendSocketor(int pip, const ref_client &client)
 {
     auto fd = client->native_handle();
     send_fd(pip, fd);
@@ -128,11 +130,17 @@ void DispatchServer::Impl::sendSocketor(const ref_client &client)
 
 void DispatchServer::Impl::init(uint16_t port)
 {
-    int pipfd[2];
+    int defaultAgentPipFd[2];
+    int preBootAgentPidFd[2];
 
-    if (socketpair(PF_UNIX, SOCK_DGRAM, 0, pipfd) < 0){
-        logger.error("socketpair error");
-        throw SDKException("socketpair error");
+    if (socketpair(PF_UNIX, SOCK_DGRAM, 0, defaultAgentPipFd) < 0){
+        logger.error("DefaultAgent socketpair error");
+        throw SDKException("DefaultAgent socketpair error");
+    }
+
+    if(socketpair(PF_UNIX, SOCK_DGRAM, 0, preBootAgentPidFd) < 0){
+        logger.error("PreBootAgent socketpair error");
+        throw SDKException("PreBootAgent socketpair error");
     }
 
 
@@ -140,35 +148,61 @@ void DispatchServer::Impl::init(uint16_t port)
      * init DefaultAgentManager
      ****************/
 
-    auto pid = fork();
+    auto defaultAgentPid = fork();
 
-    if (pid < 0)
+    if (defaultAgentPid < 0)
         throw SDKException("fork failed");
 
     // child
-    if (pid == 0){
-        close(pipfd[1]);
-        defaultAgent.setSocketPipe(pipfd[0]);
-        defaultAgent.MAIN();
+    if (defaultAgentPid == 0){
+        close(defaultAgentPipFd[1]);
+        {
+            defaultAgent.setSocketPipe(defaultAgentPipFd[0]);
+            defaultAgent.MAIN();
+        }
+        exit(0);
     }
     // parent
-    else{
-        close(pipfd[0]);
-        auto listen_endpoint = tcp::endpoint{tcp::v4(), port};
-        acceptor = std::make_shared<tcp::acceptor>(ctx, std::move(listen_endpoint));
-        pip = pipfd[1];
-    }
+    close(defaultAgentPipFd[0]);
+    Impl::defaultAgentPip = defaultAgentPipFd[1];
 
+    /*****************
+     * init PreBootAgentManager
+     ****************/
+    auto preBootPid = fork();
+
+    if (preBootPid < 0)
+        throw SDKException("fork failed");
+
+    // child
+    if (preBootPid == 0){
+        close(preBootAgentPidFd[1]);
+        {
+            Agent agent(preBootAgentPidFd[0]);
+            agent.MAIN();
+        }
+        exit(0);
+    }
+    // parent
+    close(preBootAgentPidFd[0]);
+    Impl::preBootAgentPip = preBootAgentPidFd[1];
+
+    /*****************
+     * init acceptor
+     ****************/
+    auto listen_endpoint = tcp::endpoint{tcp::v4(), port};
+    acceptor = std::make_shared<tcp::acceptor>(ctx, std::move(listen_endpoint));
 }
 
 void DispatchServer::Impl::run()
 {
-    if (!this || !acceptor->is_open())[[unlikely]] {
+    if (!acceptor->is_open())[[unlikely]] {
         this->logger.error("Server no init or not listen");
         throw SDKException("Server no init or not listen");
     }
     co_spawn(ctx, DispatchServer::Impl::listen(), asio::detached);
     ctx.run();
+    logger.info("ctx exit");
 }
 
 awaitable<void> DispatchServer::Impl::listen()
@@ -190,18 +224,8 @@ awaitable<void> DispatchServer::Impl::listen()
                     logger.error("Dispatch failed");
                 else if (res == DispatchResultCode::DEFAULT_AGENT)
                     toDefaultAgent(ref_client);
-                else if (res == DispatchResultCode::NEW_AGENT) {
-                    auto pid = fork();
-                    if (pid == -1) [[unlikely]] {
-                        auto errCode = errno;
-                        auto errMsg = strerror(errCode);
-                        logger.error("Fork failed, error code: {}, error message: {}", errCode, errMsg);
-                        throw SDKException("Fork failed");
-                    }
-                    if (pid == 0)  // sub process
-                        co_return co_await toNewAgent(ref_client, agentName);
-                    // parent process, continue
-                }
+                else if (res == DispatchResultCode::NEW_AGENT)
+                    toNewAgent(ref_client, agentName);
             }
             catch (std::exception &e) {
                 this->logger.error("Catch dispatch exception: {}", e.what());
@@ -267,18 +291,13 @@ awaitable<DispatchServer::Impl::DispatchResult> DispatchServer::Impl::dispatch(c
 void DispatchServer::Impl::toDefaultAgent(const ref_client &client)
 {
     logger.debug("in {}", __FUNCTION__);
-    sendSocketor(client);
+    sendSocketor(defaultAgentPip, client);
 }
 
-awaitable<void> DispatchServer::Impl::toNewAgent(const ref_client &client, const std::string &agentName)
+void DispatchServer::Impl::toNewAgent(const ref_client &client, const std::string &agentName)
 {
     logger.debug("in {}", __FUNCTION__);
-    // close parent acceptor
-    acceptor->close();
-
-    Agent agent(client, agentName);
-
-    co_await agent.MAIN();
-    co_return ;
+    sendSocketor(preBootAgentPip, client);
+    write(preBootAgentPip, agentName.c_str(), agentName.size());
 }
 

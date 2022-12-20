@@ -13,4 +13,9 @@ using SOCKET = int;
 // TODO: Socketor 可以封装一下，保留一些配置信息，比如：序列化协议，日志等级，分隔符等
 using RefSocketor = std::shared_ptr<asio::ip::tcp::socket>;
 
+template<typename ...Args>
+inline auto make_socket(Args &&...args){
+    return std::make_shared<asio::ip::tcp::socket>(std::forward<Args>(args)...);
+}
+
 #endif //ROS_HYBIRD_SDK_REFSOCKETOR_H

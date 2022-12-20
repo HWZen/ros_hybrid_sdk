@@ -84,12 +84,12 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
         return;
     spdlog::memory_buf_t formatted;
     formatter_->format(msg, formatted);
+    auto sinkCallback = [](const asio::error_code &ec, size_t) {
+        if (ec)
+            spdlog::error("client sink error: {}", ec.message());
+    };
     if (!protobuf){
-        client->async_write_some(asio::buffer(formatted.data(), formatted.size()), [](const asio::error_code &ec, size_t) {
-            if (ec){
-                spdlog::error("client sink error: {}", ec.message());
-            }
-        });
+        client->async_write_some(asio::buffer(formatted.data(), formatted.size()), sinkCallback);
     }
     else{
         hybrid::Command command;
@@ -97,6 +97,7 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
         auto *log = command.mutable_log();
         log->set_level(static_cast<hybrid::Command_Log_Level>(msg.level == 0 ? 0 : msg.level - 1));
         log->set_message(formatted.data(), formatted.size());
+        client->async_write_some(asio::buffer(log->SerializeAsString()), sinkCallback);
     }
 }
 
@@ -106,6 +107,7 @@ client_sink::client_sink(ref_client client, bool protobuf) : client(std::move(cl
         set_pattern("%v");
     else // json pattern
         set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
+    set_level(spdlog::level::info);
 }
 
 
@@ -132,7 +134,6 @@ void Log::init()
     spdlog::set_default_logger(spdlog::stdout_color_mt("Default"));
     spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%L] P:%-6P t:%-6t %28n: %$  %v");
     spdlog::set_level(spdlog::level::trace);
-    // TODO: client sink config
 }
 
 Log::Log(const std::string &name, LogFlag flag, const ref_client &client)

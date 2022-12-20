@@ -5,21 +5,19 @@
 #ifndef ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_AGENT_H
 #define ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_AGENT_H
 
-#include "../RefSocketor.h"
-#include "../asioHeader.h"
-
 class Agent
 {
 public:
-    Agent(const RefSocketor &client, const std::string &agentName);
+    Agent(int pipFd);
 
     ~Agent();
 
-    awaitable<void> MAIN();
+    void MAIN();
 
 private:
     struct Impl;
     Impl *implPtr{};
+
 };
 
 #endif //ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_AGENT_H

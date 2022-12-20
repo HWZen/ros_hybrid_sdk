@@ -10,7 +10,6 @@
 #include <utility>
 #include <string>
 #include "../asioHeader.h"
-#include "spdlog/fmt/bin_to_hex.h"
 
 using namespace std::string_literals;
 
@@ -39,7 +38,10 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
     for (;;){
 
         auto delimiter = HYBRID_DELIMITER;
-        auto [ec, len] = co_await asio::async_read_until(*client, asio::dynamic_buffer(read_buffer, 4096), delimiter, use_nothrow_awaitable);
+        auto [ec, len] = co_await asio::async_read_until(*client,
+                                                         asio::dynamic_buffer(read_buffer, 1024 * 8),
+                                                         delimiter,
+                                                         use_nothrow_awaitable);
 
         if (ec && ec != asio::error::eof) {
             logger.error("read error: {}", ec.message());
@@ -55,8 +57,7 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
         if (ec2 && ec2 != asio::error::eof) {
             logger.error("write error: {}", ec2.message());
             co_return -1;
-        }
-        else if (ec2 == asio::error::eof) {
+        } else if (ec2 == asio::error::eof) {
             logger.info("disconnect");
             co_return 0;
         }
