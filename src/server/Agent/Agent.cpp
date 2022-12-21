@@ -50,6 +50,19 @@ extern char **g_argv;
 
 void Agent::Impl::MAIN()
 {
+    sstd::thread checkParentThread([&]() {
+        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, nullptr);
+        while (true)
+        {
+            if (getppid() == 1)
+            {
+                logger->info("parent process is dead, exit");
+                exit(0);
+            }
+            sstd::ThisThread::sleep(1000);
+            pthread_testcancel();
+        }
+    });
 start:
     logger->debug("preBootAgent start");
     /*******************
@@ -103,7 +116,7 @@ start:
     }
 
     /*******************
-     * fork, as another preBootAgent
+     * fork, as normal agent
      ******************/
     {
         auto pid = fork();
@@ -112,14 +125,17 @@ start:
             auto reason = hstrerror(errCode);
             throw SDKException(fmt::format("fork error, code: {}, reason: {}", errCode, reason));
         }
-        if (pid == 0) {
-            // child
+        if (pid != 0) {
+            // parent
+
             goto start;
         }
         else{
-            // parent
+            // child
             // close pip
             close(pipFd);
+            // stop check parent thread
+            checkParentThread.terminate();
         }
     }
 
@@ -144,13 +160,23 @@ start:
     ros::init(g_argc, g_argv, agentName);
     ros::start();
 
-    logger.debug("start ros spin thread");
     rosSpinThread = new sstd::thread([&]() {
         ros::spin();
         logger.debug("ros spin thread exit");
     });
 
-    logger.debug("spawn task: recv command");
+    // check parent process if exit
+    co_spawn(ctx, [&]() -> awaitable<void>
+    {
+        for (;;) {
+            if (getppid() == 1) {
+                this->logger->info("parent process is dead, exit");
+                exit(0);
+            }
+            co_await timeout(1s);
+        }
+    }, asio::detached);
+
     co_spawn(ctx, [&]() -> awaitable<void> {
         try {
             std::string read_buffer;

@@ -10,7 +10,7 @@
 #include <ros/ros.h>
 #include <unordered_set>
 #include <sys/prctl.h>
-
+using namespace std::chrono_literals;
 
 
 extern int g_argc;
@@ -75,6 +75,18 @@ void DefaultAgentManager::Impl::MAIN()
 
 
     this->logger.info("DefaultAgent::MAIN");
+
+    // check parent process if exit
+    co_spawn(ctx, [&]() -> awaitable<void>
+    {
+        for (;;) {
+            if (getppid() == 1) {
+                this->logger.info("parent process is dead, exit");
+                exit(0);
+            }
+            co_await timeout(1s);
+        }
+    }, asio::detached);
 
     co_spawn(ctx, listenFd(), asio::detached);
 
