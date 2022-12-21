@@ -64,7 +64,6 @@ void Agent::Impl::MAIN()
         }
     });
 start:
-    logger->debug("preBootAgent start");
     /*******************
      * wait a socket
      *******************/
@@ -127,7 +126,6 @@ start:
         }
         if (pid != 0) {
             // parent
-
             goto start;
         }
         else{
@@ -157,12 +155,18 @@ start:
 
 
     logger.debug("init ros");
+    // check agentName is already exist or not?
+    if (ros::isInitialized()) [[unlikely]]
+    {
+        logger.error("ros is already initialized");
+        throw SDKException("ros is already initialized");
+    }
     ros::init(g_argc, g_argv, agentName);
     ros::start();
 
     rosSpinThread = new sstd::thread([&]() {
         ros::spin();
-        logger.debug("ros spin thread exit");
+        logger.info("ros spin thread exit");
     });
 
     // check parent process if exit
@@ -308,12 +312,13 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
                                                                         [&, subscribe](const std::string &msg)
                                                                         {
                                                                             hybrid::Command command;
-                                                                            command.set_type(hybrid::Command_Type_SUBSCRIBE);
-                                                                            auto &resSub = *command.mutable_subscribe();
-                                                                            resSub.set_topic(subscribe.topic());
-                                                                            resSub.set_type(subscribe.type());
-                                                                            resSub.set_data(msg);
-                                                                            client->async_write_some(buffer(resSub.SerializeAsString()), [&](const asio::error_code &ec, size_t) {
+                                                                            command.set_type(hybrid::Command_Type_PUBLISH);
+                                                                            auto &resPub = *command.mutable_publish();
+                                                                            resPub.set_topic(subscribe.topic());
+                                                                            resPub.set_type(subscribe.type());
+                                                                            resPub.set_data(msg);
+                                                                            auto resString = command.SerializeAsString() + HYBRID_DELIMITER;
+                                                                            client->async_write_some(buffer(resString), [&](const asio::error_code &ec, size_t) {
                                                                                 if (ec)
                                                                                     logger.error("send msg error: {}", ec.message());
                                                                             });

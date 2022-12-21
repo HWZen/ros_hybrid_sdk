@@ -72,7 +72,6 @@ PROTOBUF_CONSTEXPR Command_Subscribe::Command_Subscribe(
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_.topic_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.queue_size_)*/0u} {}
 struct Command_SubscribeDefaultTypeInternal {
   PROTOBUF_CONSTEXPR Command_SubscribeDefaultTypeInternal()
@@ -236,10 +235,8 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Subscribe, _impl_.topic_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Subscribe, _impl_.type_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Subscribe, _impl_.queue_size_),
-  PROTOBUF_FIELD_OFFSET(::hybrid::Command_Subscribe, _impl_.data_),
   ~0u,
   ~0u,
-  1,
   0,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Unsubscribe, _internal_metadata_),
@@ -322,14 +319,14 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 0, 10, -1, sizeof(::hybrid::Command_Advertise)},
   { 14, -1, -1, sizeof(::hybrid::Command_Unadvertise)},
   { 21, -1, -1, sizeof(::hybrid::Command_Publish)},
-  { 30, 40, -1, sizeof(::hybrid::Command_Subscribe)},
-  { 44, -1, -1, sizeof(::hybrid::Command_Unsubscribe)},
-  { 51, -1, -1, sizeof(::hybrid::Command_CallService)},
-  { 60, -1, -1, sizeof(::hybrid::Command_AdvertiseService)},
-  { 68, -1, -1, sizeof(::hybrid::Command_UnadvertiseService)},
-  { 75, -1, -1, sizeof(::hybrid::Command_ResponseService)},
-  { 84, -1, -1, sizeof(::hybrid::Command_Log)},
-  { 92, 109, -1, sizeof(::hybrid::Command)},
+  { 30, 39, -1, sizeof(::hybrid::Command_Subscribe)},
+  { 42, -1, -1, sizeof(::hybrid::Command_Unsubscribe)},
+  { 49, -1, -1, sizeof(::hybrid::Command_CallService)},
+  { 58, -1, -1, sizeof(::hybrid::Command_AdvertiseService)},
+  { 66, -1, -1, sizeof(::hybrid::Command_UnadvertiseService)},
+  { 73, -1, -1, sizeof(::hybrid::Command_ResponseService)},
+  { 82, -1, -1, sizeof(::hybrid::Command_Log)},
+  { 90, 107, -1, sizeof(::hybrid::Command)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -347,7 +344,7 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_Command_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\rCommand.proto\022\006hybrid\"\356\014\n\007Command\022\"\n\004t"
+  "\n\rCommand.proto\022\006hybrid\"\322\014\n\007Command\022\"\n\004t"
   "ype\030\001 \001(\0162\024.hybrid.Command.Type\0221\n\tadver"
   "tise\030\002 \001(\0132\031.hybrid.Command.AdvertiseH\000\210"
   "\001\001\022-\n\007publish\030\003 \001(\0132\027.hybrid.Command.Pub"
@@ -367,32 +364,32 @@ const char descriptor_table_protodef_Command_2eproto[] PROTOBUF_SECTION_VARIABLE
   "e\030\004 \001(\rH\000\210\001\001\022\022\n\005latch\030\005 \001(\010H\001\210\001\001B\r\n\013_que"
   "ue_sizeB\010\n\006_latch\032\034\n\013Unadvertise\022\r\n\005topi"
   "c\030\001 \001(\t\0324\n\007Publish\022\r\n\005topic\030\001 \001(\t\022\014\n\004typ"
-  "e\030\002 \001(\t\022\014\n\004data\030\003 \001(\014\032l\n\tSubscribe\022\r\n\005to"
+  "e\030\002 \001(\t\022\014\n\004data\030\003 \001(\014\032P\n\tSubscribe\022\r\n\005to"
   "pic\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\003 "
-  "\001(\rH\000\210\001\001\022\021\n\004data\030\004 \001(\014H\001\210\001\001B\r\n\013_queue_si"
-  "zeB\007\n\005_data\032\034\n\013Unsubscribe\022\r\n\005topic\030\001 \001("
-  "\t\0329\n\013CallService\022\017\n\007service\030\001 \001(\t\022\014\n\004dat"
-  "a\030\003 \001(\014\022\013\n\003seq\030\004 \001(\004\0321\n\020AdvertiseService"
-  "\022\017\n\007service\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\032%\n\022Unadv"
-  "ertiseService\022\017\n\007service\030\001 \001(\t\032=\n\017Respon"
-  "seService\022\017\n\007service\030\001 \001(\t\022\014\n\004data\030\002 \001(\014"
-  "\022\013\n\003seq\030\003 \001(\004\032~\n\003Log\022(\n\005level\030\001 \001(\0162\031.hy"
-  "brid.Command.Log.Level\022\017\n\007message\030\002 \001(\t\""
-  "<\n\005Level\022\t\n\005DEBUG\020\000\022\010\n\004INFO\020\001\022\010\n\004WARN\020\002\022"
-  "\t\n\005ERROR\020\003\022\t\n\005FATAL\020\004\"\314\001\n\004Type\022\013\n\007UNKNOW"
-  "N\020\000\022\r\n\tADVERTISE\020\001\022\013\n\007PUBLISH\020\002\022\017\n\013UNADV"
-  "ERTISE\020\003\022\r\n\tSUBSCRIBE\020\004\022\017\n\013UNSUBSCRIBE\020\005"
-  "\022\025\n\021ADVERTISE_SERVICE\020\006\022\020\n\014CALL_SERVICE\020"
-  "\007\022\024\n\020RESPONSE_SERVICE\020\010\022\027\n\023UNADVERTISE_S"
-  "ERVICE\020\t\022\007\n\003LOG\020\n\022\t\n\004PING\020\200\001B\014\n\n_adverti"
-  "seB\n\n\010_publishB\016\n\014_unadvertiseB\014\n\n_subsc"
-  "ribeB\016\n\014_unsubscribeB\024\n\022_advertise_servi"
-  "ceB\017\n\r_call_serviceB\023\n\021_response_service"
-  "B\026\n\024_unadvertise_serviceB\006\n\004_logb\006proto3"
+  "\001(\rH\000\210\001\001B\r\n\013_queue_size\032\034\n\013Unsubscribe\022\r"
+  "\n\005topic\030\001 \001(\t\0329\n\013CallService\022\017\n\007service\030"
+  "\001 \001(\t\022\014\n\004data\030\003 \001(\014\022\013\n\003seq\030\004 \001(\004\0321\n\020Adve"
+  "rtiseService\022\017\n\007service\030\001 \001(\t\022\014\n\004type\030\002 "
+  "\001(\t\032%\n\022UnadvertiseService\022\017\n\007service\030\001 \001"
+  "(\t\032=\n\017ResponseService\022\017\n\007service\030\001 \001(\t\022\014"
+  "\n\004data\030\002 \001(\014\022\013\n\003seq\030\003 \001(\004\032~\n\003Log\022(\n\005leve"
+  "l\030\001 \001(\0162\031.hybrid.Command.Log.Level\022\017\n\007me"
+  "ssage\030\002 \001(\t\"<\n\005Level\022\t\n\005DEBUG\020\000\022\010\n\004INFO\020"
+  "\001\022\010\n\004WARN\020\002\022\t\n\005ERROR\020\003\022\t\n\005FATAL\020\004\"\314\001\n\004Ty"
+  "pe\022\013\n\007UNKNOWN\020\000\022\r\n\tADVERTISE\020\001\022\013\n\007PUBLIS"
+  "H\020\002\022\017\n\013UNADVERTISE\020\003\022\r\n\tSUBSCRIBE\020\004\022\017\n\013U"
+  "NSUBSCRIBE\020\005\022\025\n\021ADVERTISE_SERVICE\020\006\022\020\n\014C"
+  "ALL_SERVICE\020\007\022\024\n\020RESPONSE_SERVICE\020\010\022\027\n\023U"
+  "NADVERTISE_SERVICE\020\t\022\007\n\003LOG\020\n\022\t\n\004PING\020\200\001"
+  "B\014\n\n_advertiseB\n\n\010_publishB\016\n\014_unadverti"
+  "seB\014\n\n_subscribeB\016\n\014_unsubscribeB\024\n\022_adv"
+  "ertise_serviceB\017\n\r_call_serviceB\023\n\021_resp"
+  "onse_serviceB\026\n\024_unadvertise_serviceB\006\n\004"
+  "_logb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_Command_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Command_2eproto = {
-    false, false, 1680, descriptor_table_protodef_Command_2eproto,
+    false, false, 1652, descriptor_table_protodef_Command_2eproto,
     "Command.proto",
     &descriptor_table_Command_2eproto_once, nullptr, 0, 11,
     schemas, file_default_instances, TableStruct_Command_2eproto::offsets,
@@ -1320,9 +1317,6 @@ class Command_Subscribe::_Internal {
  public:
   using HasBits = decltype(std::declval<Command_Subscribe>()._impl_._has_bits_);
   static void set_has_queue_size(HasBits* has_bits) {
-    (*has_bits)[0] |= 2u;
-  }
-  static void set_has_data(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
 };
@@ -1341,7 +1335,6 @@ Command_Subscribe::Command_Subscribe(const Command_Subscribe& from)
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.topic_){}
     , decltype(_impl_.type_){}
-    , decltype(_impl_.data_){}
     , decltype(_impl_.queue_size_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -1361,14 +1354,6 @@ Command_Subscribe::Command_Subscribe(const Command_Subscribe& from)
     _this->_impl_.type_.Set(from._internal_type(), 
       _this->GetArenaForAllocation());
   }
-  _impl_.data_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.data_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (from._internal_has_data()) {
-    _this->_impl_.data_.Set(from._internal_data(), 
-      _this->GetArenaForAllocation());
-  }
   _this->_impl_.queue_size_ = from._impl_.queue_size_;
   // @@protoc_insertion_point(copy_constructor:hybrid.Command.Subscribe)
 }
@@ -1382,7 +1367,6 @@ inline void Command_Subscribe::SharedCtor(
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.topic_){}
     , decltype(_impl_.type_){}
-    , decltype(_impl_.data_){}
     , decltype(_impl_.queue_size_){0u}
   };
   _impl_.topic_.InitDefault();
@@ -1392,10 +1376,6 @@ inline void Command_Subscribe::SharedCtor(
   _impl_.type_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.type_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  _impl_.data_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.data_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -1412,7 +1392,6 @@ inline void Command_Subscribe::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.topic_.Destroy();
   _impl_.type_.Destroy();
-  _impl_.data_.Destroy();
 }
 
 void Command_Subscribe::SetCachedSize(int size) const {
@@ -1427,10 +1406,6 @@ void Command_Subscribe::Clear() {
 
   _impl_.topic_.ClearToEmpty();
   _impl_.type_.ClearToEmpty();
-  cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    _impl_.data_.ClearNonDefaultToEmpty();
-  }
   _impl_.queue_size_ = 0u;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -1468,15 +1443,6 @@ const char* Command_Subscribe::_InternalParse(const char* ptr, ::_pbi::ParseCont
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
           _Internal::set_has_queue_size(&has_bits);
           _impl_.queue_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // optional bytes data = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
-          auto str = _internal_mutable_data();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1537,12 +1503,6 @@ uint8_t* Command_Subscribe::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt32ToArray(3, this->_internal_queue_size(), target);
   }
 
-  // optional bytes data = 4;
-  if (_internal_has_data()) {
-    target = stream->WriteBytesMaybeAliased(
-        4, this->_internal_data(), target);
-  }
-
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1573,21 +1533,12 @@ size_t Command_Subscribe::ByteSizeLong() const {
         this->_internal_type());
   }
 
+  // optional uint32 queue_size = 3;
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
-    // optional bytes data = 4;
-    if (cached_has_bits & 0x00000001u) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-          this->_internal_data());
-    }
-
-    // optional uint32 queue_size = 3;
-    if (cached_has_bits & 0x00000002u) {
-      total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_queue_size());
-    }
-
+  if (cached_has_bits & 0x00000001u) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_queue_size());
   }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -1612,15 +1563,8 @@ void Command_Subscribe::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, cons
   if (!from._internal_type().empty()) {
     _this->_internal_set_type(from._internal_type());
   }
-  cached_has_bits = from._impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
-    if (cached_has_bits & 0x00000001u) {
-      _this->_internal_set_data(from._internal_data());
-    }
-    if (cached_has_bits & 0x00000002u) {
-      _this->_impl_.queue_size_ = from._impl_.queue_size_;
-    }
-    _this->_impl_._has_bits_[0] |= cached_has_bits;
+  if (from._internal_has_queue_size()) {
+    _this->_internal_set_queue_size(from._internal_queue_size());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -1649,10 +1593,6 @@ void Command_Subscribe::InternalSwap(Command_Subscribe* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.type_, lhs_arena,
       &other->_impl_.type_, rhs_arena
-  );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.data_, lhs_arena,
-      &other->_impl_.data_, rhs_arena
   );
   swap(_impl_.queue_size_, other->_impl_.queue_size_);
 }

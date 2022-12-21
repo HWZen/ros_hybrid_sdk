@@ -9,8 +9,9 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/sinks/rotating_file_sink.h"
-#include <unistd.h>
 #include "CommandMsg/Command.pb.h"
+#include "asioHeader.h"
+#include <unistd.h>
 
 
 
@@ -97,7 +98,8 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
         auto *log = command.mutable_log();
         log->set_level(static_cast<hybrid::Command_Log_Level>(msg.level == 0 ? 0 : msg.level - 1));
         log->set_message(formatted.data(), formatted.size());
-        client->async_write_some(asio::buffer(log->SerializeAsString()), sinkCallback);
+        auto buf = command.SerializeAsString() + HYBRID_DELIMITER;
+        client->async_write_some(asio::buffer(buf), sinkCallback);
     }
 }
 
@@ -151,7 +153,7 @@ Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
     if (flag & LogFlag::CLIENT_LOGGER) {
         if (!client)
             throw SDKException("Client is not initialized");
-        sinks.push_back(std::make_shared<client_sink>(client));
+        sinks.push_back(std::make_shared<client_sink>(client, true));
     }
 
     implPtr = new Impl(std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end()));
