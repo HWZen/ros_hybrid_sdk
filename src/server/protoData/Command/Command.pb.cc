@@ -155,6 +155,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR Command_Log::Command_Log(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.message_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.time_)*/nullptr
   , /*decltype(_impl_.level_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct Command_LogDefaultTypeInternal {
@@ -285,6 +286,7 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Log, _impl_.level_),
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_Log, _impl_.time_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Log, _impl_.message_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command, _internal_metadata_),
@@ -326,7 +328,7 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 66, -1, -1, sizeof(::hybrid::Command_UnadvertiseService)},
   { 73, -1, -1, sizeof(::hybrid::Command_ResponseService)},
   { 82, -1, -1, sizeof(::hybrid::Command_Log)},
-  { 90, 107, -1, sizeof(::hybrid::Command)},
+  { 91, 108, -1, sizeof(::hybrid::Command)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -344,54 +346,59 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_Command_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\rCommand.proto\022\006hybrid\"\322\014\n\007Command\022\"\n\004t"
-  "ype\030\001 \001(\0162\024.hybrid.Command.Type\0221\n\tadver"
-  "tise\030\002 \001(\0132\031.hybrid.Command.AdvertiseH\000\210"
-  "\001\001\022-\n\007publish\030\003 \001(\0132\027.hybrid.Command.Pub"
-  "lishH\001\210\001\001\0225\n\013unadvertise\030\004 \001(\0132\033.hybrid."
-  "Command.UnadvertiseH\002\210\001\001\0221\n\tsubscribe\030\005 "
-  "\001(\0132\031.hybrid.Command.SubscribeH\003\210\001\001\0225\n\013u"
-  "nsubscribe\030\006 \001(\0132\033.hybrid.Command.Unsubs"
-  "cribeH\004\210\001\001\022@\n\021advertise_service\030\007 \001(\0132 ."
-  "hybrid.Command.AdvertiseServiceH\005\210\001\001\0226\n\014"
-  "call_service\030\010 \001(\0132\033.hybrid.Command.Call"
-  "ServiceH\006\210\001\001\022>\n\020response_service\030\t \001(\0132\037"
-  ".hybrid.Command.ResponseServiceH\007\210\001\001\022D\n\023"
-  "unadvertise_service\030\n \001(\0132\".hybrid.Comma"
-  "nd.UnadvertiseServiceH\010\210\001\001\022%\n\003log\030\013 \001(\0132"
-  "\023.hybrid.Command.LogH\t\210\001\001\032n\n\tAdvertise\022\r"
-  "\n\005topic\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_siz"
-  "e\030\004 \001(\rH\000\210\001\001\022\022\n\005latch\030\005 \001(\010H\001\210\001\001B\r\n\013_que"
-  "ue_sizeB\010\n\006_latch\032\034\n\013Unadvertise\022\r\n\005topi"
-  "c\030\001 \001(\t\0324\n\007Publish\022\r\n\005topic\030\001 \001(\t\022\014\n\004typ"
-  "e\030\002 \001(\t\022\014\n\004data\030\003 \001(\014\032P\n\tSubscribe\022\r\n\005to"
-  "pic\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\003 "
-  "\001(\rH\000\210\001\001B\r\n\013_queue_size\032\034\n\013Unsubscribe\022\r"
-  "\n\005topic\030\001 \001(\t\0329\n\013CallService\022\017\n\007service\030"
-  "\001 \001(\t\022\014\n\004data\030\003 \001(\014\022\013\n\003seq\030\004 \001(\004\0321\n\020Adve"
-  "rtiseService\022\017\n\007service\030\001 \001(\t\022\014\n\004type\030\002 "
-  "\001(\t\032%\n\022UnadvertiseService\022\017\n\007service\030\001 \001"
-  "(\t\032=\n\017ResponseService\022\017\n\007service\030\001 \001(\t\022\014"
-  "\n\004data\030\002 \001(\014\022\013\n\003seq\030\003 \001(\004\032~\n\003Log\022(\n\005leve"
-  "l\030\001 \001(\0162\031.hybrid.Command.Log.Level\022\017\n\007me"
-  "ssage\030\002 \001(\t\"<\n\005Level\022\t\n\005DEBUG\020\000\022\010\n\004INFO\020"
-  "\001\022\010\n\004WARN\020\002\022\t\n\005ERROR\020\003\022\t\n\005FATAL\020\004\"\314\001\n\004Ty"
-  "pe\022\013\n\007UNKNOWN\020\000\022\r\n\tADVERTISE\020\001\022\013\n\007PUBLIS"
-  "H\020\002\022\017\n\013UNADVERTISE\020\003\022\r\n\tSUBSCRIBE\020\004\022\017\n\013U"
-  "NSUBSCRIBE\020\005\022\025\n\021ADVERTISE_SERVICE\020\006\022\020\n\014C"
-  "ALL_SERVICE\020\007\022\024\n\020RESPONSE_SERVICE\020\010\022\027\n\023U"
-  "NADVERTISE_SERVICE\020\t\022\007\n\003LOG\020\n\022\t\n\004PING\020\200\001"
-  "B\014\n\n_advertiseB\n\n\010_publishB\016\n\014_unadverti"
-  "seB\014\n\n_subscribeB\016\n\014_unsubscribeB\024\n\022_adv"
-  "ertise_serviceB\017\n\r_call_serviceB\023\n\021_resp"
-  "onse_serviceB\026\n\024_unadvertise_serviceB\006\n\004"
-  "_logb\006proto3"
+  "\n\rCommand.proto\022\006hybrid\032\037google/protobuf"
+  "/timestamp.proto\"\375\014\n\007Command\022\"\n\004type\030\001 \001"
+  "(\0162\024.hybrid.Command.Type\0221\n\tadvertise\030\002 "
+  "\001(\0132\031.hybrid.Command.AdvertiseH\000\210\001\001\022-\n\007p"
+  "ublish\030\003 \001(\0132\027.hybrid.Command.PublishH\001\210"
+  "\001\001\0225\n\013unadvertise\030\004 \001(\0132\033.hybrid.Command"
+  ".UnadvertiseH\002\210\001\001\0221\n\tsubscribe\030\005 \001(\0132\031.h"
+  "ybrid.Command.SubscribeH\003\210\001\001\0225\n\013unsubscr"
+  "ibe\030\006 \001(\0132\033.hybrid.Command.UnsubscribeH\004"
+  "\210\001\001\022@\n\021advertise_service\030\007 \001(\0132 .hybrid."
+  "Command.AdvertiseServiceH\005\210\001\001\0226\n\014call_se"
+  "rvice\030\010 \001(\0132\033.hybrid.Command.CallService"
+  "H\006\210\001\001\022>\n\020response_service\030\t \001(\0132\037.hybrid"
+  ".Command.ResponseServiceH\007\210\001\001\022D\n\023unadver"
+  "tise_service\030\n \001(\0132\".hybrid.Command.Unad"
+  "vertiseServiceH\010\210\001\001\022%\n\003log\030\013 \001(\0132\023.hybri"
+  "d.Command.LogH\t\210\001\001\032n\n\tAdvertise\022\r\n\005topic"
+  "\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\004 \001(\r"
+  "H\000\210\001\001\022\022\n\005latch\030\005 \001(\010H\001\210\001\001B\r\n\013_queue_size"
+  "B\010\n\006_latch\032\034\n\013Unadvertise\022\r\n\005topic\030\001 \001(\t"
+  "\0324\n\007Publish\022\r\n\005topic\030\001 \001(\t\022\014\n\004type\030\002 \001(\t"
+  "\022\014\n\004data\030\003 \001(\014\032P\n\tSubscribe\022\r\n\005topic\030\001 \001"
+  "(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\003 \001(\rH\000\210\001"
+  "\001B\r\n\013_queue_size\032\034\n\013Unsubscribe\022\r\n\005topic"
+  "\030\001 \001(\t\0329\n\013CallService\022\017\n\007service\030\001 \001(\t\022\014"
+  "\n\004data\030\003 \001(\014\022\013\n\003seq\030\004 \001(\004\0321\n\020AdvertiseSe"
+  "rvice\022\017\n\007service\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\032%\n\022"
+  "UnadvertiseService\022\017\n\007service\030\001 \001(\t\032=\n\017R"
+  "esponseService\022\017\n\007service\030\001 \001(\t\022\014\n\004data\030"
+  "\002 \001(\014\022\013\n\003seq\030\003 \001(\004\032\250\001\n\003Log\022(\n\005level\030\001 \001("
+  "\0162\031.hybrid.Command.Log.Level\022(\n\004time\030\002 \001"
+  "(\0132\032.google.protobuf.Timestamp\022\017\n\007messag"
+  "e\030\003 \001(\t\"<\n\005Level\022\t\n\005DEBUG\020\000\022\010\n\004INFO\020\001\022\010\n"
+  "\004WARN\020\002\022\t\n\005ERROR\020\003\022\t\n\005FATAL\020\004\"\314\001\n\004Type\022\013"
+  "\n\007UNKNOWN\020\000\022\r\n\tADVERTISE\020\001\022\013\n\007PUBLISH\020\002\022"
+  "\017\n\013UNADVERTISE\020\003\022\r\n\tSUBSCRIBE\020\004\022\017\n\013UNSUB"
+  "SCRIBE\020\005\022\025\n\021ADVERTISE_SERVICE\020\006\022\020\n\014CALL_"
+  "SERVICE\020\007\022\024\n\020RESPONSE_SERVICE\020\010\022\027\n\023UNADV"
+  "ERTISE_SERVICE\020\t\022\007\n\003LOG\020\n\022\t\n\004PING\020\200\001B\014\n\n"
+  "_advertiseB\n\n\010_publishB\016\n\014_unadvertiseB\014"
+  "\n\n_subscribeB\016\n\014_unsubscribeB\024\n\022_adverti"
+  "se_serviceB\017\n\r_call_serviceB\023\n\021_response"
+  "_serviceB\026\n\024_unadvertise_serviceB\006\n\004_log"
+  "b\006proto3"
   ;
+static const ::_pbi::DescriptorTable* const descriptor_table_Command_2eproto_deps[1] = {
+  &::descriptor_table_google_2fprotobuf_2ftimestamp_2eproto,
+};
 static ::_pbi::once_flag descriptor_table_Command_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Command_2eproto = {
-    false, false, 1652, descriptor_table_protodef_Command_2eproto,
+    false, false, 1728, descriptor_table_protodef_Command_2eproto,
     "Command.proto",
-    &descriptor_table_Command_2eproto_once, nullptr, 0, 11,
+    &descriptor_table_Command_2eproto_once, descriptor_table_Command_2eproto_deps, 1, 11,
     schemas, file_default_instances, TableStruct_Command_2eproto::offsets,
     file_level_metadata_Command_2eproto, file_level_enum_descriptors_Command_2eproto,
     file_level_service_descriptors_Command_2eproto,
@@ -2816,8 +2823,19 @@ void Command_ResponseService::InternalSwap(Command_ResponseService* other) {
 
 class Command_Log::_Internal {
  public:
+  static const ::PROTOBUF_NAMESPACE_ID::Timestamp& time(const Command_Log* msg);
 };
 
+const ::PROTOBUF_NAMESPACE_ID::Timestamp&
+Command_Log::_Internal::time(const Command_Log* msg) {
+  return *msg->_impl_.time_;
+}
+void Command_Log::clear_time() {
+  if (GetArenaForAllocation() == nullptr && _impl_.time_ != nullptr) {
+    delete _impl_.time_;
+  }
+  _impl_.time_ = nullptr;
+}
 Command_Log::Command_Log(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
@@ -2829,6 +2847,7 @@ Command_Log::Command_Log(const Command_Log& from)
   Command_Log* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.message_){}
+    , decltype(_impl_.time_){nullptr}
     , decltype(_impl_.level_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -2841,6 +2860,9 @@ Command_Log::Command_Log(const Command_Log& from)
     _this->_impl_.message_.Set(from._internal_message(), 
       _this->GetArenaForAllocation());
   }
+  if (from._internal_has_time()) {
+    _this->_impl_.time_ = new ::PROTOBUF_NAMESPACE_ID::Timestamp(*from._impl_.time_);
+  }
   _this->_impl_.level_ = from._impl_.level_;
   // @@protoc_insertion_point(copy_constructor:hybrid.Command.Log)
 }
@@ -2851,6 +2873,7 @@ inline void Command_Log::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.message_){}
+    , decltype(_impl_.time_){nullptr}
     , decltype(_impl_.level_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -2872,6 +2895,7 @@ Command_Log::~Command_Log() {
 inline void Command_Log::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.message_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.time_;
 }
 
 void Command_Log::SetCachedSize(int size) const {
@@ -2885,6 +2909,10 @@ void Command_Log::Clear() {
   (void) cached_has_bits;
 
   _impl_.message_.ClearToEmpty();
+  if (GetArenaForAllocation() == nullptr && _impl_.time_ != nullptr) {
+    delete _impl_.time_;
+  }
+  _impl_.time_ = nullptr;
   _impl_.level_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -2904,9 +2932,17 @@ const char* Command_Log::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
         } else
           goto handle_unusual;
         continue;
-      // string message = 2;
+      // .google.protobuf.Timestamp time = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr = ctx->ParseMessage(_internal_mutable_time(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string message = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_message();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
@@ -2950,14 +2986,21 @@ uint8_t* Command_Log::_InternalSerialize(
       1, this->_internal_level(), target);
   }
 
-  // string message = 2;
+  // .google.protobuf.Timestamp time = 2;
+  if (this->_internal_has_time()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(2, _Internal::time(this),
+        _Internal::time(this).GetCachedSize(), target, stream);
+  }
+
+  // string message = 3;
   if (!this->_internal_message().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_message().data(), static_cast<int>(this->_internal_message().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "hybrid.Command.Log.message");
     target = stream->WriteStringMaybeAliased(
-        2, this->_internal_message(), target);
+        3, this->_internal_message(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -2976,11 +3019,18 @@ size_t Command_Log::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string message = 2;
+  // string message = 3;
   if (!this->_internal_message().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_message());
+  }
+
+  // .google.protobuf.Timestamp time = 2;
+  if (this->_internal_has_time()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.time_);
   }
 
   // .hybrid.Command.Log.Level level = 1;
@@ -3010,6 +3060,10 @@ void Command_Log::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PR
   if (!from._internal_message().empty()) {
     _this->_internal_set_message(from._internal_message());
   }
+  if (from._internal_has_time()) {
+    _this->_internal_mutable_time()->::PROTOBUF_NAMESPACE_ID::Timestamp::MergeFrom(
+        from._internal_time());
+  }
   if (from._internal_level() != 0) {
     _this->_internal_set_level(from._internal_level());
   }
@@ -3036,7 +3090,12 @@ void Command_Log::InternalSwap(Command_Log* other) {
       &_impl_.message_, lhs_arena,
       &other->_impl_.message_, rhs_arena
   );
-  swap(_impl_.level_, other->_impl_.level_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Command_Log, _impl_.level_)
+      + sizeof(Command_Log::_impl_.level_)
+      - PROTOBUF_FIELD_OFFSET(Command_Log, _impl_.time_)>(
+          reinterpret_cast<char*>(&_impl_.time_),
+          reinterpret_cast<char*>(&other->_impl_.time_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata Command_Log::GetMetadata() const {

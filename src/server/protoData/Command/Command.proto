@@ -1,9 +1,6 @@
 syntax = "proto3";
+import "google/protobuf/timestamp.proto";
 package hybrid;
-
-
-
-
 
 message Command{
 
@@ -64,7 +61,8 @@ message Command{
       FATAL = 4;
     }
     Level level = 1;
-    string message = 2;
+    google.protobuf.Timestamp time = 2;
+    string message = 3;
   }
 
   enum Type {

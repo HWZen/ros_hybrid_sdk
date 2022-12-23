@@ -31,6 +31,7 @@
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/timestamp.pb.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_Command_2eproto
@@ -1875,10 +1876,11 @@ class Command_Log final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kMessageFieldNumber = 2,
+    kMessageFieldNumber = 3,
+    kTimeFieldNumber = 2,
     kLevelFieldNumber = 1,
   };
-  // string message = 2;
+  // string message = 3;
   void clear_message();
   const std::string& message() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1891,6 +1893,24 @@ class Command_Log final :
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(const std::string& value);
   std::string* _internal_mutable_message();
   public:
+
+  // .google.protobuf.Timestamp time = 2;
+  bool has_time() const;
+  private:
+  bool _internal_has_time() const;
+  public:
+  void clear_time();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& time() const;
+  PROTOBUF_NODISCARD ::PROTOBUF_NAMESPACE_ID::Timestamp* release_time();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_time();
+  void set_allocated_time(::PROTOBUF_NAMESPACE_ID::Timestamp* time);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_time() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_time();
+  public:
+  void unsafe_arena_set_allocated_time(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* time);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_time();
 
   // .hybrid.Command.Log.Level level = 1;
   void clear_level();
@@ -1910,6 +1930,7 @@ class Command_Log final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* time_;
     int level_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -3317,7 +3338,92 @@ inline void Command_Log::set_level(::hybrid::Command_Log_Level value) {
   // @@protoc_insertion_point(field_set:hybrid.Command.Log.level)
 }
 
-// string message = 2;
+// .google.protobuf.Timestamp time = 2;
+inline bool Command_Log::_internal_has_time() const {
+  return this != internal_default_instance() && _impl_.time_ != nullptr;
+}
+inline bool Command_Log::has_time() const {
+  return _internal_has_time();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Command_Log::_internal_time() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = _impl_.time_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Command_Log::time() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.Log.time)
+  return _internal_time();
+}
+inline void Command_Log::unsafe_arena_set_allocated_time(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* time) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.time_);
+  }
+  _impl_.time_ = time;
+  if (time) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:hybrid.Command.Log.time)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Command_Log::release_time() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.time_;
+  _impl_.time_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Command_Log::unsafe_arena_release_time() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.Log.time)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.time_;
+  _impl_.time_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Command_Log::_internal_mutable_time() {
+  
+  if (_impl_.time_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    _impl_.time_ = p;
+  }
+  return _impl_.time_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Command_Log::mutable_time() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_time();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.Log.time)
+  return _msg;
+}
+inline void Command_Log::set_allocated_time(::PROTOBUF_NAMESPACE_ID::Timestamp* time) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.time_);
+  }
+  if (time) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(time));
+    if (message_arena != submessage_arena) {
+      time = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, time, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.time_ = time;
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.Log.time)
+}
+
+// string message = 3;
 inline void Command_Log::clear_message() {
   _impl_.message_.ClearToEmpty();
 }
