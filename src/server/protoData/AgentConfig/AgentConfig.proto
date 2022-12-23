@@ -1,0 +1,9 @@
+syntax = "proto3";
+package hybrid;
+
+message AgentConfig{
+  string node = 1;
+  int32 log_level = 2;
+  bool is_protobuf = 3;
+  bytes delimiter = 4;
+}

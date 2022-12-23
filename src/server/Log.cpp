@@ -9,7 +9,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/sinks/rotating_file_sink.h"
-#include "CommandMsg/Command.pb.h"
+#include "protoData/Command/Command.pb.h"
 #include "asioHeader.h"
 #include <unistd.h>
 
@@ -29,7 +29,7 @@ protected:
 class client_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
 {
 public:
-    explicit client_sink(ref_client client, bool protobuf = false);
+    explicit client_sink(ref_client client);
 
     ~client_sink() override = default;
 
@@ -40,7 +40,6 @@ protected:
 
     ref_client client;
 
-    bool protobuf{false};
 };
 
 struct Log::Impl : public std::shared_ptr<spdlog::logger>
@@ -89,7 +88,7 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
         if (ec)
             spdlog::error("client sink error: {}", ec.message());
     };
-    if (!protobuf){
+    if (!client->agentConfig.is_protobuf()){
         client->async_write_some(asio::buffer(formatted.data(), formatted.size()), sinkCallback);
     }
     else{
@@ -103,9 +102,9 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
     }
 }
 
-client_sink::client_sink(ref_client client, bool protobuf) : client(std::move(client)), protobuf(protobuf){
+client_sink::client_sink(ref_client client) : client(std::move(client)){
 
-    if (protobuf)
+    if (client_sink::client->agentConfig.is_protobuf())
         set_pattern("%v");
     else // json pattern
         set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
@@ -153,7 +152,7 @@ Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
     if (flag & LogFlag::CLIENT_LOGGER) {
         if (!client)
             throw SDKException("Client is not initialized");
-        sinks.push_back(std::make_shared<client_sink>(client, true));
+        sinks.push_back(std::make_shared<client_sink>(client));
     }
 
     implPtr = new Impl(std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end()));

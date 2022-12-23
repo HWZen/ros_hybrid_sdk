@@ -5,7 +5,7 @@
 // 
 
 #include "DefaultCommand.h"
-#include "../CommandMsg/Command.pb.h"
+#include "../protoData/Command/Command.pb.h"
 #include "../MsgLoader.h"
 
 struct Test{

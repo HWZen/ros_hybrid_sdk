@@ -6,16 +6,31 @@
 
 #ifndef ROS_HYBIRD_SDK_REFSOCKETOR_H
 #define ROS_HYBIRD_SDK_REFSOCKETOR_H
-#include "asio/ip/tcp.hpp"
+#include "asioHeader.h"
+#include "protoData/AgentConfig/AgentConfig.pb.h"
 
 using SOCKET = int;
 
-// TODO: Socketor 可以封装一下，保留一些配置信息，比如：序列化协议，日志等级，分隔符等
-using RefSocketor = std::shared_ptr<asio::ip::tcp::socket>;
+class Client : public asio::ip::tcp::socket{
+public:
+    using asio::ip::tcp::socket::socket;
+    explicit Client(asio::ip::tcp::socket&& socket) : asio::ip::tcp::socket(std::move(socket)) {}
+    hybrid::AgentConfig agentConfig = [](){
+        hybrid::AgentConfig config;
+        config.set_delimiter(HYBRID_DELIMITER);
+        config.set_is_protobuf(false);
+        config.set_log_level(2);
+        return config;
+    }();
+};
+
+using RefSocketor = std::shared_ptr<Client>;
 
 template<typename ...Args>
-inline auto make_socket(Args &&...args){
-    return std::make_shared<asio::ip::tcp::socket>(std::forward<Args>(args)...);
+inline auto make_client(Args &&...args){
+    return std::make_shared<Client>(std::forward<Args>(args)...);
 }
+
+
 
 #endif //ROS_HYBIRD_SDK_REFSOCKETOR_H

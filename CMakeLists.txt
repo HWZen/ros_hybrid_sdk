@@ -160,7 +160,8 @@ add_executable(${PROJECT_PREFIX}_server
         src/server/Log.cpp
         src/server/DefaultAgent/ConnectInstance.cpp
         src/server/DefaultAgent/DefaultCommand.cpp
-        src/server/CommandMsg/Command.pb.cc
+        src/server/protoData/Command/Command.pb.cc
+        src/server/protoData/AgentConfig/AgentConfig.pb.cc
         )
 target_compile_options(${PROJECT_PREFIX}_server PRIVATE -std=c++20)
 

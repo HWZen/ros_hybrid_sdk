@@ -5,9 +5,8 @@
 #include "Agent.h"
 #include "../Log.h"
 #include "../../SDKException.h"
-#include "../CommandMsg/Command.pb.h"
+#include "../protoData/Command/Command.pb.h"
 #include "../MsgLoader.h"
-#include "../asioHeader.h"
 #include <sstl/thread.h>
 #include <sys/prctl.h>
 #include <ros/ros.h>
@@ -18,8 +17,6 @@ using namespace std::chrono_literals;
 struct Agent::Impl
 {
     void MAIN();
-
-    std::string agentName{};
 
     std::shared_ptr<Log> logger{};
 
@@ -42,6 +39,8 @@ struct Agent::Impl
 
 void Agent::MAIN()
 {
+    if (!implPtr)
+        throw SDKException("Agent::MAIN() implPtr is nullptr");
     implPtr->MAIN();
 }
 
@@ -50,6 +49,7 @@ extern char **g_argv;
 
 void Agent::Impl::MAIN()
 {
+    logger->info("preBootAgent process start");
     sstd::thread checkParentThread([&]() {
         pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, nullptr);
         while (true)
@@ -91,7 +91,7 @@ start:
             auto errCode = errno;
             auto reason = hstrerror(errCode);
             logger->error("recv socket error, code: {}, reason: {}", errCode, reason);
-            return;
+            goto start;
         }
 
         fd = *(int *)CMSG_DATA((cmsghdr *)&cmBuf);
@@ -99,19 +99,25 @@ start:
     }
 
     /*******************
-     * recv agent name
+     * recv agent config
      *******************/
+    hybrid::AgentConfig agentConfig{};
     {
-        std::array<char, 128> agentNameBuf{};
+        std::array<char, 4096> agentNameBuf{};
         auto len = read(pipFd, agentNameBuf.data(), agentNameBuf.size());
         if (len == -1) {
             auto errCode = errno;
             auto reason = hstrerror(errCode);
-            throw SDKException(fmt::format("recv agent name error, code: {}, reason: {}", errCode, reason));
+            logger->error("recv agent name error, code: {}, reason: {}", errCode, reason);
+            goto start;
         }
 
-        agentName = std::string(agentNameBuf.data(), len);
-        logger->debug("recv agent name: {}", agentName);
+        if (!agentConfig.ParseFromArray(agentNameBuf.data(), static_cast<int>(len))){
+            logger->error("parse agent config error");
+            goto start;
+        }
+
+        logger->debug("recv agent config: {}", agentConfig.DebugString());
     }
 
     /*******************
@@ -126,6 +132,8 @@ start:
         }
         if (pid != 0) {
             // parent
+            // close fd
+            close(fd);
             goto start;
         }
         else{
@@ -142,14 +150,17 @@ start:
      * init
      *******************/
 
+    const auto &agentName = agentConfig.node();
     asio::io_context ctx{};
-    client = make_socket(ctx, asio::ip::tcp::v4(), fd);
+    client = make_client(ctx, asio::ip::tcp::v4(), fd);
+    client->agentConfig = std::move(agentConfig);
     Impl::logger = std::make_shared<Log>("Agent_" + agentName, LogFlag::CONSOLE_CLIENT, client);
+    logger->debug("agent config {}", client->agentConfig.DebugString());
 
     auto &logger = *Impl::logger;
     // change process name
     logger.debug("change process name");
-    g_argv[0] = agentName.data();
+    g_argv[0] = client->agentConfig.mutable_node()->data();
     prctl(PR_SET_NAME, agentName.c_str(), 0, 0, 0);
 
 

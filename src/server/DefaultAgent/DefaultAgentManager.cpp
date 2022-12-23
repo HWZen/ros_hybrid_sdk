@@ -33,9 +33,9 @@ struct DefaultAgentManager::Impl
     awaitable<void> listenFd();
 
     std::shared_ptr<sstd::BaseThread> recvFdThread{};
-    sstd::atomic_queue<std::shared_ptr<std::function<void(SOCKET)>>> task_queue;
+    sstd::atomic_queue<std::shared_ptr<std::function<void(SOCKET, hybrid::AgentConfig)>>> task_queue;
 
-    template <asio::completion_token_for<void(SOCKET)> CompletionToken>
+    template <asio::completion_token_for<void(SOCKET, hybrid::AgentConfig)> CompletionToken>
     auto async_get_socket(CompletionToken&& token);
 
     asio::io_context ctx{};
@@ -102,8 +102,16 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
                                                                {
                                                                    for (;;) {
                                                                        auto fd = recv_fd();
+                                                                       std::array<char, 4096> agentConfigBuf{};
+                                                                       auto len = read(pipeFd, agentConfigBuf.data(), agentConfigBuf.size());
+                                                                       hybrid::AgentConfig agentConfig{};
+                                                                       if (!agentConfig.ParseFromArray(agentConfigBuf.data(),
+                                                                                                       static_cast<int>(len))){
+                                                                            this->logger.error("parse agent config fail");
+                                                                            continue;
+                                                                       }
                                                                        auto task = task_queue.pop();
-                                                                       (*task)(fd);
+                                                                       (*task)(fd, std::move(agentConfig));
                                                                    }
                                                                }),
                                               // destroy thread
@@ -116,14 +124,14 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
 
 }
 
-template <asio::completion_token_for<void(SOCKET)> CompletionToken>
+template <asio::completion_token_for<void(SOCKET, hybrid::AgentConfig)> CompletionToken>
 auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
 {
 
     // Define a function object that contains the code to launch the asynchronous
     // operation. This is passed the concrete completion handler, followed by any
     // additional arguments that were passed through the call to async_initiate.
-    auto init = [this](asio::completion_handler_for<void(SOCKET)> auto handler){
+    auto init = [this](asio::completion_handler_for<void(SOCKET, hybrid::AgentConfig)> auto handler){
         // According to the rules for asynchronous operations, we need to track
         // outstanding work against the handler's associated executor until the
         // asynchronous operation is complete.
@@ -132,10 +140,10 @@ auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
 
         auto work = asio::make_work_guard(*ref_handler);
 
-        std::function<void(SOCKET)> callback = [
+        std::function<void(SOCKET, hybrid::AgentConfig)> callback = [
                 work = std::move(work),
                 ref_handler = std::move(ref_handler)
-        ](SOCKET socketFd) mutable
+        ](SOCKET socketFd, hybrid::AgentConfig agentConfig) mutable
         {
             // Get the handler's associated allocator. If the handler does not
             // specify an allocator, use the recycling allocator as the default.
@@ -148,15 +156,14 @@ auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
                            asio::bind_allocator(alloc,
                                                 [
                                                         ref_handle = std::move(ref_handler),
-                                                        socketFd
+                                                        socketFd,
+                                                        agentConfig = std::move(agentConfig)
                                                 ]() mutable
                                                 {
-                                                    std::move(*ref_handle)(socketFd);
+                                                    std::move(*ref_handle)(socketFd, std::move(agentConfig));
                                                 }));
         };
-
-        task_queue.push(std::make_shared<std::function<void(SOCKET)>>(std::move(callback)));
-
+        task_queue.push(std::make_shared<std::function<void(SOCKET, hybrid::AgentConfig)>>(std::move(callback)));
     };
 
     // The async_initiate function is used to transform the supplied completion
@@ -164,7 +171,7 @@ auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
     // specify the completion signature of the operation. We must also return the
     // result of the call since the completion token may produce a return value,
     // such as a future.
-    return asio::async_initiate<CompletionToken, void(SOCKET)>(
+    return asio::async_initiate<CompletionToken, void(SOCKET, hybrid::AgentConfig)>(
             init, // First, pass the function object that launches the operation,
             token);// then the completion token that will be transformed to a handler
 
@@ -206,11 +213,13 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
     for (;;) {
         try{
 
-            auto fd = co_await async_get_socket(asio::use_awaitable);
+            auto [fd, agentConfig] = co_await async_get_socket(asio::use_awaitable);
 
-            RefSocketor client = std::make_shared<tcp::socket>(co_await this_coro::executor, asio::ip::tcp::v4(), fd);
+            RefSocketor client = make_client(co_await this_coro::executor, asio::ip::tcp::v4(), fd);
+            client->agentConfig = std::move(agentConfig);
             logger.debug("recv a socketor, address: {}, port: {}", client->remote_endpoint().address().to_string(),
                          client->remote_endpoint().port());
+            logger.debug("agent config: {}", client->agentConfig.DebugString());
 
             // TODO: create clientContext and push it into contextManager
             auto executor = client->get_executor();

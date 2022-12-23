@@ -38,18 +38,12 @@ struct DispatchServer::Impl
 
     int send_fd(int pipe_fd, SOCKET fd);
 
-    struct DispatchResult
-    {
-        DispatchResultCode code;
-        std::string agentName;
-    };
 
-
-    awaitable<DispatchResult> dispatch(const ref_client &client);
+    awaitable<DispatchResultCode> dispatch(ref_client &client);
 
     void toDefaultAgent(const ref_client &client);
 
-    void toNewAgent(const ref_client &client, const std::string &agentName);
+    void toNewAgent(const ref_client &client);
 
     void sendSocketor(int pip, const ref_client &client);
 
@@ -218,14 +212,14 @@ awaitable<void> DispatchServer::Impl::listen()
         auto executor = client.get_executor();
         co_spawn(executor,[this, client = std::move(client)]() mutable -> awaitable<void> {
             try{
-                auto ref_client = std::make_shared<decltype(client)>(std::move(client));
-                auto [res, agentName] = co_await dispatch(ref_client);
+                auto ref_client = make_client(std::move(client));
+                auto res = co_await dispatch(ref_client);
                 if (res == DispatchResultCode::FAIL)
                     logger.error("Dispatch failed");
                 else if (res == DispatchResultCode::DEFAULT_AGENT)
                     toDefaultAgent(ref_client);
                 else if (res == DispatchResultCode::NEW_AGENT)
-                    toNewAgent(ref_client, agentName);
+                    toNewAgent(ref_client);
             }
             catch (std::exception &e) {
                 this->logger.error("Catch dispatch exception: {}", e.what());
@@ -237,7 +231,7 @@ awaitable<void> DispatchServer::Impl::listen()
 
 
 
-awaitable<DispatchServer::Impl::DispatchResult> DispatchServer::Impl::dispatch(const ref_client &client)
+awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispatch(ref_client &client)
 {
 
     if (!client->is_open()) {
@@ -250,7 +244,7 @@ awaitable<DispatchServer::Impl::DispatchResult> DispatchServer::Impl::dispatch(c
     auto [ec, len] = co_await (*client).async_read_some(asio::buffer(buff_), use_nothrow_awaitable);
     if (ec){
         logger.error("Read error: {}", ec.message());
-        co_return DispatchResult{DispatchResultCode::FAIL, ""};
+        co_return DispatchResultCode::FAIL;
     }
     buff_[len] = '\0';
 
@@ -258,21 +252,56 @@ awaitable<DispatchServer::Impl::DispatchResult> DispatchServer::Impl::dispatch(c
      * parse param
      ******************************/
 
+    // protobuf style parse
+    if (client->agentConfig.ParseFromArray(buff_.data(), static_cast<int>(len))){
+        if (client->agentConfig.node().empty()){
+            logger.error("Node is empty");
+            co_await client->async_write_some(asio::buffer("Node is empty"), use_nothrow_awaitable);
+            co_return DispatchResultCode::FAIL;
+        }
+        logger.debug("agent config: {}", client->agentConfig.DebugString());
+        co_return client->agentConfig.node() == "default" ? DispatchResultCode::DEFAULT_AGENT : DispatchResultCode::NEW_AGENT;
+    }
+
+    // json style parse
     JsonParse json(buff_.data());
+
+#define GetParam(name, type) \
+if (!json.HasMember(#name) || !json[#name].Is##type()) { \
+logger.error("can not found json key: " #name); \
+co_await client->async_write_some(asio::buffer("can not found json key: " #name), use_nothrow_awaitable); \
+co_return DispatchResultCode::FAIL;    \
+}                            \
+client->agentConfig.set_##name(json[#name].Get##type());
+
+#define GetOptionalParam(name, type) \
+if (json.HasMember(#name)) {         \
+    if (!json[#name].Is##type()) {   \
+    logger.warn("json key: " #name " is not " #type ", use default"); \
+    co_await client->async_write_some(asio::buffer("json key: " #name " is not " #type ", use default"), use_nothrow_awaitable); \
+    } else {                         \
+        client->agentConfig.set_##name(json[#name].Get##type()); \
+    }                                \
+}
 
     if (json.HasParseError()) {
         auto error_str = "Json parse failed, errorCode: "s + std::to_string(json.GetParseError()) + ", offset: "s
                          + std::to_string(json.GetErrorOffset()) + ", error: "s + rapidjson::GetParseError_En(json.GetParseError());
         logger.error("{}", error_str.c_str());
         co_await client->async_write_some(asio::buffer(error_str), use_nothrow_awaitable);
-        co_return DispatchResult{DispatchResultCode::FAIL, ""};
+        co_return DispatchResultCode::FAIL;
     }
 
-    if (!json.HasMember("node") || !json["node"].IsString()) {
-        logger.error("can not found json key: node");
-        co_await client->async_write_some(asio::buffer("can not found json key: node"), use_nothrow_awaitable);
-        co_return DispatchResult{DispatchResultCode::FAIL, ""};
-    }
+    GetParam(node, String)
+    GetOptionalParam(log_level, Int)
+    GetOptionalParam(is_protobuf, Bool)
+    GetOptionalParam(delimiter, String)
+
+#undef GetParam
+#undef GetOptionalParam
+
+    logger.debug("agent config: {}", client->agentConfig.DebugString());
+
 
     /*******************************
      * parse param over
@@ -281,9 +310,9 @@ awaitable<DispatchServer::Impl::DispatchResult> DispatchServer::Impl::dispatch(c
     auto node = std::string{json["node"].GetString()};
 
     if (node == "default")
-        co_return DispatchResult{DispatchResultCode::DEFAULT_AGENT, ""};
+        co_return DispatchResultCode::DEFAULT_AGENT;
     else
-        co_return DispatchResult{DispatchResultCode::NEW_AGENT, std::move(node)};
+        co_return DispatchResultCode::NEW_AGENT;
 }
 
 
@@ -292,12 +321,15 @@ void DispatchServer::Impl::toDefaultAgent(const ref_client &client)
 {
     logger.debug("in {}", __FUNCTION__);
     sendSocketor(defaultAgentPip, client);
+    auto buf = client->agentConfig.SerializeAsString();
+    write(defaultAgentPip, buf.data(), buf.size());
 }
 
-void DispatchServer::Impl::toNewAgent(const ref_client &client, const std::string &agentName)
+void DispatchServer::Impl::toNewAgent(const ref_client &client)
 {
     logger.debug("in {}", __FUNCTION__);
     sendSocketor(preBootAgentPip, client);
-    write(preBootAgentPip, agentName.c_str(), agentName.size());
+    auto buf = client->agentConfig.SerializeAsString();
+    write(preBootAgentPip, buf.data(), buf.size());
 }
 
