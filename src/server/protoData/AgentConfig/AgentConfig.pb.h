@@ -196,7 +196,11 @@ class AgentConfig final :
   std::string* _internal_mutable_node();
   public:
 
-  // bytes delimiter = 4;
+  // optional bytes delimiter = 4;
+  bool has_delimiter() const;
+  private:
+  bool _internal_has_delimiter() const;
+  public:
   void clear_delimiter();
   const std::string& delimiter() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -210,7 +214,11 @@ class AgentConfig final :
   std::string* _internal_mutable_delimiter();
   public:
 
-  // int32 log_level = 2;
+  // optional int32 log_level = 2;
+  bool has_log_level() const;
+  private:
+  bool _internal_has_log_level() const;
+  public:
   void clear_log_level();
   int32_t log_level() const;
   void set_log_level(int32_t value);
@@ -219,7 +227,11 @@ class AgentConfig final :
   void _internal_set_log_level(int32_t value);
   public:
 
-  // bool is_protobuf = 3;
+  // optional bool is_protobuf = 3;
+  bool has_is_protobuf() const;
+  private:
+  bool _internal_has_is_protobuf() const;
+  public:
   void clear_is_protobuf();
   bool is_protobuf() const;
   void set_is_protobuf(bool value);
@@ -236,11 +248,12 @@ class AgentConfig final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr node_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delimiter_;
     int32_t log_level_;
     bool is_protobuf_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_AgentConfig_2eproto;
@@ -306,9 +319,17 @@ inline void AgentConfig::set_allocated_node(std::string* node) {
   // @@protoc_insertion_point(field_set_allocated:hybrid.AgentConfig.node)
 }
 
-// int32 log_level = 2;
+// optional int32 log_level = 2;
+inline bool AgentConfig::_internal_has_log_level() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline bool AgentConfig::has_log_level() const {
+  return _internal_has_log_level();
+}
 inline void AgentConfig::clear_log_level() {
   _impl_.log_level_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000002u;
 }
 inline int32_t AgentConfig::_internal_log_level() const {
   return _impl_.log_level_;
@@ -318,7 +339,7 @@ inline int32_t AgentConfig::log_level() const {
   return _internal_log_level();
 }
 inline void AgentConfig::_internal_set_log_level(int32_t value) {
-  
+  _impl_._has_bits_[0] |= 0x00000002u;
   _impl_.log_level_ = value;
 }
 inline void AgentConfig::set_log_level(int32_t value) {
@@ -326,9 +347,17 @@ inline void AgentConfig::set_log_level(int32_t value) {
   // @@protoc_insertion_point(field_set:hybrid.AgentConfig.log_level)
 }
 
-// bool is_protobuf = 3;
+// optional bool is_protobuf = 3;
+inline bool AgentConfig::_internal_has_is_protobuf() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline bool AgentConfig::has_is_protobuf() const {
+  return _internal_has_is_protobuf();
+}
 inline void AgentConfig::clear_is_protobuf() {
   _impl_.is_protobuf_ = false;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline bool AgentConfig::_internal_is_protobuf() const {
   return _impl_.is_protobuf_;
@@ -338,7 +367,7 @@ inline bool AgentConfig::is_protobuf() const {
   return _internal_is_protobuf();
 }
 inline void AgentConfig::_internal_set_is_protobuf(bool value) {
-  
+  _impl_._has_bits_[0] |= 0x00000004u;
   _impl_.is_protobuf_ = value;
 }
 inline void AgentConfig::set_is_protobuf(bool value) {
@@ -346,9 +375,17 @@ inline void AgentConfig::set_is_protobuf(bool value) {
   // @@protoc_insertion_point(field_set:hybrid.AgentConfig.is_protobuf)
 }
 
-// bytes delimiter = 4;
+// optional bytes delimiter = 4;
+inline bool AgentConfig::_internal_has_delimiter() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool AgentConfig::has_delimiter() const {
+  return _internal_has_delimiter();
+}
 inline void AgentConfig::clear_delimiter() {
   _impl_.delimiter_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
 }
 inline const std::string& AgentConfig::delimiter() const {
   // @@protoc_insertion_point(field_get:hybrid.AgentConfig.delimiter)
@@ -357,7 +394,7 @@ inline const std::string& AgentConfig::delimiter() const {
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void AgentConfig::set_delimiter(ArgT0&& arg0, ArgT... args) {
- 
+ _impl_._has_bits_[0] |= 0x00000001u;
  _impl_.delimiter_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:hybrid.AgentConfig.delimiter)
 }
@@ -370,22 +407,32 @@ inline const std::string& AgentConfig::_internal_delimiter() const {
   return _impl_.delimiter_.Get();
 }
 inline void AgentConfig::_internal_set_delimiter(const std::string& value) {
-  
+  _impl_._has_bits_[0] |= 0x00000001u;
   _impl_.delimiter_.Set(value, GetArenaForAllocation());
 }
 inline std::string* AgentConfig::_internal_mutable_delimiter() {
-  
+  _impl_._has_bits_[0] |= 0x00000001u;
   return _impl_.delimiter_.Mutable(GetArenaForAllocation());
 }
 inline std::string* AgentConfig::release_delimiter() {
   // @@protoc_insertion_point(field_release:hybrid.AgentConfig.delimiter)
-  return _impl_.delimiter_.Release();
+  if (!_internal_has_delimiter()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* p = _impl_.delimiter_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.delimiter_.IsDefault()) {
+    _impl_.delimiter_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
 }
 inline void AgentConfig::set_allocated_delimiter(std::string* delimiter) {
   if (delimiter != nullptr) {
-    
+    _impl_._has_bits_[0] |= 0x00000001u;
   } else {
-    
+    _impl_._has_bits_[0] &= ~0x00000001u;
   }
   _impl_.delimiter_.SetAllocated(delimiter, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING

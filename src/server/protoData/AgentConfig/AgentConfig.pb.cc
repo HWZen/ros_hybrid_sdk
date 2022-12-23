@@ -23,11 +23,12 @@ namespace _pbi = _pb::internal;
 namespace hybrid {
 PROTOBUF_CONSTEXPR AgentConfig::AgentConfig(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.node_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_._has_bits_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}
+  , /*decltype(_impl_.node_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.delimiter_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.log_level_)*/0
-  , /*decltype(_impl_.is_protobuf_)*/false
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+  , /*decltype(_impl_.is_protobuf_)*/false} {}
 struct AgentConfigDefaultTypeInternal {
   PROTOBUF_CONSTEXPR AgentConfigDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -43,7 +44,7 @@ static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_Agent
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_AgentConfig_2eproto = nullptr;
 
 const uint32_t TableStruct_AgentConfig_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::hybrid::AgentConfig, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::hybrid::AgentConfig, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -53,9 +54,13 @@ const uint32_t TableStruct_AgentConfig_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::hybrid::AgentConfig, _impl_.log_level_),
   PROTOBUF_FIELD_OFFSET(::hybrid::AgentConfig, _impl_.is_protobuf_),
   PROTOBUF_FIELD_OFFSET(::hybrid::AgentConfig, _impl_.delimiter_),
+  ~0u,
+  1,
+  2,
+  0,
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::hybrid::AgentConfig)},
+  { 0, 10, -1, sizeof(::hybrid::AgentConfig)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -63,14 +68,15 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_AgentConfig_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\021AgentConfig.proto\022\006hybrid\"V\n\013AgentConf"
-  "ig\022\014\n\004node\030\001 \001(\t\022\021\n\tlog_level\030\002 \001(\005\022\023\n\013i"
-  "s_protobuf\030\003 \001(\010\022\021\n\tdelimiter\030\004 \001(\014b\006pro"
-  "to3"
+  "\n\021AgentConfig.proto\022\006hybrid\"\221\001\n\013AgentCon"
+  "fig\022\014\n\004node\030\001 \001(\t\022\026\n\tlog_level\030\002 \001(\005H\000\210\001"
+  "\001\022\030\n\013is_protobuf\030\003 \001(\010H\001\210\001\001\022\026\n\tdelimiter"
+  "\030\004 \001(\014H\002\210\001\001B\014\n\n_log_levelB\016\n\014_is_protobu"
+  "fB\014\n\n_delimiterb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_AgentConfig_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_AgentConfig_2eproto = {
-    false, false, 123, descriptor_table_protodef_AgentConfig_2eproto,
+    false, false, 183, descriptor_table_protodef_AgentConfig_2eproto,
     "AgentConfig.proto",
     &descriptor_table_AgentConfig_2eproto_once, nullptr, 0, 1,
     schemas, file_default_instances, TableStruct_AgentConfig_2eproto::offsets,
@@ -89,6 +95,16 @@ namespace hybrid {
 
 class AgentConfig::_Internal {
  public:
+  using HasBits = decltype(std::declval<AgentConfig>()._impl_._has_bits_);
+  static void set_has_log_level(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
+  }
+  static void set_has_is_protobuf(HasBits* has_bits) {
+    (*has_bits)[0] |= 4u;
+  }
+  static void set_has_delimiter(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
 };
 
 AgentConfig::AgentConfig(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -101,11 +117,12 @@ AgentConfig::AgentConfig(const AgentConfig& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   AgentConfig* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.node_){}
+      decltype(_impl_._has_bits_){from._impl_._has_bits_}
+    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.node_){}
     , decltype(_impl_.delimiter_){}
     , decltype(_impl_.log_level_){}
-    , decltype(_impl_.is_protobuf_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
+    , decltype(_impl_.is_protobuf_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   _impl_.node_.InitDefault();
@@ -120,7 +137,7 @@ AgentConfig::AgentConfig(const AgentConfig& from)
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.delimiter_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_delimiter().empty()) {
+  if (from._internal_has_delimiter()) {
     _this->_impl_.delimiter_.Set(from._internal_delimiter(), 
       _this->GetArenaForAllocation());
   }
@@ -135,11 +152,12 @@ inline void AgentConfig::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.node_){}
+      decltype(_impl_._has_bits_){}
+    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.node_){}
     , decltype(_impl_.delimiter_){}
     , decltype(_impl_.log_level_){0}
     , decltype(_impl_.is_protobuf_){false}
-    , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.node_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
@@ -177,15 +195,22 @@ void AgentConfig::Clear() {
   (void) cached_has_bits;
 
   _impl_.node_.ClearToEmpty();
-  _impl_.delimiter_.ClearToEmpty();
-  ::memset(&_impl_.log_level_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.is_protobuf_) -
-      reinterpret_cast<char*>(&_impl_.log_level_)) + sizeof(_impl_.is_protobuf_));
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    _impl_.delimiter_.ClearNonDefaultToEmpty();
+  }
+  if (cached_has_bits & 0x00000006u) {
+    ::memset(&_impl_.log_level_, 0, static_cast<size_t>(
+        reinterpret_cast<char*>(&_impl_.is_protobuf_) -
+        reinterpret_cast<char*>(&_impl_.log_level_)) + sizeof(_impl_.is_protobuf_));
+  }
+  _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* AgentConfig::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
@@ -200,23 +225,25 @@ const char* AgentConfig::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
         } else
           goto handle_unusual;
         continue;
-      // int32 log_level = 2;
+      // optional int32 log_level = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _Internal::set_has_log_level(&has_bits);
           _impl_.log_level_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // bool is_protobuf = 3;
+      // optional bool is_protobuf = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _Internal::set_has_is_protobuf(&has_bits);
           _impl_.is_protobuf_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // bytes delimiter = 4;
+      // optional bytes delimiter = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_delimiter();
@@ -241,6 +268,7 @@ const char* AgentConfig::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
     CHK_(ptr != nullptr);
   }  // while
 message_done:
+  _impl_._has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -264,20 +292,20 @@ uint8_t* AgentConfig::_InternalSerialize(
         1, this->_internal_node(), target);
   }
 
-  // int32 log_level = 2;
-  if (this->_internal_log_level() != 0) {
+  // optional int32 log_level = 2;
+  if (_internal_has_log_level()) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_log_level(), target);
   }
 
-  // bool is_protobuf = 3;
-  if (this->_internal_is_protobuf() != 0) {
+  // optional bool is_protobuf = 3;
+  if (_internal_has_is_protobuf()) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteBoolToArray(3, this->_internal_is_protobuf(), target);
   }
 
-  // bytes delimiter = 4;
-  if (!this->_internal_delimiter().empty()) {
+  // optional bytes delimiter = 4;
+  if (_internal_has_delimiter()) {
     target = stream->WriteBytesMaybeAliased(
         4, this->_internal_delimiter(), target);
   }
@@ -305,23 +333,26 @@ size_t AgentConfig::ByteSizeLong() const {
         this->_internal_node());
   }
 
-  // bytes delimiter = 4;
-  if (!this->_internal_delimiter().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-        this->_internal_delimiter());
-  }
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000007u) {
+    // optional bytes delimiter = 4;
+    if (cached_has_bits & 0x00000001u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+          this->_internal_delimiter());
+    }
 
-  // int32 log_level = 2;
-  if (this->_internal_log_level() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_log_level());
-  }
+    // optional int32 log_level = 2;
+    if (cached_has_bits & 0x00000002u) {
+      total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_log_level());
+    }
 
-  // bool is_protobuf = 3;
-  if (this->_internal_is_protobuf() != 0) {
-    total_size += 1 + 1;
-  }
+    // optional bool is_protobuf = 3;
+    if (cached_has_bits & 0x00000004u) {
+      total_size += 1 + 1;
+    }
 
+  }
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -343,14 +374,18 @@ void AgentConfig::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PR
   if (!from._internal_node().empty()) {
     _this->_internal_set_node(from._internal_node());
   }
-  if (!from._internal_delimiter().empty()) {
-    _this->_internal_set_delimiter(from._internal_delimiter());
-  }
-  if (from._internal_log_level() != 0) {
-    _this->_internal_set_log_level(from._internal_log_level());
-  }
-  if (from._internal_is_protobuf() != 0) {
-    _this->_internal_set_is_protobuf(from._internal_is_protobuf());
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000007u) {
+    if (cached_has_bits & 0x00000001u) {
+      _this->_internal_set_delimiter(from._internal_delimiter());
+    }
+    if (cached_has_bits & 0x00000002u) {
+      _this->_impl_.log_level_ = from._impl_.log_level_;
+    }
+    if (cached_has_bits & 0x00000004u) {
+      _this->_impl_.is_protobuf_ = from._impl_.is_protobuf_;
+    }
+    _this->_impl_._has_bits_[0] |= cached_has_bits;
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -371,6 +406,7 @@ void AgentConfig::InternalSwap(AgentConfig* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.node_, lhs_arena,
       &other->_impl_.node_, rhs_arena
