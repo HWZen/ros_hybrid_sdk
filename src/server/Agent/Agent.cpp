@@ -242,8 +242,14 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
 {
     auto & logger = *Impl::logger;
     hybrid::Command command;
-    if (!command.ParseFromString(commandStr))
-        logger.error("parse command error");
+
+    if (client->agentConfig.is_protobuf()){
+        if (!command.ParseFromString(commandStr))
+            logger.error("parse command error");
+    } else {
+        if (auto state = google::protobuf::util::JsonStringToMessage(commandStr, &command); !state.ok())
+            logger.error("parse command error: {}", state.ToString());
+    }
 //    logger.debug("command: {}", command.DebugString());
 
     switch (command.type()) {

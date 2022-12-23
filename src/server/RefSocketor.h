@@ -15,13 +15,7 @@ class Client : public asio::ip::tcp::socket{
 public:
     using asio::ip::tcp::socket::socket;
     explicit Client(asio::ip::tcp::socket&& socket) : asio::ip::tcp::socket(std::move(socket)) {}
-    hybrid::AgentConfig agentConfig = [](){
-        hybrid::AgentConfig config;
-        config.set_delimiter(HYBRID_DELIMITER);
-        config.set_is_protobuf(false);
-        config.set_log_level(2);
-        return config;
-    }();
+    hybrid::AgentConfig agentConfig{};
 };
 
 using RefSocketor = std::shared_ptr<Client>;

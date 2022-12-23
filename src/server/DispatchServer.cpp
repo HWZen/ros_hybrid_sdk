@@ -10,6 +10,7 @@
 
 #include "Log.h"
 #include "asioHeader.h"
+#include <google/protobuf/util/json_util.h>
 
 using namespace std::chrono_literals;
 using namespace std::string_literals;
@@ -259,55 +260,42 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
             co_await client->async_write_some(asio::buffer("Node is empty"), use_nothrow_awaitable);
             co_return DispatchResultCode::FAIL;
         }
-        logger.debug("agent config: {}", client->agentConfig.DebugString());
+        logger.debug("parse protobuf, agent config: {}", client->agentConfig.DebugString());
         co_return client->agentConfig.node() == "default" ? DispatchResultCode::DEFAULT_AGENT : DispatchResultCode::NEW_AGENT;
     }
 
     // json style parse
-    JsonParse json(buff_.data());
 
-#define GetParam(name, type) \
-if (!json.HasMember(#name) || !json[#name].Is##type()) { \
-logger.error("can not found json key: " #name); \
-co_await client->async_write_some(asio::buffer("can not found json key: " #name), use_nothrow_awaitable); \
-co_return DispatchResultCode::FAIL;    \
-}                            \
-client->agentConfig.set_##name(json[#name].Get##type());
-
-#define GetOptionalParam(name, type) \
-if (json.HasMember(#name)) {         \
-    if (!json[#name].Is##type()) {   \
-    logger.warn("json key: " #name " is not " #type ", use default"); \
-    co_await client->async_write_some(asio::buffer("json key: " #name " is not " #type ", use default"), use_nothrow_awaitable); \
-    } else {                         \
-        client->agentConfig.set_##name(json[#name].Get##type()); \
-    }                                \
-}
-
-    if (json.HasParseError()) {
-        auto error_str = "Json parse failed, errorCode: "s + std::to_string(json.GetParseError()) + ", offset: "s
-                         + std::to_string(json.GetErrorOffset()) + ", error: "s + rapidjson::GetParseError_En(json.GetParseError());
-        logger.error("{}", error_str.c_str());
-        co_await client->async_write_some(asio::buffer(error_str), use_nothrow_awaitable);
+    auto state = google::protobuf::util::JsonStringToMessage(std::string_view(buff_.data(), len), &client->agentConfig);
+    if (!state.ok()){
+        logger.error("Config string is not a protobuf or json : {}", state.ToString());
+        co_await client->async_write_some(asio::buffer("Config string is not a protobuf or json : " + state.ToString()), use_nothrow_awaitable);
         co_return DispatchResultCode::FAIL;
     }
 
-    GetParam(node, String)
-    GetOptionalParam(log_level, Int)
-    GetOptionalParam(is_protobuf, Bool)
-    GetOptionalParam(delimiter, String)
+    auto &agentConfig = client->agentConfig;
 
-#undef GetParam
-#undef GetOptionalParam
+    if (agentConfig.node().empty()){
+        logger.error("node is empty");
+        co_await client->async_write_some(asio::buffer("node is empty"), use_nothrow_awaitable);
+        co_return DispatchResultCode::FAIL;
+    }
 
-    logger.debug("agent config: {}", client->agentConfig.DebugString());
+    if (!agentConfig.has_delimiter())
+        agentConfig.set_delimiter(HYBRID_DELIMITER);
+    if (!agentConfig.has_is_protobuf())
+        agentConfig.set_is_protobuf(false);
+    if (!agentConfig.has_log_level())
+        agentConfig.set_log_level(2);
+
+    logger.debug("parse json, agent config: {}", client->agentConfig.DebugString());
 
 
     /*******************************
      * parse param over
      ******************************/
 
-    auto node = std::string{json["node"].GetString()};
+    const auto &node = client->agentConfig.node();
 
     if (node == "default")
         co_return DispatchResultCode::DEFAULT_AGENT;

@@ -12,7 +12,8 @@
 #include "protoData/Command/Command.pb.h"
 #include "asioHeader.h"
 #include <unistd.h>
-
+#include <google/protobuf/util/time_util.h>
+#include <google/protobuf/util/json_util.h>
 
 
 class ros_log_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
@@ -88,27 +89,33 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
         if (ec)
             spdlog::error("client sink error: {}", ec.message());
     };
-    if (!client->agentConfig.is_protobuf()){
-        client->async_write_some(asio::buffer(formatted.data(), formatted.size()), sinkCallback);
-    }
-    else{
-        hybrid::Command command;
-        command.set_type(hybrid::Command::LOG);
-        auto *log = command.mutable_log();
-        log->set_level(static_cast<hybrid::Command_Log_Level>(msg.level == 0 ? 0 : msg.level - 1));
-        log->set_message(formatted.data(), formatted.size());
+    hybrid::Command command;
+    command.set_type(hybrid::Command::LOG);
+    auto *log = command.mutable_log();
+    log->set_level(static_cast<hybrid::Command_Log_Level>(msg.level == 0 ? 0 : msg.level - 1));
+    *log->mutable_time() = google::protobuf::util::TimeUtil::GetCurrentTime();
+    log->set_message(formatted.data(), formatted.size());
+    if (client->agentConfig.is_protobuf()){
         auto buf = command.SerializeAsString() + HYBRID_DELIMITER;
+        client->async_write_some(asio::buffer(buf), sinkCallback);
+    }else{
+        std::string buf{};
+        if (auto state = google::protobuf::util::MessageToJsonString(command, &buf); !state.ok())[[unlikely]]{
+            spdlog::error("client sink error: {}", state.ToString());
+            return;
+        }
+        buf += HYBRID_DELIMITER;
         client->async_write_some(asio::buffer(buf), sinkCallback);
     }
 }
 
 client_sink::client_sink(ref_client client) : client(std::move(client)){
 
-    if (client_sink::client->agentConfig.is_protobuf())
-        set_pattern("%v");
-    else // json pattern
-        set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
-    set_level(spdlog::level::info);
+//    if (client_sink::client->agentConfig.is_protobuf())
+    set_pattern("%v");
+//    else // json pattern
+//        set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
+    set_level(static_cast<spdlog::level::level_enum>(client_sink::client->agentConfig.log_level()));
 }
 
 
@@ -118,6 +125,7 @@ spdlog::sink_ptr g_file_sink = nullptr;
 
 void Log::log(int level, const std::string &msg)
 {
+    assert(implPtr);
     auto &impl = *implPtr;
     impl->log((spdlog::level::level_enum) level, msg);
 }
