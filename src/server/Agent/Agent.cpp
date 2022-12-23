@@ -10,6 +10,7 @@
 #include <sstl/thread.h>
 #include <sys/prctl.h>
 #include <ros/ros.h>
+#include <google/protobuf/util/json_util.h>
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
@@ -196,10 +197,9 @@ start:
         try {
             std::string read_buffer;
             for (;;) {
-                auto delimiter = HYBRID_DELIMITER;
                 auto [ec, len] = co_await asio::async_read_until(*client,
                                                                  asio::dynamic_buffer(read_buffer, 4096),
-                                                                 delimiter,
+                                                                 client->agentConfig.delimiter(),
                                                                  use_nothrow_awaitable);
 
                 if (ec && ec != asio::error::eof) {
@@ -213,7 +213,7 @@ start:
                     co_return ;
                 }
 
-                co_await parseCommand(read_buffer.substr(0, len - HYBRID_DELIMITER_SIZE));
+                co_await parseCommand(read_buffer.substr(0, len - client->agentConfig.delimiter().size()));
                 read_buffer.erase(0, len);
             }
         }
