@@ -638,6 +638,7 @@ class Command_Publish final :
     kTopicFieldNumber = 1,
     kTypeFieldNumber = 2,
     kDataFieldNumber = 3,
+    kStringDataFieldNumber = 4,
   };
   // string topic = 1;
   void clear_topic();
@@ -681,6 +682,24 @@ class Command_Publish final :
   std::string* _internal_mutable_data();
   public:
 
+  // optional string string_data = 4;
+  bool has_string_data() const;
+  private:
+  bool _internal_has_string_data() const;
+  public:
+  void clear_string_data();
+  const std::string& string_data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_string_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_string_data();
+  PROTOBUF_NODISCARD std::string* release_string_data();
+  void set_allocated_string_data(std::string* string_data);
+  private:
+  const std::string& _internal_string_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_string_data(const std::string& value);
+  std::string* _internal_mutable_string_data();
+  public:
+
   // @@protoc_insertion_point(class_scope:hybrid.Command.Publish)
  private:
   class _Internal;
@@ -689,10 +708,12 @@ class Command_Publish final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr topic_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr type_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr string_data_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_Command_2eproto;
@@ -1160,7 +1181,8 @@ class Command_CallService final :
   enum : int {
     kServiceFieldNumber = 1,
     kDataFieldNumber = 3,
-    kSeqFieldNumber = 4,
+    kStringDataFieldNumber = 4,
+    kSeqFieldNumber = 5,
   };
   // string service = 1;
   void clear_service();
@@ -1190,7 +1212,25 @@ class Command_CallService final :
   std::string* _internal_mutable_data();
   public:
 
-  // uint64 seq = 4;
+  // optional string string_data = 4;
+  bool has_string_data() const;
+  private:
+  bool _internal_has_string_data() const;
+  public:
+  void clear_string_data();
+  const std::string& string_data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_string_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_string_data();
+  PROTOBUF_NODISCARD std::string* release_string_data();
+  void set_allocated_string_data(std::string* string_data);
+  private:
+  const std::string& _internal_string_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_string_data(const std::string& value);
+  std::string* _internal_mutable_string_data();
+  public:
+
+  // uint64 seq = 5;
   void clear_seq();
   uint64_t seq() const;
   void set_seq(uint64_t value);
@@ -1207,10 +1247,12 @@ class Command_CallService final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr string_data_;
     uint64_t seq_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_Command_2eproto;
@@ -1662,7 +1704,8 @@ class Command_ResponseService final :
   enum : int {
     kServiceFieldNumber = 1,
     kDataFieldNumber = 2,
-    kSeqFieldNumber = 3,
+    kStringDataFieldNumber = 3,
+    kSeqFieldNumber = 4,
   };
   // string service = 1;
   void clear_service();
@@ -1692,7 +1735,25 @@ class Command_ResponseService final :
   std::string* _internal_mutable_data();
   public:
 
-  // uint64 seq = 3;
+  // optional string string_data = 3;
+  bool has_string_data() const;
+  private:
+  bool _internal_has_string_data() const;
+  public:
+  void clear_string_data();
+  const std::string& string_data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_string_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_string_data();
+  PROTOBUF_NODISCARD std::string* release_string_data();
+  void set_allocated_string_data(std::string* string_data);
+  private:
+  const std::string& _internal_string_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_string_data(const std::string& value);
+  std::string* _internal_mutable_string_data();
+  public:
+
+  // uint64 seq = 4;
   void clear_seq();
   uint64_t seq() const;
   void set_seq(uint64_t value);
@@ -1709,10 +1770,12 @@ class Command_ResponseService final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr string_data_;
     uint64_t seq_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_Command_2eproto;
@@ -2722,6 +2785,74 @@ inline void Command_Publish::set_allocated_data(std::string* data) {
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.Publish.data)
 }
 
+// optional string string_data = 4;
+inline bool Command_Publish::_internal_has_string_data() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Command_Publish::has_string_data() const {
+  return _internal_has_string_data();
+}
+inline void Command_Publish::clear_string_data() {
+  _impl_.string_data_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& Command_Publish::string_data() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.Publish.string_data)
+  return _internal_string_data();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Command_Publish::set_string_data(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000001u;
+ _impl_.string_data_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.Command.Publish.string_data)
+}
+inline std::string* Command_Publish::mutable_string_data() {
+  std::string* _s = _internal_mutable_string_data();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.Publish.string_data)
+  return _s;
+}
+inline const std::string& Command_Publish::_internal_string_data() const {
+  return _impl_.string_data_.Get();
+}
+inline void Command_Publish::_internal_set_string_data(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.string_data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Command_Publish::_internal_mutable_string_data() {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.string_data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Command_Publish::release_string_data() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.Publish.string_data)
+  if (!_internal_has_string_data()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* p = _impl_.string_data_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.string_data_.IsDefault()) {
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void Command_Publish::set_allocated_string_data(std::string* string_data) {
+  if (string_data != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.string_data_.SetAllocated(string_data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.string_data_.IsDefault()) {
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.Publish.string_data)
+}
+
 // -------------------------------------------------------------------
 
 // Command_Subscribe
@@ -3012,7 +3143,75 @@ inline void Command_CallService::set_allocated_data(std::string* data) {
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.CallService.data)
 }
 
-// uint64 seq = 4;
+// optional string string_data = 4;
+inline bool Command_CallService::_internal_has_string_data() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Command_CallService::has_string_data() const {
+  return _internal_has_string_data();
+}
+inline void Command_CallService::clear_string_data() {
+  _impl_.string_data_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& Command_CallService::string_data() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.CallService.string_data)
+  return _internal_string_data();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Command_CallService::set_string_data(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000001u;
+ _impl_.string_data_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.Command.CallService.string_data)
+}
+inline std::string* Command_CallService::mutable_string_data() {
+  std::string* _s = _internal_mutable_string_data();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.CallService.string_data)
+  return _s;
+}
+inline const std::string& Command_CallService::_internal_string_data() const {
+  return _impl_.string_data_.Get();
+}
+inline void Command_CallService::_internal_set_string_data(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.string_data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Command_CallService::_internal_mutable_string_data() {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.string_data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Command_CallService::release_string_data() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.CallService.string_data)
+  if (!_internal_has_string_data()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* p = _impl_.string_data_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.string_data_.IsDefault()) {
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void Command_CallService::set_allocated_string_data(std::string* string_data) {
+  if (string_data != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.string_data_.SetAllocated(string_data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.string_data_.IsDefault()) {
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.CallService.string_data)
+}
+
+// uint64 seq = 5;
 inline void Command_CallService::clear_seq() {
   _impl_.seq_ = uint64_t{0u};
 }
@@ -3294,7 +3493,75 @@ inline void Command_ResponseService::set_allocated_data(std::string* data) {
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.ResponseService.data)
 }
 
-// uint64 seq = 3;
+// optional string string_data = 3;
+inline bool Command_ResponseService::_internal_has_string_data() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Command_ResponseService::has_string_data() const {
+  return _internal_has_string_data();
+}
+inline void Command_ResponseService::clear_string_data() {
+  _impl_.string_data_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& Command_ResponseService::string_data() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.ResponseService.string_data)
+  return _internal_string_data();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Command_ResponseService::set_string_data(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000001u;
+ _impl_.string_data_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.Command.ResponseService.string_data)
+}
+inline std::string* Command_ResponseService::mutable_string_data() {
+  std::string* _s = _internal_mutable_string_data();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.ResponseService.string_data)
+  return _s;
+}
+inline const std::string& Command_ResponseService::_internal_string_data() const {
+  return _impl_.string_data_.Get();
+}
+inline void Command_ResponseService::_internal_set_string_data(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.string_data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Command_ResponseService::_internal_mutable_string_data() {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.string_data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Command_ResponseService::release_string_data() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.ResponseService.string_data)
+  if (!_internal_has_string_data()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* p = _impl_.string_data_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.string_data_.IsDefault()) {
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void Command_ResponseService::set_allocated_string_data(std::string* string_data) {
+  if (string_data != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.string_data_.SetAllocated(string_data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.string_data_.IsDefault()) {
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.ResponseService.string_data)
+}
+
+// uint64 seq = 4;
 inline void Command_ResponseService::clear_seq() {
   _impl_.seq_ = uint64_t{0u};
 }

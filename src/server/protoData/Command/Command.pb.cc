@@ -53,10 +53,12 @@ struct Command_UnadvertiseDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Command_UnadvertiseDefaultTypeInternal _Command_Unadvertise_default_instance_;
 PROTOBUF_CONSTEXPR Command_Publish::Command_Publish(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.topic_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_._has_bits_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}
+  , /*decltype(_impl_.topic_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+  , /*decltype(_impl_.string_data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}} {}
 struct Command_PublishDefaultTypeInternal {
   PROTOBUF_CONSTEXPR Command_PublishDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -97,10 +99,12 @@ struct Command_UnsubscribeDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Command_UnsubscribeDefaultTypeInternal _Command_Unsubscribe_default_instance_;
 PROTOBUF_CONSTEXPR Command_CallService::Command_CallService(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.service_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_._has_bits_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}
+  , /*decltype(_impl_.service_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.seq_)*/uint64_t{0u}
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+  , /*decltype(_impl_.string_data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.seq_)*/uint64_t{0u}} {}
 struct Command_CallServiceDefaultTypeInternal {
   PROTOBUF_CONSTEXPR Command_CallServiceDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -139,10 +143,12 @@ struct Command_UnadvertiseServiceDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Command_UnadvertiseServiceDefaultTypeInternal _Command_UnadvertiseService_default_instance_;
 PROTOBUF_CONSTEXPR Command_ResponseService::Command_ResponseService(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.service_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_._has_bits_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}
+  , /*decltype(_impl_.service_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.seq_)*/uint64_t{0u}
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+  , /*decltype(_impl_.string_data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.seq_)*/uint64_t{0u}} {}
 struct Command_ResponseServiceDefaultTypeInternal {
   PROTOBUF_CONSTEXPR Command_ResponseServiceDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -218,7 +224,7 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Unadvertise, _impl_.topic_),
-  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_Publish, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Publish, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -227,6 +233,11 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Publish, _impl_.topic_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Publish, _impl_.type_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Publish, _impl_.data_),
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_Publish, _impl_.string_data_),
+  ~0u,
+  ~0u,
+  ~0u,
+  0,
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Subscribe, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Subscribe, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -246,7 +257,7 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Unsubscribe, _impl_.topic_),
-  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_CallService, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_CallService, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -254,7 +265,12 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_CallService, _impl_.service_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_CallService, _impl_.data_),
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_CallService, _impl_.string_data_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_CallService, _impl_.seq_),
+  ~0u,
+  ~0u,
+  0,
+  ~0u,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_AdvertiseService, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -270,7 +286,7 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_UnadvertiseService, _impl_.service_),
-  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_ResponseService, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_ResponseService, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -278,7 +294,12 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_ResponseService, _impl_.service_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_ResponseService, _impl_.data_),
+  PROTOBUF_FIELD_OFFSET(::hybrid::Command_ResponseService, _impl_.string_data_),
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_ResponseService, _impl_.seq_),
+  ~0u,
+  ~0u,
+  0,
+  ~0u,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::hybrid::Command_Log, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -320,15 +341,15 @@ const uint32_t TableStruct_Command_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 10, -1, sizeof(::hybrid::Command_Advertise)},
   { 14, -1, -1, sizeof(::hybrid::Command_Unadvertise)},
-  { 21, -1, -1, sizeof(::hybrid::Command_Publish)},
-  { 30, 39, -1, sizeof(::hybrid::Command_Subscribe)},
-  { 42, -1, -1, sizeof(::hybrid::Command_Unsubscribe)},
-  { 49, -1, -1, sizeof(::hybrid::Command_CallService)},
-  { 58, -1, -1, sizeof(::hybrid::Command_AdvertiseService)},
-  { 66, -1, -1, sizeof(::hybrid::Command_UnadvertiseService)},
-  { 73, -1, -1, sizeof(::hybrid::Command_ResponseService)},
-  { 82, -1, -1, sizeof(::hybrid::Command_Log)},
-  { 91, 108, -1, sizeof(::hybrid::Command)},
+  { 21, 31, -1, sizeof(::hybrid::Command_Publish)},
+  { 35, 44, -1, sizeof(::hybrid::Command_Subscribe)},
+  { 47, -1, -1, sizeof(::hybrid::Command_Unsubscribe)},
+  { 54, 64, -1, sizeof(::hybrid::Command_CallService)},
+  { 68, -1, -1, sizeof(::hybrid::Command_AdvertiseService)},
+  { 76, -1, -1, sizeof(::hybrid::Command_UnadvertiseService)},
+  { 83, 93, -1, sizeof(::hybrid::Command_ResponseService)},
+  { 97, -1, -1, sizeof(::hybrid::Command_Log)},
+  { 106, 123, -1, sizeof(::hybrid::Command)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -347,7 +368,7 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_Command_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\rCommand.proto\022\006hybrid\032\037google/protobuf"
-  "/timestamp.proto\"\375\014\n\007Command\022\"\n\004type\030\001 \001"
+  "/timestamp.proto\"\373\r\n\007Command\022\"\n\004type\030\001 \001"
   "(\0162\024.hybrid.Command.Type\0221\n\tadvertise\030\002 "
   "\001(\0132\031.hybrid.Command.AdvertiseH\000\210\001\001\022-\n\007p"
   "ublish\030\003 \001(\0132\027.hybrid.Command.PublishH\001\210"
@@ -366,37 +387,40 @@ const char descriptor_table_protodef_Command_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\004 \001(\r"
   "H\000\210\001\001\022\022\n\005latch\030\005 \001(\010H\001\210\001\001B\r\n\013_queue_size"
   "B\010\n\006_latch\032\034\n\013Unadvertise\022\r\n\005topic\030\001 \001(\t"
-  "\0324\n\007Publish\022\r\n\005topic\030\001 \001(\t\022\014\n\004type\030\002 \001(\t"
-  "\022\014\n\004data\030\003 \001(\014\032P\n\tSubscribe\022\r\n\005topic\030\001 \001"
-  "(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\003 \001(\rH\000\210\001"
-  "\001B\r\n\013_queue_size\032\034\n\013Unsubscribe\022\r\n\005topic"
-  "\030\001 \001(\t\0329\n\013CallService\022\017\n\007service\030\001 \001(\t\022\014"
-  "\n\004data\030\003 \001(\014\022\013\n\003seq\030\004 \001(\004\0321\n\020AdvertiseSe"
-  "rvice\022\017\n\007service\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\032%\n\022"
-  "UnadvertiseService\022\017\n\007service\030\001 \001(\t\032=\n\017R"
-  "esponseService\022\017\n\007service\030\001 \001(\t\022\014\n\004data\030"
-  "\002 \001(\014\022\013\n\003seq\030\003 \001(\004\032\250\001\n\003Log\022(\n\005level\030\001 \001("
-  "\0162\031.hybrid.Command.Log.Level\022(\n\004time\030\002 \001"
-  "(\0132\032.google.protobuf.Timestamp\022\017\n\007messag"
-  "e\030\003 \001(\t\"<\n\005Level\022\t\n\005DEBUG\020\000\022\010\n\004INFO\020\001\022\010\n"
-  "\004WARN\020\002\022\t\n\005ERROR\020\003\022\t\n\005FATAL\020\004\"\314\001\n\004Type\022\013"
-  "\n\007UNKNOWN\020\000\022\r\n\tADVERTISE\020\001\022\013\n\007PUBLISH\020\002\022"
-  "\017\n\013UNADVERTISE\020\003\022\r\n\tSUBSCRIBE\020\004\022\017\n\013UNSUB"
-  "SCRIBE\020\005\022\025\n\021ADVERTISE_SERVICE\020\006\022\020\n\014CALL_"
-  "SERVICE\020\007\022\024\n\020RESPONSE_SERVICE\020\010\022\027\n\023UNADV"
-  "ERTISE_SERVICE\020\t\022\007\n\003LOG\020\n\022\t\n\004PING\020\200\001B\014\n\n"
-  "_advertiseB\n\n\010_publishB\016\n\014_unadvertiseB\014"
-  "\n\n_subscribeB\016\n\014_unsubscribeB\024\n\022_adverti"
-  "se_serviceB\017\n\r_call_serviceB\023\n\021_response"
-  "_serviceB\026\n\024_unadvertise_serviceB\006\n\004_log"
-  "b\006proto3"
+  "\032^\n\007Publish\022\r\n\005topic\030\001 \001(\t\022\014\n\004type\030\002 \001(\t"
+  "\022\014\n\004data\030\003 \001(\014\022\030\n\013string_data\030\004 \001(\tH\000\210\001\001"
+  "B\016\n\014_string_data\032P\n\tSubscribe\022\r\n\005topic\030\001"
+  " \001(\t\022\014\n\004type\030\002 \001(\t\022\027\n\nqueue_size\030\003 \001(\rH\000"
+  "\210\001\001B\r\n\013_queue_size\032\034\n\013Unsubscribe\022\r\n\005top"
+  "ic\030\001 \001(\t\032c\n\013CallService\022\017\n\007service\030\001 \001(\t"
+  "\022\014\n\004data\030\003 \001(\014\022\030\n\013string_data\030\004 \001(\tH\000\210\001\001"
+  "\022\013\n\003seq\030\005 \001(\004B\016\n\014_string_data\0321\n\020Adverti"
+  "seService\022\017\n\007service\030\001 \001(\t\022\014\n\004type\030\002 \001(\t"
+  "\032%\n\022UnadvertiseService\022\017\n\007service\030\001 \001(\t\032"
+  "g\n\017ResponseService\022\017\n\007service\030\001 \001(\t\022\014\n\004d"
+  "ata\030\002 \001(\014\022\030\n\013string_data\030\003 \001(\tH\000\210\001\001\022\013\n\003s"
+  "eq\030\004 \001(\004B\016\n\014_string_data\032\250\001\n\003Log\022(\n\005leve"
+  "l\030\001 \001(\0162\031.hybrid.Command.Log.Level\022(\n\004ti"
+  "me\030\002 \001(\0132\032.google.protobuf.Timestamp\022\017\n\007"
+  "message\030\003 \001(\t\"<\n\005Level\022\t\n\005DEBUG\020\000\022\010\n\004INF"
+  "O\020\001\022\010\n\004WARN\020\002\022\t\n\005ERROR\020\003\022\t\n\005FATAL\020\004\"\314\001\n\004"
+  "Type\022\013\n\007UNKNOWN\020\000\022\r\n\tADVERTISE\020\001\022\013\n\007PUBL"
+  "ISH\020\002\022\017\n\013UNADVERTISE\020\003\022\r\n\tSUBSCRIBE\020\004\022\017\n"
+  "\013UNSUBSCRIBE\020\005\022\025\n\021ADVERTISE_SERVICE\020\006\022\020\n"
+  "\014CALL_SERVICE\020\007\022\024\n\020RESPONSE_SERVICE\020\010\022\027\n"
+  "\023UNADVERTISE_SERVICE\020\t\022\007\n\003LOG\020\n\022\t\n\004PING\020"
+  "\200\001B\014\n\n_advertiseB\n\n\010_publishB\016\n\014_unadver"
+  "tiseB\014\n\n_subscribeB\016\n\014_unsubscribeB\024\n\022_a"
+  "dvertise_serviceB\017\n\r_call_serviceB\023\n\021_re"
+  "sponse_serviceB\026\n\024_unadvertise_serviceB\006"
+  "\n\004_logb\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_Command_2eproto_deps[1] = {
   &::descriptor_table_google_2fprotobuf_2ftimestamp_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_Command_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Command_2eproto = {
-    false, false, 1728, descriptor_table_protodef_Command_2eproto,
+    false, false, 1854, descriptor_table_protodef_Command_2eproto,
     "Command.proto",
     &descriptor_table_Command_2eproto_once, descriptor_table_Command_2eproto_deps, 1, 11,
     schemas, file_default_instances, TableStruct_Command_2eproto::offsets,
@@ -1024,6 +1048,10 @@ void Command_Unadvertise::InternalSwap(Command_Unadvertise* other) {
 
 class Command_Publish::_Internal {
  public:
+  using HasBits = decltype(std::declval<Command_Publish>()._impl_._has_bits_);
+  static void set_has_string_data(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
 };
 
 Command_Publish::Command_Publish(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -1036,10 +1064,12 @@ Command_Publish::Command_Publish(const Command_Publish& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   Command_Publish* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.topic_){}
+      decltype(_impl_._has_bits_){from._impl_._has_bits_}
+    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.topic_){}
     , decltype(_impl_.type_){}
     , decltype(_impl_.data_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
+    , decltype(_impl_.string_data_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   _impl_.topic_.InitDefault();
@@ -1066,6 +1096,14 @@ Command_Publish::Command_Publish(const Command_Publish& from)
     _this->_impl_.data_.Set(from._internal_data(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.string_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (from._internal_has_string_data()) {
+    _this->_impl_.string_data_.Set(from._internal_string_data(), 
+      _this->GetArenaForAllocation());
+  }
   // @@protoc_insertion_point(copy_constructor:hybrid.Command.Publish)
 }
 
@@ -1074,10 +1112,12 @@ inline void Command_Publish::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.topic_){}
+      decltype(_impl_._has_bits_){}
+    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.topic_){}
     , decltype(_impl_.type_){}
     , decltype(_impl_.data_){}
-    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.string_data_){}
   };
   _impl_.topic_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
@@ -1090,6 +1130,10 @@ inline void Command_Publish::SharedCtor(
   _impl_.data_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.string_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.string_data_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -1107,6 +1151,7 @@ inline void Command_Publish::SharedDtor() {
   _impl_.topic_.Destroy();
   _impl_.type_.Destroy();
   _impl_.data_.Destroy();
+  _impl_.string_data_.Destroy();
 }
 
 void Command_Publish::SetCachedSize(int size) const {
@@ -1122,11 +1167,17 @@ void Command_Publish::Clear() {
   _impl_.topic_.ClearToEmpty();
   _impl_.type_.ClearToEmpty();
   _impl_.data_.ClearToEmpty();
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    _impl_.string_data_.ClearNonDefaultToEmpty();
+  }
+  _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* Command_Publish::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
@@ -1160,6 +1211,16 @@ const char* Command_Publish::_InternalParse(const char* ptr, ::_pbi::ParseContex
         } else
           goto handle_unusual;
         continue;
+      // optional string string_data = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_string_data();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "hybrid.Command.Publish.string_data"));
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -1176,6 +1237,7 @@ const char* Command_Publish::_InternalParse(const char* ptr, ::_pbi::ParseContex
     CHK_(ptr != nullptr);
   }  // while
 message_done:
+  _impl_._has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -1215,6 +1277,16 @@ uint8_t* Command_Publish::_InternalSerialize(
         3, this->_internal_data(), target);
   }
 
+  // optional string string_data = 4;
+  if (_internal_has_string_data()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_string_data().data(), static_cast<int>(this->_internal_string_data().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "hybrid.Command.Publish.string_data");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_string_data(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1252,6 +1324,14 @@ size_t Command_Publish::ByteSizeLong() const {
         this->_internal_data());
   }
 
+  // optional string string_data = 4;
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_string_data());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -1279,6 +1359,9 @@ void Command_Publish::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const 
   if (!from._internal_data().empty()) {
     _this->_internal_set_data(from._internal_data());
   }
+  if (from._internal_has_string_data()) {
+    _this->_internal_set_string_data(from._internal_string_data());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1298,6 +1381,7 @@ void Command_Publish::InternalSwap(Command_Publish* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.topic_, lhs_arena,
       &other->_impl_.topic_, rhs_arena
@@ -1309,6 +1393,10 @@ void Command_Publish::InternalSwap(Command_Publish* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.data_, lhs_arena,
       &other->_impl_.data_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.string_data_, lhs_arena,
+      &other->_impl_.string_data_, rhs_arena
   );
 }
 
@@ -1817,6 +1905,10 @@ void Command_Unsubscribe::InternalSwap(Command_Unsubscribe* other) {
 
 class Command_CallService::_Internal {
  public:
+  using HasBits = decltype(std::declval<Command_CallService>()._impl_._has_bits_);
+  static void set_has_string_data(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
 };
 
 Command_CallService::Command_CallService(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -1829,10 +1921,12 @@ Command_CallService::Command_CallService(const Command_CallService& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   Command_CallService* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.service_){}
+      decltype(_impl_._has_bits_){from._impl_._has_bits_}
+    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.service_){}
     , decltype(_impl_.data_){}
-    , decltype(_impl_.seq_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
+    , decltype(_impl_.string_data_){}
+    , decltype(_impl_.seq_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   _impl_.service_.InitDefault();
@@ -1851,6 +1945,14 @@ Command_CallService::Command_CallService(const Command_CallService& from)
     _this->_impl_.data_.Set(from._internal_data(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.string_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (from._internal_has_string_data()) {
+    _this->_impl_.string_data_.Set(from._internal_string_data(), 
+      _this->GetArenaForAllocation());
+  }
   _this->_impl_.seq_ = from._impl_.seq_;
   // @@protoc_insertion_point(copy_constructor:hybrid.Command.CallService)
 }
@@ -1860,10 +1962,12 @@ inline void Command_CallService::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.service_){}
-    , decltype(_impl_.data_){}
-    , decltype(_impl_.seq_){uint64_t{0u}}
+      decltype(_impl_._has_bits_){}
     , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.service_){}
+    , decltype(_impl_.data_){}
+    , decltype(_impl_.string_data_){}
+    , decltype(_impl_.seq_){uint64_t{0u}}
   };
   _impl_.service_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
@@ -1872,6 +1976,10 @@ inline void Command_CallService::SharedCtor(
   _impl_.data_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.string_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.string_data_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -1888,6 +1996,7 @@ inline void Command_CallService::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.service_.Destroy();
   _impl_.data_.Destroy();
+  _impl_.string_data_.Destroy();
 }
 
 void Command_CallService::SetCachedSize(int size) const {
@@ -1902,12 +2011,18 @@ void Command_CallService::Clear() {
 
   _impl_.service_.ClearToEmpty();
   _impl_.data_.ClearToEmpty();
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    _impl_.string_data_.ClearNonDefaultToEmpty();
+  }
   _impl_.seq_ = uint64_t{0u};
+  _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* Command_CallService::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
@@ -1931,9 +2046,19 @@ const char* Command_CallService::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // uint64 seq = 4;
+      // optional string string_data = 4;
       case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_string_data();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "hybrid.Command.CallService.string_data"));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 seq = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
           _impl_.seq_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
@@ -1955,6 +2080,7 @@ const char* Command_CallService::_InternalParse(const char* ptr, ::_pbi::ParseCo
     CHK_(ptr != nullptr);
   }  // while
 message_done:
+  _impl_._has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -1984,10 +2110,20 @@ uint8_t* Command_CallService::_InternalSerialize(
         3, this->_internal_data(), target);
   }
 
-  // uint64 seq = 4;
+  // optional string string_data = 4;
+  if (_internal_has_string_data()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_string_data().data(), static_cast<int>(this->_internal_string_data().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "hybrid.Command.CallService.string_data");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_string_data(), target);
+  }
+
+  // uint64 seq = 5;
   if (this->_internal_seq() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(4, this->_internal_seq(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(5, this->_internal_seq(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -2020,7 +2156,15 @@ size_t Command_CallService::ByteSizeLong() const {
         this->_internal_data());
   }
 
-  // uint64 seq = 4;
+  // optional string string_data = 4;
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_string_data());
+  }
+
+  // uint64 seq = 5;
   if (this->_internal_seq() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_seq());
   }
@@ -2049,6 +2193,9 @@ void Command_CallService::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   if (!from._internal_data().empty()) {
     _this->_internal_set_data(from._internal_data());
   }
+  if (from._internal_has_string_data()) {
+    _this->_internal_set_string_data(from._internal_string_data());
+  }
   if (from._internal_seq() != 0) {
     _this->_internal_set_seq(from._internal_seq());
   }
@@ -2071,6 +2218,7 @@ void Command_CallService::InternalSwap(Command_CallService* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.service_, lhs_arena,
       &other->_impl_.service_, rhs_arena
@@ -2078,6 +2226,10 @@ void Command_CallService::InternalSwap(Command_CallService* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.data_, lhs_arena,
       &other->_impl_.data_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.string_data_, lhs_arena,
+      &other->_impl_.string_data_, rhs_arena
   );
   swap(_impl_.seq_, other->_impl_.seq_);
 }
@@ -2548,6 +2700,10 @@ void Command_UnadvertiseService::InternalSwap(Command_UnadvertiseService* other)
 
 class Command_ResponseService::_Internal {
  public:
+  using HasBits = decltype(std::declval<Command_ResponseService>()._impl_._has_bits_);
+  static void set_has_string_data(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
 };
 
 Command_ResponseService::Command_ResponseService(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -2560,10 +2716,12 @@ Command_ResponseService::Command_ResponseService(const Command_ResponseService& 
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   Command_ResponseService* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.service_){}
+      decltype(_impl_._has_bits_){from._impl_._has_bits_}
+    , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.service_){}
     , decltype(_impl_.data_){}
-    , decltype(_impl_.seq_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
+    , decltype(_impl_.string_data_){}
+    , decltype(_impl_.seq_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   _impl_.service_.InitDefault();
@@ -2582,6 +2740,14 @@ Command_ResponseService::Command_ResponseService(const Command_ResponseService& 
     _this->_impl_.data_.Set(from._internal_data(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.string_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.string_data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (from._internal_has_string_data()) {
+    _this->_impl_.string_data_.Set(from._internal_string_data(), 
+      _this->GetArenaForAllocation());
+  }
   _this->_impl_.seq_ = from._impl_.seq_;
   // @@protoc_insertion_point(copy_constructor:hybrid.Command.ResponseService)
 }
@@ -2591,10 +2757,12 @@ inline void Command_ResponseService::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.service_){}
-    , decltype(_impl_.data_){}
-    , decltype(_impl_.seq_){uint64_t{0u}}
+      decltype(_impl_._has_bits_){}
     , /*decltype(_impl_._cached_size_)*/{}
+    , decltype(_impl_.service_){}
+    , decltype(_impl_.data_){}
+    , decltype(_impl_.string_data_){}
+    , decltype(_impl_.seq_){uint64_t{0u}}
   };
   _impl_.service_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
@@ -2603,6 +2771,10 @@ inline void Command_ResponseService::SharedCtor(
   _impl_.data_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.data_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.string_data_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.string_data_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -2619,6 +2791,7 @@ inline void Command_ResponseService::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.service_.Destroy();
   _impl_.data_.Destroy();
+  _impl_.string_data_.Destroy();
 }
 
 void Command_ResponseService::SetCachedSize(int size) const {
@@ -2633,12 +2806,18 @@ void Command_ResponseService::Clear() {
 
   _impl_.service_.ClearToEmpty();
   _impl_.data_.ClearToEmpty();
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    _impl_.string_data_.ClearNonDefaultToEmpty();
+  }
   _impl_.seq_ = uint64_t{0u};
+  _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* Command_ResponseService::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
@@ -2662,9 +2841,19 @@ const char* Command_ResponseService::_InternalParse(const char* ptr, ::_pbi::Par
         } else
           goto handle_unusual;
         continue;
-      // uint64 seq = 3;
+      // optional string string_data = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_string_data();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "hybrid.Command.ResponseService.string_data"));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 seq = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
           _impl_.seq_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
@@ -2686,6 +2875,7 @@ const char* Command_ResponseService::_InternalParse(const char* ptr, ::_pbi::Par
     CHK_(ptr != nullptr);
   }  // while
 message_done:
+  _impl_._has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -2715,10 +2905,20 @@ uint8_t* Command_ResponseService::_InternalSerialize(
         2, this->_internal_data(), target);
   }
 
-  // uint64 seq = 3;
+  // optional string string_data = 3;
+  if (_internal_has_string_data()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_string_data().data(), static_cast<int>(this->_internal_string_data().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "hybrid.Command.ResponseService.string_data");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_string_data(), target);
+  }
+
+  // uint64 seq = 4;
   if (this->_internal_seq() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_seq(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(4, this->_internal_seq(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -2751,7 +2951,15 @@ size_t Command_ResponseService::ByteSizeLong() const {
         this->_internal_data());
   }
 
-  // uint64 seq = 3;
+  // optional string string_data = 3;
+  cached_has_bits = _impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_string_data());
+  }
+
+  // uint64 seq = 4;
   if (this->_internal_seq() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_seq());
   }
@@ -2780,6 +2988,9 @@ void Command_ResponseService::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg
   if (!from._internal_data().empty()) {
     _this->_internal_set_data(from._internal_data());
   }
+  if (from._internal_has_string_data()) {
+    _this->_internal_set_string_data(from._internal_string_data());
+  }
   if (from._internal_seq() != 0) {
     _this->_internal_set_seq(from._internal_seq());
   }
@@ -2802,6 +3013,7 @@ void Command_ResponseService::InternalSwap(Command_ResponseService* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.service_, lhs_arena,
       &other->_impl_.service_, rhs_arena
@@ -2809,6 +3021,10 @@ void Command_ResponseService::InternalSwap(Command_ResponseService* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.data_, lhs_arena,
       &other->_impl_.data_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.string_data_, lhs_arena,
+      &other->_impl_.string_data_, rhs_arena
   );
   swap(_impl_.seq_, other->_impl_.seq_);
 }

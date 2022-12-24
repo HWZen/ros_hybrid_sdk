@@ -2,6 +2,8 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 package hybrid;
 
+// bytes type mapping to json is base64 encoded string,
+// so we use a optional string param to store the bytes value which is ascii encoded
 message Command{
 
   message Advertise{
@@ -19,6 +21,8 @@ message Command{
     string topic = 1;
     string type = 2;
     bytes data = 3;
+    optional string string_data = 4;
+
   }
 
   message Subscribe{
@@ -34,7 +38,8 @@ message Command{
   message CallService{
     string service = 1;
     bytes data = 3;
-    uint64 seq = 4;
+    optional string string_data = 4;
+    uint64 seq = 5;
   }
 
   message AdvertiseService {
@@ -49,7 +54,8 @@ message Command{
   message ResponseService {
     string service = 1;
     bytes data = 2;
-    uint64 seq = 3;
+    optional string string_data = 3;
+    uint64 seq = 4;
   }
 
   message Log{
