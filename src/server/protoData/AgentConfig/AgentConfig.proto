@@ -6,4 +6,8 @@ message AgentConfig{
   optional int32 log_level = 2;
   optional bool is_protobuf = 3;
   optional bytes delimiter = 4;
+  //  delimiter used base64 encoded, if you wan to use ascii string as delimiter,
+  //  you can use this
+  //  delimiter_str priority higher than delimiter
+  optional string delimiter_str = 5;
 }

@@ -179,6 +179,7 @@ class AgentConfig final :
   enum : int {
     kNodeFieldNumber = 1,
     kDelimiterFieldNumber = 4,
+    kDelimiterStrFieldNumber = 5,
     kLogLevelFieldNumber = 2,
     kIsProtobufFieldNumber = 3,
   };
@@ -212,6 +213,24 @@ class AgentConfig final :
   const std::string& _internal_delimiter() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_delimiter(const std::string& value);
   std::string* _internal_mutable_delimiter();
+  public:
+
+  // optional string delimiter_str = 5;
+  bool has_delimiter_str() const;
+  private:
+  bool _internal_has_delimiter_str() const;
+  public:
+  void clear_delimiter_str();
+  const std::string& delimiter_str() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_delimiter_str(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_delimiter_str();
+  PROTOBUF_NODISCARD std::string* release_delimiter_str();
+  void set_allocated_delimiter_str(std::string* delimiter_str);
+  private:
+  const std::string& _internal_delimiter_str() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_delimiter_str(const std::string& value);
+  std::string* _internal_mutable_delimiter_str();
   public:
 
   // optional int32 log_level = 2;
@@ -252,6 +271,7 @@ class AgentConfig final :
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr node_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delimiter_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delimiter_str_;
     int32_t log_level_;
     bool is_protobuf_;
   };
@@ -321,7 +341,7 @@ inline void AgentConfig::set_allocated_node(std::string* node) {
 
 // optional int32 log_level = 2;
 inline bool AgentConfig::_internal_has_log_level() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool AgentConfig::has_log_level() const {
@@ -329,7 +349,7 @@ inline bool AgentConfig::has_log_level() const {
 }
 inline void AgentConfig::clear_log_level() {
   _impl_.log_level_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline int32_t AgentConfig::_internal_log_level() const {
   return _impl_.log_level_;
@@ -339,7 +359,7 @@ inline int32_t AgentConfig::log_level() const {
   return _internal_log_level();
 }
 inline void AgentConfig::_internal_set_log_level(int32_t value) {
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   _impl_.log_level_ = value;
 }
 inline void AgentConfig::set_log_level(int32_t value) {
@@ -349,7 +369,7 @@ inline void AgentConfig::set_log_level(int32_t value) {
 
 // optional bool is_protobuf = 3;
 inline bool AgentConfig::_internal_has_is_protobuf() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
 inline bool AgentConfig::has_is_protobuf() const {
@@ -357,7 +377,7 @@ inline bool AgentConfig::has_is_protobuf() const {
 }
 inline void AgentConfig::clear_is_protobuf() {
   _impl_.is_protobuf_ = false;
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline bool AgentConfig::_internal_is_protobuf() const {
   return _impl_.is_protobuf_;
@@ -367,7 +387,7 @@ inline bool AgentConfig::is_protobuf() const {
   return _internal_is_protobuf();
 }
 inline void AgentConfig::_internal_set_is_protobuf(bool value) {
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   _impl_.is_protobuf_ = value;
 }
 inline void AgentConfig::set_is_protobuf(bool value) {
@@ -441,6 +461,74 @@ inline void AgentConfig::set_allocated_delimiter(std::string* delimiter) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:hybrid.AgentConfig.delimiter)
+}
+
+// optional string delimiter_str = 5;
+inline bool AgentConfig::_internal_has_delimiter_str() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline bool AgentConfig::has_delimiter_str() const {
+  return _internal_has_delimiter_str();
+}
+inline void AgentConfig::clear_delimiter_str() {
+  _impl_.delimiter_str_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const std::string& AgentConfig::delimiter_str() const {
+  // @@protoc_insertion_point(field_get:hybrid.AgentConfig.delimiter_str)
+  return _internal_delimiter_str();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void AgentConfig::set_delimiter_str(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000002u;
+ _impl_.delimiter_str_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.AgentConfig.delimiter_str)
+}
+inline std::string* AgentConfig::mutable_delimiter_str() {
+  std::string* _s = _internal_mutable_delimiter_str();
+  // @@protoc_insertion_point(field_mutable:hybrid.AgentConfig.delimiter_str)
+  return _s;
+}
+inline const std::string& AgentConfig::_internal_delimiter_str() const {
+  return _impl_.delimiter_str_.Get();
+}
+inline void AgentConfig::_internal_set_delimiter_str(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.delimiter_str_.Set(value, GetArenaForAllocation());
+}
+inline std::string* AgentConfig::_internal_mutable_delimiter_str() {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.delimiter_str_.Mutable(GetArenaForAllocation());
+}
+inline std::string* AgentConfig::release_delimiter_str() {
+  // @@protoc_insertion_point(field_release:hybrid.AgentConfig.delimiter_str)
+  if (!_internal_has_delimiter_str()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* p = _impl_.delimiter_str_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.delimiter_str_.IsDefault()) {
+    _impl_.delimiter_str_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void AgentConfig::set_allocated_delimiter_str(std::string* delimiter_str) {
+  if (delimiter_str != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.delimiter_str_.SetAllocated(delimiter_str, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.delimiter_str_.IsDefault()) {
+    _impl_.delimiter_str_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.AgentConfig.delimiter_str)
 }
 
 #ifdef __GNUC__

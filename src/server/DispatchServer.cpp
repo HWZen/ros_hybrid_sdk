@@ -281,6 +281,8 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
         co_return DispatchResultCode::FAIL;
     }
 
+    if (agentConfig.has_delimiter_str())
+        agentConfig.set_delimiter(agentConfig.delimiter_str());
     if (!agentConfig.has_delimiter())
         agentConfig.set_delimiter(HYBRID_DELIMITER);
     if (!agentConfig.has_is_protobuf())
