@@ -26,7 +26,7 @@ struct Agent::Impl
 
     int pipFd{};
 
-    awaitable<void> parseCommand(const std::string &commandStr);
+    awaitable<void> parseCommand(std::string_view commandStr);
 
     std::unordered_map<std::string, std::shared_ptr<hybrid::MsgPublisher>> pubMap{};
     std::unordered_map<std::string, std::shared_ptr<hybrid::MsgSubscriber>> subMap{};
@@ -220,7 +220,8 @@ start:
                     co_return;
                 }
 
-                co_await parseCommand(read_buffer.substr(0, len - client->agentConfig.delimiter().size()));
+                co_await parseCommand(std::string_view(read_buffer.data(),
+                                                       len - client->agentConfig.delimiter().size()));
                 read_buffer.erase(0, len);
             }
         }
@@ -245,13 +246,13 @@ Agent::~Agent()
     delete implPtr;
 }
 
-awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
+awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
 {
     auto &logger = *Impl::logger;
     hybrid::Command command;
 
     if (client->agentConfig.is_protobuf()) {
-        if (!command.ParseFromString(commandStr))
+        if (!command.ParseFromArray(commandStr.data(), static_cast<int>(commandStr.size())))
             logger.error("parse command error");
     } else {
         if (auto state = google::protobuf::util::JsonStringToMessage(commandStr, &command); !state.ok())

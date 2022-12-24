@@ -59,7 +59,7 @@ void ros_log_sink::sink_it_(const spdlog::details::log_msg &msg)
 //    ROS_LOG((ros::console::Level) level, ROSCONSOLE_DEFAULT_NAME, "%s", formatted.data());
     hybrid::Log log;
 
-    auto getHeader = [](const std::string &frame_id = "")
+    auto getHeader = [](std::string_view frame_id = "")
     {
         static std::atomic_uint32_t seq{0};
         hybrid::Header header;
@@ -120,7 +120,7 @@ spdlog::sink_ptr g_ros_sink = std::make_shared<ros_log_sink>();
 spdlog::sink_ptr g_stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 spdlog::sink_ptr g_file_sink = nullptr;
 
-void Log::log(int level, const std::string &msg)
+void Log::log(int level, std::string_view msg)
 {
     assert(implPtr);
     auto &impl = *implPtr;
@@ -142,7 +142,7 @@ void Log::init()
     spdlog::set_level(spdlog::level::trace);
 }
 
-Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
+Log::Log(std::string_view name, LogFlag flag, const ref_client &client)
 {
     std::vector<spdlog::sink_ptr> sinks;
     if (flag & LogFlag::CONSOLE_LOGGER)
@@ -160,7 +160,7 @@ Log::Log(const std::string &name, LogFlag flag, const ref_client &client)
         sinks.push_back(std::make_shared<client_sink>(client));
     }
 
-    implPtr = new Impl(std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end()));
+    implPtr = new Impl(std::make_shared<spdlog::logger>(name.data(), sinks.begin(), sinks.end()));
 }
 
 Log::~Log()

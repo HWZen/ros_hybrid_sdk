@@ -36,9 +36,9 @@ using ref_client = RefSocketor;
 class Log
 {
 public:
-    explicit Log(const std::string &name, LogFlag flag = LogFlag::CONSOLE_LOGGER, const ref_client &client = nullptr);
+    Log(std::string_view name, LogFlag flag = LogFlag::CONSOLE_LOGGER, const ref_client &client = nullptr);
 
-    void log(int level, const std::string &msg);
+    void log(int level, std::string_view msg);
 
     template<class ...Args>
     void log(int level, format_string<Args...> format, Args &&...args);
