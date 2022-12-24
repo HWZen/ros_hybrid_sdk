@@ -99,6 +99,7 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
         auto buf = command.SerializeAsString() + HYBRID_DELIMITER;
         client->async_write_some(asio::buffer(buf), sinkCallback);
     }else{
+        // json timestamp is UTC time. convert it to local time?
         std::string buf{};
         if (auto state = google::protobuf::util::MessageToJsonString(command, &buf); !state.ok())[[unlikely]]{
             spdlog::error("client sink error: {}", state.ToString());
@@ -110,11 +111,7 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
 }
 
 client_sink::client_sink(ref_client client) : client(std::move(client)){
-
-//    if (client_sink::client->agentConfig.is_protobuf())
     set_pattern("%v");
-//    else // json pattern
-//        set_pattern(R"({"type":"log", "log": { "time": "%Y-%m-%d %H:%M:%S.%e" ,"level": "%^%l%$", "msg": "%v"}})");
     set_level(static_cast<spdlog::level::level_enum>(client_sink::client->agentConfig.log_level()));
 }
 
