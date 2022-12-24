@@ -13,7 +13,6 @@ using namespace std::string_literals;
 
 #define _VAL(x) #x
 
-
 #define RAPIDJSON_ASSERT(x) \
     if (!(x)) {     \
         auto fun = __func__; \
@@ -30,11 +29,11 @@ using namespace std::string_literals;
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
-
 class JsonParse : public rapidjson::Document
 {
 public:
-    explicit JsonParse(std::string_view str) : rapidjson::Document(){
+    explicit JsonParse(std::string_view str) : rapidjson::Document()
+    {
         Parse(str.data(), str.size());
     }
 };

@@ -12,7 +12,7 @@ GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<
 {
     std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
     std::string GenMsgServerCpp_py_part1 =
-R"(
+        R"(
 import re
 import sys
 import os
@@ -34,7 +34,7 @@ class TypeTrail:
 
 )";
     std::string GenMsgServerCpp_py_part2 =
-R"(
+        R"(
 
 class FieldTypes(IntEnum):
     BuiltIn         = 0x01
@@ -332,7 +332,7 @@ msgVars = [
         return result;
     };
 
-    for (auto &var: vars) {
+    for (auto &var : vars) {
         msgVars += "    " + toPythonTypeTrail(var) + ",\n";
     }
 

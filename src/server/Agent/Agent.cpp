@@ -35,7 +35,6 @@ struct Agent::Impl
 
     ~Impl();
 
-
 };
 
 void Agent::MAIN()
@@ -51,19 +50,18 @@ extern char **g_argv;
 void Agent::Impl::MAIN()
 {
     logger->info("preBootAgent process start");
-    sstd::thread checkParentThread([&]() {
-        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, nullptr);
-        while (true)
-        {
-            if (getppid() == 1)
-            {
-                logger->info("parent process is dead, exit");
-                exit(0);
-            }
-            sstd::ThisThread::sleep(1000);
-            pthread_testcancel();
-        }
-    });
+    sstd::thread checkParentThread([&]()
+                                   {
+                                       pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, nullptr);
+                                       while (true) {
+                                           if (getppid() == 1) {
+                                               logger->info("parent process is dead, exit");
+                                               exit(0);
+                                           }
+                                           sstd::ThisThread::sleep(1000);
+                                           pthread_testcancel();
+                                       }
+                                   });
 start:
     /*******************
      * wait a socket
@@ -113,7 +111,7 @@ start:
             goto start;
         }
 
-        if (!agentConfig.ParseFromArray(agentNameBuf.data(), static_cast<int>(len))){
+        if (!agentConfig.ParseFromArray(agentNameBuf.data(), static_cast<int>(len))) {
             logger->error("parse agent config error");
             goto start;
         }
@@ -136,8 +134,7 @@ start:
             // close fd
             close(fd);
             goto start;
-        }
-        else{
+        } else {
             // child
             // close pip
             close(pipFd);
@@ -164,22 +161,20 @@ start:
     g_argv[0] = client->agentConfig.mutable_node()->data();
     prctl(PR_SET_NAME, agentName.c_str(), 0, 0, 0);
 
-
-
     logger.debug("init ros");
     // check agentName is already exist or not?
-    if (ros::isInitialized()) [[unlikely]]
-    {
+    if (ros::isInitialized()) [[unlikely]] {
         logger.error("ros is already initialized");
         throw SDKException("ros is already initialized");
     }
     ros::init(g_argc, g_argv, agentName);
     ros::start();
 
-    rosSpinThread = new sstd::thread([&]() {
-        ros::spin();
-        logger.info("ros spin thread exit");
-    });
+    rosSpinThread = new sstd::thread([&]()
+                                     {
+                                         ros::spin();
+                                         logger.info("ros spin thread exit");
+                                     });
 
     // check parent process if exit
     co_spawn(ctx, [&]() -> awaitable<void>
@@ -193,7 +188,8 @@ start:
         }
     }, asio::detached);
 
-    co_spawn(ctx, [&]() -> awaitable<void> {
+    co_spawn(ctx, [&]() -> awaitable<void>
+    {
         try {
             std::string read_buffer;
             for (;;) {
@@ -210,7 +206,7 @@ start:
                 if (ec == asio::error::eof) {
                     logger.info("disconnect");
                     ctx.stop();
-                    co_return ;
+                    co_return;
                 }
 
                 co_await parseCommand(read_buffer.substr(0, len - client->agentConfig.delimiter().size()));
@@ -240,10 +236,10 @@ Agent::~Agent()
 
 awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
 {
-    auto & logger = *Impl::logger;
+    auto &logger = *Impl::logger;
     hybrid::Command command;
 
-    if (client->agentConfig.is_protobuf()){
+    if (client->agentConfig.is_protobuf()) {
         if (!command.ParseFromString(commandStr))
             logger.error("parse command error");
     } else {
@@ -253,7 +249,8 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
 //    logger.debug("command: {}", command.DebugString());
 
     switch (command.type()) {
-    case hybrid::Command_Type_UNKNOWN:break;
+    case hybrid::Command_Type_UNKNOWN:
+        break;
     case hybrid::Command_Type_ADVERTISE: {
         if (!command.has_advertise()) {
             logger.error("advertise data not found");
@@ -269,7 +266,8 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
             auto publisher_maker = MsgLoader::getPublisher(advertise.type());
             pubMap[advertise.topic()] =
                 std::shared_ptr<hybrid::MsgPublisher>(publisher_maker(advertise.topic(),
-                                                                      advertise.has_queue_size() ? advertise.queue_size() : 100,
+                                                                      advertise.has_queue_size()
+                                                                      ? advertise.queue_size() : 100,
                                                                       advertise.has_latch() && advertise.latch()));
             logger.info("advertise topic: {}", advertise.topic());
         }
@@ -278,7 +276,7 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
         }
         break;
     }
-    case hybrid::Command_Type_PUBLISH:{
+    case hybrid::Command_Type_PUBLISH: {
         if (!command.has_publish()) {
             logger.error("publish data not found");
             break;
@@ -288,7 +286,7 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
             logger.error("topic {} not found, please advertise it first", publish.topic());
             break;
         }
-        try{
+        try {
             pubMap[publish.topic()]->publish(publish.data());
         }
         catch (std::runtime_error &e) {
@@ -296,7 +294,7 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
         }
         break;
     }
-    case hybrid::Command_Type_UNADVERTISE:{
+    case hybrid::Command_Type_UNADVERTISE: {
         if (!command.has_unadvertise()) {
             logger.error("unadvertise data not found");
             break;
@@ -310,7 +308,7 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
         logger.info("unadvertise topic: {}", unadvertise.topic());
         break;
     }
-    case hybrid::Command_Type_SUBSCRIBE:{
+    case hybrid::Command_Type_SUBSCRIBE: {
         if (!command.has_subscribe()) {
             logger.error("subscribe data not found");
             break;
@@ -320,12 +318,13 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
             logger.error("topic {} already exist", subscribe.topic());
             break;
         }
-        try{
+        try {
             logger.info("subscribe topic: {}", subscribe.topic());
             auto subscriber_maker = MsgLoader::getSubscriber(subscribe.type());
             subMap[subscribe.topic()] =
                 std::shared_ptr<hybrid::MsgSubscriber>(subscriber_maker(subscribe.topic(),
-                                                                        subscribe.has_queue_size() ? subscribe.queue_size() : 100,
+                                                                        subscribe.has_queue_size()
+                                                                        ? subscribe.queue_size() : 100,
                                                                         [&, subscribe](const std::string &msg)
                                                                         {
                                                                             hybrid::Command command;
@@ -334,20 +333,26 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
                                                                             resPub.set_topic(subscribe.topic());
                                                                             resPub.set_type(subscribe.type());
                                                                             resPub.set_data(msg);
-                                                                            auto resString = command.SerializeAsString() + HYBRID_DELIMITER;
-                                                                            client->async_write_some(buffer(resString), [&](const asio::error_code &ec, size_t) {
-                                                                                if (ec)
-                                                                                    logger.error("send msg error: {}", ec.message());
-                                                                            });
+                                                                            auto resString = command.SerializeAsString()
+                                                                                + HYBRID_DELIMITER;
+                                                                            client->async_write_some(buffer(resString),
+                                                                                                     [&](const asio::error_code &ec,
+                                                                                                         size_t)
+                                                                                                     {
+                                                                                                         if (ec)
+                                                                                                             logger.error(
+                                                                                                                 "send msg error: {}",
+                                                                                                                 ec.message());
+                                                                                                     });
                                                                         }
-                                                                        ));
+                ));
         }
         catch (std::runtime_error &e) {
             logger.error("subscribe exception: {}", e.what());
         }
         break;
     }
-    case hybrid::Command_Type_UNSUBSCRIBE:{
+    case hybrid::Command_Type_UNSUBSCRIBE: {
         if (!command.has_unsubscribe()) {
             logger.error("unsubscribe data not found");
             break;
@@ -372,9 +377,9 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
         logger.info("command not implement");
         break;
     default:
-        logger.error("unknown command");
+        logger.error("unknown command: {}", command.type());
     }
-    co_return ;
+    co_return;
 
 }
 Agent::Impl::~Impl()

@@ -7,13 +7,13 @@
 #include "Preprocessor.h"
 #include <regex>
 
-
-std::vector<TypeTrail> MsgParser(const std::string& fileBuf){
+std::vector<TypeTrail> MsgParser(const std::string &fileBuf)
+{
 
     auto preprocessRes = Preprocessor(fileBuf);
 
     std::vector<TypeTrail> res;
-    for (auto& var : preprocessRes){
+    for (auto &var : preprocessRes) {
         res.emplace_back(TypeTrailParser(var));
     }
 

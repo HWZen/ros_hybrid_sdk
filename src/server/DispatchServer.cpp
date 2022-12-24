@@ -15,8 +15,6 @@
 using namespace std::chrono_literals;
 using namespace std::string_literals;
 
-
-
 using ref_client = RefSocketor;
 
 /**
@@ -29,7 +27,6 @@ struct DispatchServer::Impl
 
     void run();
 
-
     enum class DispatchResultCode : int
     {
         FAIL = -1,
@@ -38,7 +35,6 @@ struct DispatchServer::Impl
     };
 
     int send_fd(int pipe_fd, SOCKET fd);
-
 
     awaitable<DispatchResultCode> dispatch(ref_client &client);
 
@@ -52,7 +48,7 @@ struct DispatchServer::Impl
 
     DefaultAgentManager defaultAgent;
 
-    Log logger{ "DispatchServer", LogFlag::CONSOLE_LOGGER };
+    Log logger{"DispatchServer", LogFlag::CONSOLE_LOGGER};
 
     int defaultAgentPip{};
 
@@ -63,9 +59,6 @@ struct DispatchServer::Impl
     asio::io_context ctx{};
 
 };
-
-
-
 
 void DispatchServer::init(uint16_t port)
 {
@@ -80,7 +73,6 @@ DispatchServer::~DispatchServer()
 {
     delete implPtr;
 }
-
 
 /**
  * DispatchServer::Imp implement
@@ -128,12 +120,12 @@ void DispatchServer::Impl::init(uint16_t port)
     int defaultAgentPipFd[2];
     int preBootAgentPidFd[2];
 
-    if (socketpair(PF_UNIX, SOCK_DGRAM, 0, defaultAgentPipFd) < 0){
+    if (socketpair(PF_UNIX, SOCK_DGRAM, 0, defaultAgentPipFd) < 0) {
         logger.error("DefaultAgent socketpair error");
         throw SDKException("DefaultAgent socketpair error");
     }
 
-    if(socketpair(PF_UNIX, SOCK_DGRAM, 0, preBootAgentPidFd) < 0){
+    if (socketpair(PF_UNIX, SOCK_DGRAM, 0, preBootAgentPidFd) < 0) {
         logger.error("PreBootAgent socketpair error");
         throw SDKException("PreBootAgent socketpair error");
     }
@@ -149,7 +141,7 @@ void DispatchServer::Impl::init(uint16_t port)
         throw SDKException("fork failed");
 
     // child
-    if (defaultAgentPid == 0){
+    if (defaultAgentPid == 0) {
         close(defaultAgentPipFd[1]);
         {
             defaultAgent.setSocketPipe(defaultAgentPipFd[0]);
@@ -170,7 +162,7 @@ void DispatchServer::Impl::init(uint16_t port)
         throw SDKException("fork failed");
 
     // child
-    if (preBootPid == 0){
+    if (preBootPid == 0) {
         close(preBootAgentPidFd[1]);
         {
             Agent agent(preBootAgentPidFd[0]);
@@ -203,7 +195,7 @@ void DispatchServer::Impl::run()
 awaitable<void> DispatchServer::Impl::listen()
 {
     logger.info("in DispatchServer::Impl::listen");
-    for(;;){
+    for (;;) {
         auto [ec, client] = co_await acceptor->async_accept(use_nothrow_awaitable);
         if (ec) [[unlikely]] {
             logger.error("Accept error: {}", ec.message());
@@ -211,8 +203,9 @@ awaitable<void> DispatchServer::Impl::listen()
         }
 
         auto executor = client.get_executor();
-        co_spawn(executor,[this, client = std::move(client)]() mutable -> awaitable<void> {
-            try{
+        co_spawn(executor, [this, client = std::move(client)]() mutable -> awaitable<void>
+        {
+            try {
                 auto ref_client = make_client(std::move(client));
                 auto res = co_await dispatch(ref_client);
                 if (res == DispatchResultCode::FAIL)
@@ -230,8 +223,6 @@ awaitable<void> DispatchServer::Impl::listen()
     }
 }
 
-
-
 awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispatch(ref_client &client)
 {
 
@@ -243,7 +234,7 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
 
     std::array<char, 4096> buff_{};
     auto [ec, len] = co_await (*client).async_read_some(asio::buffer(buff_), use_nothrow_awaitable);
-    if (ec){
+    if (ec) {
         logger.error("Read error: {}", ec.message());
         co_return DispatchResultCode::FAIL;
     }
@@ -254,28 +245,30 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
      ******************************/
 
     // protobuf style parse
-    if (client->agentConfig.ParseFromArray(buff_.data(), static_cast<int>(len))){
-        if (client->agentConfig.node().empty()){
+    if (client->agentConfig.ParseFromArray(buff_.data(), static_cast<int>(len))) {
+        if (client->agentConfig.node().empty()) {
             logger.error("Node is empty");
             co_await client->async_write_some(asio::buffer("Node is empty"), use_nothrow_awaitable);
             co_return DispatchResultCode::FAIL;
         }
         logger.debug("parse protobuf, agent config: {}", client->agentConfig.DebugString());
-        co_return client->agentConfig.node() == "default" ? DispatchResultCode::DEFAULT_AGENT : DispatchResultCode::NEW_AGENT;
+        co_return client->agentConfig.node() == "default" ? DispatchResultCode::DEFAULT_AGENT
+                                                          : DispatchResultCode::NEW_AGENT;
     }
 
     // json style parse
 
     auto state = google::protobuf::util::JsonStringToMessage(std::string_view(buff_.data(), len), &client->agentConfig);
-    if (!state.ok()){
+    if (!state.ok()) {
         logger.error("Config string is not a protobuf or json : {}", state.ToString());
-        co_await client->async_write_some(asio::buffer("Config string is not a protobuf or json : " + state.ToString()), use_nothrow_awaitable);
+        co_await client->async_write_some(asio::buffer("Config string is not a protobuf or json : " + state.ToString()),
+                                          use_nothrow_awaitable);
         co_return DispatchResultCode::FAIL;
     }
 
     auto &agentConfig = client->agentConfig;
 
-    if (agentConfig.node().empty()){
+    if (agentConfig.node().empty()) {
         logger.error("node is empty");
         co_await client->async_write_some(asio::buffer("node is empty"), use_nothrow_awaitable);
         co_return DispatchResultCode::FAIL;
@@ -304,8 +297,6 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
     else
         co_return DispatchResultCode::NEW_AGENT;
 }
-
-
 
 void DispatchServer::Impl::toDefaultAgent(const ref_client &client)
 {

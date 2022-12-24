@@ -12,10 +12,8 @@
 #include <sys/prctl.h>
 using namespace std::chrono_literals;
 
-
 extern int g_argc;
 extern char **g_argv;
-
 
 struct DefaultAgentManager::Impl
 {
@@ -35,15 +33,14 @@ struct DefaultAgentManager::Impl
     std::shared_ptr<sstd::BaseThread> recvFdThread{};
     sstd::atomic_queue<std::shared_ptr<std::function<void(SOCKET, hybrid::AgentConfig)>>> task_queue;
 
-    template <asio::completion_token_for<void(SOCKET, hybrid::AgentConfig)> CompletionToken>
-    auto async_get_socket(CompletionToken&& token);
+    template<asio::completion_token_for<void(SOCKET, hybrid::AgentConfig)> CompletionToken>
+    auto async_get_socket(CompletionToken &&token);
 
     asio::io_context ctx{};
 
     std::unordered_set<RefConnectInstance> connectInstances{};
 
 };
-
 
 void DefaultAgentManager::MAIN()
 {
@@ -73,7 +70,6 @@ void DefaultAgentManager::Impl::MAIN()
     ros::init(g_argc, g_argv, "DefaultAgent");
     ros::start();
 
-
     this->logger.info("DefaultAgent::MAIN");
 
     // check parent process if exit
@@ -98,40 +94,43 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
 {
     pipeFd = pipe;
     recvFdThread =
-            std::shared_ptr<sstd::BaseThread>(new sstd::thread([this]
-                                                               {
-                                                                   for (;;) {
-                                                                       auto fd = recv_fd();
-                                                                       std::array<char, 4096> agentConfigBuf{};
-                                                                       auto len = read(pipeFd, agentConfigBuf.data(), agentConfigBuf.size());
-                                                                       hybrid::AgentConfig agentConfig{};
-                                                                       if (!agentConfig.ParseFromArray(agentConfigBuf.data(),
-                                                                                                       static_cast<int>(len))){
-                                                                            this->logger.error("parse agent config fail");
-                                                                            continue;
-                                                                       }
-                                                                       auto task = task_queue.pop();
-                                                                       (*task)(fd, std::move(agentConfig));
+        std::shared_ptr<sstd::BaseThread>(new sstd::thread([this]
+                                                           {
+                                                               for (;;) {
+                                                                   auto fd = recv_fd();
+                                                                   std::array<char, 4096> agentConfigBuf{};
+                                                                   auto len = read(pipeFd,
+                                                                                   agentConfigBuf.data(),
+                                                                                   agentConfigBuf.size());
+                                                                   hybrid::AgentConfig agentConfig{};
+                                                                   if (!agentConfig.ParseFromArray(agentConfigBuf.data(),
+                                                                                                   static_cast<int>(len))) {
+                                                                       this->logger.error("parse agent config fail");
+                                                                       continue;
                                                                    }
-                                                               }),
-                                              // destroy thread
-                                              [](sstd::BaseThread *th)
-                                              {
-                                                  if (th)
-                                                      th->terminate();
-                                                  delete th;
-                                              });
+                                                                   auto task = task_queue.pop();
+                                                                   (*task)(fd, std::move(agentConfig));
+                                                               }
+                                                           }),
+            // destroy thread
+                                          [](sstd::BaseThread *th)
+                                          {
+                                              if (th)
+                                                  th->terminate();
+                                              delete th;
+                                          });
 
 }
 
-template <asio::completion_token_for<void(SOCKET, hybrid::AgentConfig)> CompletionToken>
-auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
+template<asio::completion_token_for<void(SOCKET, hybrid::AgentConfig)> CompletionToken>
+auto DefaultAgentManager::Impl::async_get_socket(CompletionToken &&token)
 {
 
     // Define a function object that contains the code to launch the asynchronous
     // operation. This is passed the concrete completion handler, followed by any
     // additional arguments that were passed through the call to async_initiate.
-    auto init = [this](asio::completion_handler_for<void(SOCKET, hybrid::AgentConfig)> auto handler){
+    auto init = [this](asio::completion_handler_for<void(SOCKET, hybrid::AgentConfig)> auto handler)
+    {
         // According to the rules for asynchronous operations, we need to track
         // outstanding work against the handler's associated executor until the
         // asynchronous operation is complete.
@@ -141,23 +140,23 @@ auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
         auto work = asio::make_work_guard(*ref_handler);
 
         std::function<void(SOCKET, hybrid::AgentConfig)> callback = [
-                work = std::move(work),
-                ref_handler = std::move(ref_handler)
+            work = std::move(work),
+            ref_handler = std::move(ref_handler)
         ](SOCKET socketFd, hybrid::AgentConfig agentConfig) mutable
         {
             // Get the handler's associated allocator. If the handler does not
             // specify an allocator, use the recycling allocator as the default.
             auto alloc = asio::get_associated_allocator(
-                    *ref_handler, asio::recycling_allocator<void>());
+                *ref_handler, asio::recycling_allocator<void>());
 
             // Dispatch the completion handler through the handler's associated
             // executor, using the handler's associated allocator.
             asio::dispatch(work.get_executor(),
                            asio::bind_allocator(alloc,
                                                 [
-                                                        ref_handle = std::move(ref_handler),
-                                                        socketFd,
-                                                        agentConfig = std::move(agentConfig)
+                                                    ref_handle = std::move(ref_handler),
+                                                    socketFd,
+                                                    agentConfig = std::move(agentConfig)
                                                 ]() mutable
                                                 {
                                                     std::move(*ref_handle)(socketFd, std::move(agentConfig));
@@ -172,8 +171,8 @@ auto DefaultAgentManager::Impl::async_get_socket(CompletionToken&& token)
     // result of the call since the completion token may produce a return value,
     // such as a future.
     return asio::async_initiate<CompletionToken, void(SOCKET, hybrid::AgentConfig)>(
-            init, // First, pass the function object that launches the operation,
-            token);// then the completion token that will be transformed to a handler
+        init, // First, pass the function object that launches the operation,
+        token);// then the completion token that will be transformed to a handler
 
 }
 
@@ -204,14 +203,14 @@ int DefaultAgentManager::Impl::recv_fd()
         return 0;
     }
 
-    int fd = *(int *) CMSG_DATA((cmsghdr *) &cmBuf);
+    int fd = *(int *)CMSG_DATA((cmsghdr *)&cmBuf);
     return fd;
 }
 
 awaitable<void> DefaultAgentManager::Impl::listenFd()
 {
     for (;;) {
-        try{
+        try {
 
             auto [fd, agentConfig] = co_await async_get_socket(asio::use_awaitable);
 
@@ -237,7 +236,7 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
                 co_return;
             }, asio::detached);
         }
-        catch(std::exception &e){
+        catch (std::exception &e) {
             logger.error("catch exception in {}@{} : {}", __FILE__, __LINE__, e.what());
         }
 

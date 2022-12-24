@@ -179,14 +179,15 @@ msgVars = [
         return result;
     };
 
-    for (auto &var: vars) {
+    for (auto &var : vars) {
         msgVars += "    " + toPythonTypeTrail(var) + ",\n";
     }
 
     msgVars += "]\n";
 
     // write to file
-    auto GoogleProtobufGenerator_py = msgFileNamePy + GoogleProtobufGenerator_py_part1 + msgVars + GoogleProtobufGenerator_py_part2;
+    auto GoogleProtobufGenerator_py =
+        msgFileNamePy + GoogleProtobufGenerator_py_part1 + msgVars + GoogleProtobufGenerator_py_part2;
     std::ofstream ofs("GoogleProtobufGenerator.py");
     ofs << GoogleProtobufGenerator_py;
     ofs.close();

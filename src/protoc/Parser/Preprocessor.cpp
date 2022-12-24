@@ -40,7 +40,7 @@ std::vector<std::pair<std::string, std::string>> Preprocessor(const std::string 
             lines.emplace_back(std::move(line));
     }
     std::vector<std::pair<std::string, std::string>> res;
-    for (auto &line : lines){
+    for (auto &line : lines) {
         if (line.empty())
             continue;
         std::regex reg(R"([ \t]*([^ \t]*)[ \t]*([^ \t]*)[ \t]*)");

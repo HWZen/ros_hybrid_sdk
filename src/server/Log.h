@@ -13,22 +13,22 @@ using fmt::v8::format_string;
 
 enum class LogFlag : int
 {
-    CONSOLE_LOGGER          = 0X01,
-    FILE_LOGGER             = 0X02,
-    ROS_LOGGER              = 0X04,
-    CLIENT_LOGGER           = 0X08,
-    CONSOLE_CLIENT          = CONSOLE_LOGGER | CLIENT_LOGGER,
+    CONSOLE_LOGGER = 0X01,
+    FILE_LOGGER = 0X02,
+    ROS_LOGGER = 0X04,
+    CLIENT_LOGGER = 0X08,
+    CONSOLE_CLIENT = CONSOLE_LOGGER | CLIENT_LOGGER,
 
 };
 
 constexpr inline auto operator|(const LogFlag &a, const LogFlag &b)
 {
-    return static_cast<LogFlag>(((int) a | (int) b));
+    return static_cast<LogFlag>(((int)a | (int)b));
 }
 
 constexpr inline auto operator&(const LogFlag &a, const LogFlag &b)
 {
-    return (int) a & (int) b;
+    return (int)a & (int)b;
 }
 
 using ref_client = RefSocketor;
@@ -66,7 +66,6 @@ private:
     struct Impl;
     Impl *implPtr{};
 };
-
 
 /*****************************
  * Implementation
@@ -107,6 +106,5 @@ void Log::log(int level, format_string<Args...> format, Args &&...args)
 {
     log(level, fmt::format(format, std::forward<decltype(args)>(args)...));
 }
-
 
 #endif //ROS_HYBIRD_SDK_SRC_ROS_HYBIRD_SDK_SERVER_SRC_LOG_H

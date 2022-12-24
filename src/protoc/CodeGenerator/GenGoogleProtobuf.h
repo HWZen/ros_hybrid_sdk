@@ -12,5 +12,4 @@
 
 GenCodeResult GenGoogleProtobuf(const std::string &msgFileName, const std::vector<TypeTrail> &vars);
 
-
 #endif //ROS_HYBRID_SDK_GOOGLEPROTOBUFGENERATOR_H

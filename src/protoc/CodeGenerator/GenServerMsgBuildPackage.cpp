@@ -39,7 +39,7 @@ target_compile_options(HybridOption PRIVATE -std=c++17 -fPIC )
 )"s;
 
     auto package_xml =
-R"(<?xml version="1.0"?>
+        R"(<?xml version="1.0"?>
 <package format="2">
     <name>ros_hybrid_dynamic_msgs</name>
     <version>0.0.0</version>
@@ -222,6 +222,6 @@ namespace hybrid
     /**********************
      * build HybridOption.proto
      **********************/
-    std::string cmd =  g_config.protocPath +  " -I=" + path +  " --cpp_out=" + path +  "  HybridOption.proto";
+    std::string cmd = g_config.protocPath + " -I=" + path + " --cpp_out=" + path + "  HybridOption.proto";
     ::system(cmd.c_str());
 }

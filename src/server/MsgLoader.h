@@ -15,15 +15,16 @@
 class MsgLoader
 {
 public:
-    static auto getPublisher(const std::string& name){
-        if (dlHandleMap.count(name) == 0){
+    static auto getPublisher(const std::string &name)
+    {
+        if (dlHandleMap.count(name) == 0) {
             auto dllName = "lib" + name + ".so";
             auto res = dlopen(dllName.c_str(), RTLD_LAZY);
             if (!res)
                 throw SDKException("dlopen error: " + std::string(dlerror()));
             dlHandleMap[name] = res;
         }
-        if (pubFuncMap.count(name) == 0){
+        if (pubFuncMap.count(name) == 0) {
             auto pVoid = dlsym(dlHandleMap[name], "make_publisher");
             if (!pVoid)
                 throw SDKException("dlsym error: " + std::string(dlerror()));
@@ -33,19 +34,22 @@ public:
         return pubFuncMap[name];
     }
 
-    static auto getSubscriber(const std::string& name){
-        if (dlHandleMap.count(name) == 0){
+    static auto getSubscriber(const std::string &name)
+    {
+        if (dlHandleMap.count(name) == 0) {
             auto dllName = "lib" + name + ".so";
             auto res = dlopen(dllName.c_str(), RTLD_LAZY);
             if (!res)
                 throw SDKException("dlopen error: " + std::string(dlerror()));
             dlHandleMap[name] = res;
         }
-        if (subFuncMap.count(name) == 0){
+        if (subFuncMap.count(name) == 0) {
             auto pVoid = dlsym(dlHandleMap[name], "make_subscriber");
             if (!pVoid)
                 throw SDKException("dlsym error: " + std::string(dlerror()));
-            auto func = reinterpret_cast<hybrid::MsgSubscriber *(*)(const std::string &, uint32_t, const std::function<void(std::string)>&)>(pVoid);
+            auto func = reinterpret_cast<hybrid::MsgSubscriber *(*)(const std::string &,
+                                                                    uint32_t,
+                                                                    const std::function<void(std::string)> &)>(pVoid);
             subFuncMap[name] = func;
         }
         return subFuncMap[name];
@@ -53,8 +57,12 @@ public:
 
 private:
     inline static std::unordered_map<std::string, void *> dlHandleMap{};
-    inline static std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool)> pubFuncMap{};
-    inline static std::unordered_map<std::string, hybrid::MsgSubscriber *(*)(const std::string &, uint32_t, const std::function<void(std::string)>&)> subFuncMap{};
+    inline static std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool)>
+        pubFuncMap{};
+    inline static std::unordered_map<std::string,
+                                     hybrid::MsgSubscriber *(*)(const std::string &,
+                                                                uint32_t,
+                                                                const std::function<void(std::string)> &)> subFuncMap{};
 
 };
 

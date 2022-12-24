@@ -12,7 +12,7 @@ GenCodeResult GenMsgServerUseOnly(const std::string &msgFileName, const std::vec
 {
     auto msgFileNamePython = R"(msgFileName = ")" + msgFileName + "\"\n";
     std::string GenMsgServerUseOnlyResult_py_part1 =
-            R"(
+        R"(
 import re
 import sys
 import os
@@ -52,7 +52,7 @@ class TypeTrail:
 
 )";
     std::string GenMsgServerUseOnlyResult_py_part2 =
-            R"(
+        R"(
 
 header = '''
 //
@@ -292,7 +292,7 @@ msgVars = [
         return result;
     };
 
-    for (auto &var: vars) {
+    for (auto &var : vars) {
         msgVars += "    " + toPythonTypeTrail(var) + ",\n";
     }
 
@@ -300,7 +300,7 @@ msgVars = [
 
     // write to file
     auto GenMsgServerUseOnlyResult_py =
-            msgFileNamePython + GenMsgServerUseOnlyResult_py_part1 + msgVars + GenMsgServerUseOnlyResult_py_part2;
+        msgFileNamePython + GenMsgServerUseOnlyResult_py_part1 + msgVars + GenMsgServerUseOnlyResult_py_part2;
     std::ofstream GenMsgServerUseOnlyResult_py_file("GenMsgServerUseOnlyResult.py");
     GenMsgServerUseOnlyResult_py_file << GenMsgServerUseOnlyResult_py;
     GenMsgServerUseOnlyResult_py_file.close();

@@ -9,7 +9,8 @@
 #include <vector>
 #include <string>
 
-struct Config{
+struct Config
+{
     std::vector<std::string> inputs;
     std::string output;
     bool server{false};

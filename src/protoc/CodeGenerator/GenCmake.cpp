@@ -9,7 +9,7 @@ using namespace std::string_literals;
 GenCodeResult GenCmake(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
 {
     std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
-    std::string GenCmake_py_part1 =R"(
+    std::string GenCmake_py_part1 = R"(
 import re
 import sys
 import os
@@ -123,7 +123,7 @@ msgVars = [
         return result;
     };
 
-    for (auto &var: vars) {
+    for (auto &var : vars) {
         msgVars += "    " + toPythonTypeTrail(var) + ",\n";
     }
 

@@ -12,23 +12,27 @@
 
 enum class FieldTypes : int
 {
-    BuiltIn          = 0x01,
-    Msg              = 0x02,
-    Constexpr        = 0x10,
-    Array            = 0x20,
-    Vector           = 0x40,
+    BuiltIn = 0x01,
+    Msg = 0x02,
+    Constexpr = 0x10,
+    Array = 0x20,
+    Vector = 0x40,
 
 };
-inline FieldTypes operator|(FieldTypes a, FieldTypes b){
+inline FieldTypes operator|(FieldTypes a, FieldTypes b)
+{
     return static_cast<FieldTypes>(static_cast<int>(a) | static_cast<int>(b));
 }
-inline FieldTypes operator&(FieldTypes a, FieldTypes b){
+inline FieldTypes operator&(FieldTypes a, FieldTypes b)
+{
     return static_cast<FieldTypes>(static_cast<int>(a) & static_cast<int>(b));
 }
-inline bool operator||(FieldTypes a, FieldTypes b){
+inline bool operator||(FieldTypes a, FieldTypes b)
+{
     return static_cast<int>(a) || static_cast<int>(b);
 }
-inline bool operator&&(FieldTypes a, FieldTypes b){
+inline bool operator&&(FieldTypes a, FieldTypes b)
+{
     return static_cast<int>(a) && static_cast<int>(b);
 }
 
@@ -52,25 +56,24 @@ enum class BuiltInType : int
     Duration,
 };
 
-
 //bind ros type name and BuiltInType
 inline std::unordered_map<std::string, BuiltInType> RosTypeBuiltInTypeMap{
-        {"bool",     BuiltInType::Bool},
-        {"int8",     BuiltInType::Int8},
-        {"byte",     BuiltInType::Int8},
-        {"uint8",    BuiltInType::UInt8},
-        {"char",    BuiltInType::UInt8},
-        {"int16",    BuiltInType::Int16},
-        {"uint16",   BuiltInType::UInt16},
-        {"int32",    BuiltInType::Int32},
-        {"uint32",   BuiltInType::UInt32},
-        {"int64",    BuiltInType::Int64},
-        {"uint64",   BuiltInType::UInt64},
-        {"float32",  BuiltInType::Float32},
-        {"float64",  BuiltInType::Float64},
-        {"string",   BuiltInType::String},
-        {"time",     BuiltInType::Time},
-        {"duration", BuiltInType::Duration},
+    {"bool", BuiltInType::Bool},
+    {"int8", BuiltInType::Int8},
+    {"byte", BuiltInType::Int8},
+    {"uint8", BuiltInType::UInt8},
+    {"char", BuiltInType::UInt8},
+    {"int16", BuiltInType::Int16},
+    {"uint16", BuiltInType::UInt16},
+    {"int32", BuiltInType::Int32},
+    {"uint32", BuiltInType::UInt32},
+    {"int64", BuiltInType::Int64},
+    {"uint64", BuiltInType::UInt64},
+    {"float32", BuiltInType::Float32},
+    {"float64", BuiltInType::Float64},
+    {"string", BuiltInType::String},
+    {"time", BuiltInType::Time},
+    {"duration", BuiltInType::Duration},
 };
 
 struct TypeTrail

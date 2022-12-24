@@ -27,7 +27,6 @@ struct ConnectInstance::Impl
 
 };
 
-
 awaitable<int> ConnectInstance::Impl::MAIN() try
 {
 //    logger.info("received: {}:{}, next operation not implement", client->remote_endpoint().address().to_string(),
@@ -35,7 +34,7 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
 
     std::string read_buffer;
     DefaultCommand cmd;
-    for (;;){
+    for (;;) {
 
         auto delimiter = HYBRID_DELIMITER;
         auto [ec, len] = co_await asio::async_read_until(*client,
@@ -66,7 +65,7 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
 
     co_return 0;
 }
-catch(std::exception &e) {
+catch (std::exception &e) {
     logger.error("catch exception: {}", e.what());
     co_return 1;
 }

@@ -12,29 +12,27 @@
 
 namespace hybrid
 {
-    // return ros::Publisher and ros::Subscriber is better?
-    class MsgPublisher
-    {
-    public:
-        MsgPublisher(const std::string &topic, uint32_t queue_size, bool latch = false) {};
+// return ros::Publisher and ros::Subscriber is better?
+class MsgPublisher
+{
+public:
+    MsgPublisher(const std::string &topic, uint32_t queue_size, bool latch = false) {};
 
-        virtual void publish(const std::string &msg) = 0;
+    virtual void publish(const std::string &msg) = 0;
 
-        virtual ~MsgPublisher() = default;
+    virtual ~MsgPublisher() = default;
 
+};
 
-    };
+class MsgSubscriber
+{
+public:
+    MsgSubscriber(const std::string &topic, uint32_t queue_size,
+                  const std::function<void(std::string)> &callback) {};
 
-    class MsgSubscriber
-    {
-    public:
-        MsgSubscriber(const std::string &topic, uint32_t queue_size,
-                      const std::function<void(std::string)> &callback) {};
+    virtual ~MsgSubscriber() = default;
 
-        virtual ~MsgSubscriber() = default;
-
-
-    };
+};
 }
 
 #endif //ROS_HYBRID_DYNAMIC_MSGS_INTERFACE_H

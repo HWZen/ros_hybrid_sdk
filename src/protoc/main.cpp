@@ -50,7 +50,7 @@ int main(int argc, char **argv) try
     for (const auto &[fileName, fileContent] : files)
         parsedFiles.emplace_back(fileName, MsgParser(fileContent));
 
-    if (g_config.onlyServer){
+    if (g_config.onlyServer) {
         for (const auto &[fileName, vars] : parsedFiles) {
             auto res = GenMsgServerUseOnly(fileName, vars);
             auto output = g_config.output + "/"s + res.path;
@@ -61,7 +61,7 @@ int main(int argc, char **argv) try
     }
 
     std::vector<GenCodeResult> protobufResults;
-    if (g_config.genProtobuf){
+    if (g_config.genProtobuf) {
         for (const auto &[fileName, vars] : parsedFiles) {
             auto protobuf = GenGoogleProtobuf(fileName, vars);
             auto output = g_config.output + "/"s + protobuf.path;
@@ -72,12 +72,12 @@ int main(int argc, char **argv) try
         }
     }
 
-    if (g_config.buildProtobuf){
-        for (const auto &protobuf : protobufResults){
+    if (g_config.buildProtobuf) {
+        for (const auto &protobuf : protobufResults) {
             const auto &file = protobuf.files[0];
             std::string cmd;
             auto output = g_config.output + "/"s + protobuf.path + "/"s + file;
-            cmd +=  g_config.protocPath + " --cpp_out="s + g_config.output;
+            cmd += g_config.protocPath + " --cpp_out="s + g_config.output;
             cmd += " ";
             cmd += "-I="s + g_config.output;
             cmd += " ";
@@ -86,7 +86,7 @@ int main(int argc, char **argv) try
         }
     }
 
-    if (g_config.genServerCode){
+    if (g_config.genServerCode) {
         for (const auto &[fileName, vars] : parsedFiles) {
             auto res = GenMsgServerCpp(fileName, vars);
             auto output = g_config.output + "/"s + res.path;
@@ -97,7 +97,7 @@ int main(int argc, char **argv) try
     }
 
     std::vector<GenCodeResult> cmakeResults;
-    if (g_config.genCmake){
+    if (g_config.genCmake) {
         for (const auto &[fileName, vars] : parsedFiles) {
             auto res = GenCmake(fileName, vars);
             auto output = g_config.output + "/"s + res.path;
@@ -108,30 +108,30 @@ int main(int argc, char **argv) try
         }
     }
 
-    if (g_config.server){
+    if (g_config.server) {
         std::unordered_set<std::string> includeLines;
         for (const auto &cmake : cmakeResults)
             includeLines.insert("include("s + cmake.path + "/"s + cmake.files[0] + ")"s);
         // read CMakeLists.txt
-        std::ifstream ifs( g_config.output + "/CMakeLists.txt");
+        std::ifstream ifs(g_config.output + "/CMakeLists.txt");
         if (!ifs.is_open()) {
-            std::cerr << "open file " <<  g_config.output + "/CMakeLists.txt" << " fail\n";
+            std::cerr << "open file " << g_config.output + "/CMakeLists.txt" << " fail\n";
             return 1;
         }
         // read line
-        for(std::string line; std::getline(ifs, line);)
+        for (std::string line; std::getline(ifs, line);)
             includeLines.erase(line);
         ifs.close();
 
         // write line
-        std::ofstream ofs( g_config.output + "/CMakeLists.txt", std::ios::app);
+        std::ofstream ofs(g_config.output + "/CMakeLists.txt", std::ios::app);
         ofs << "\n";
         for (const auto &line : includeLines)
             ofs << line << "\n";
         ofs.close();
     }
 
-    if (g_config.buildServerMsg){
+    if (g_config.buildServerMsg) {
         std::string cmd;
         cmd += "cd "s + g_config.output + "/../../"s;
         cmd += " && catkin_make";
@@ -198,11 +198,14 @@ void parseParam(int argc, char **argv)
         ("gen-cmake", "Generate msg.cmake", cxxopts::value<bool>(g_config.genCmake))
         ("build-protobuf", "Invoke protoc to build *.proto", cxxopts::value<bool>(g_config.buildProtobuf))
         ("build-server-msg", "Invoke catkin_build to gen msg.so", cxxopts::value<bool>(g_config.buildServerMsg))
-        ("protoc", "Specify protoc path, default is protoc", cxxopts::value<std::string>(g_config.protocPath), "<path>");
+        ("protoc",
+         "Specify protoc path, default is protoc",
+         cxxopts::value<std::string>(g_config.protocPath),
+         "<path>");
 
     auto result = options.parse(argc, argv);
 
-    if (g_config.server){
+    if (g_config.server) {
         if (!std::filesystem::exists(g_config.output))
             g_config.packagePath = g_config.output;
         g_config.buildServerMsg = true;

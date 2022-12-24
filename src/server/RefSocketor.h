@@ -11,20 +11,20 @@
 
 using SOCKET = int;
 
-class Client : public asio::ip::tcp::socket{
+class Client : public asio::ip::tcp::socket
+{
 public:
     using asio::ip::tcp::socket::socket;
-    explicit Client(asio::ip::tcp::socket&& socket) : asio::ip::tcp::socket(std::move(socket)) {}
+    explicit Client(asio::ip::tcp::socket &&socket) : asio::ip::tcp::socket(std::move(socket)) {}
     hybrid::AgentConfig agentConfig{};
 };
 
 using RefSocketor = std::shared_ptr<Client>;
 
 template<typename ...Args>
-inline auto make_client(Args &&...args){
+inline auto make_client(Args &&...args)
+{
     return std::make_shared<Client>(std::forward<Args>(args)...);
 }
-
-
 
 #endif //ROS_HYBIRD_SDK_REFSOCKETOR_H

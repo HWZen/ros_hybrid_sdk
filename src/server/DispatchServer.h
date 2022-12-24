@@ -17,7 +17,7 @@ public:
     ~DispatchServer();
 private:
     struct Impl;
-    Impl* implPtr{};
+    Impl *implPtr{};
 };
 
 #endif // ROS_HYBIRD_SDK_DISPATCHSERVER_H

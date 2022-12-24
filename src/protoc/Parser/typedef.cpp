@@ -20,44 +20,40 @@ TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName
     auto &[strType, strName] = strTypeName;
     std::string removeSuffixType;
     // is vector or array
-    if (std::regex_match(strType, is_vector))
-    {
+    if (std::regex_match(strType, is_vector)) {
         res.fieldType = FieldTypes::Vector;
         removeSuffixType = std::regex_replace(strType, std::regex(R"((.*/)?(\w+)\[\])"), "$2");
-    }
-    else if (std::regex_match(strType, is_array))
-    {
+    } else if (std::regex_match(strType, is_array)) {
         res.fieldType = FieldTypes::Array;
         removeSuffixType = std::regex_replace(strType, std::regex{R"((.*/)?(\w+)\[\d+\])"}, "$2");
         res.arraySize = std::stoull(std::regex_replace(strType, std::regex{R"((.*/)?(\w+)\[(\d+)\])"}, "$3"));
-    }
-    else
-        removeSuffixType = std::regex_replace(strType, std::regex{R"((.*/)?(\w+))"} , "$2");
+    } else
+        removeSuffixType = std::regex_replace(strType, std::regex{R"((.*/)?(\w+))"}, "$2");
 
     // is builtin type or msg type
-    if (RosTypeBuiltInTypeMap.count(removeSuffixType))
-    {
+    if (RosTypeBuiltInTypeMap.count(removeSuffixType)) {
         res.fieldType = res.fieldType | FieldTypes::BuiltIn;
         res.builtInType = RosTypeBuiltInTypeMap[removeSuffixType];
-    }
-    else
-    {
+    } else {
         if (std::regex_match(strType, std::regex{R"((.*)/.*)"}))
-            res.msgPackage = std::regex_replace(strType, std::regex{R"((.*)/.*)"} , "$1");
+            res.msgPackage = std::regex_replace(strType, std::regex{R"((.*)/.*)"}, "$1");
 
-        if (res.msgPackage.empty()){
+        if (res.msgPackage.empty()) {
             // get msg package by system call 'rosmsg show'
             auto systemRes = system(("rosmsg show " + removeSuffixType + " > rosmsg.tmp").c_str());
             if (systemRes != 0)
-                throw std::runtime_error("rosmsg show " + removeSuffixType + " > rosmsg.tmp failed" " file: " __FILE__ " line: "s + std::to_string(__LINE__));
+                throw std::runtime_error(
+                    "rosmsg show " + removeSuffixType + " > rosmsg.tmp failed" " file: " __FILE__ " line: "s
+                        + std::to_string(__LINE__));
             std::ifstream ifs("rosmsg.tmp");
             if (!ifs.is_open())
-                throw std::runtime_error("rosmsg.tmp open failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
+                throw std::runtime_error(
+                    "rosmsg.tmp open failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
             std::string line;
             std::getline(ifs, line);
             ifs.close();
             std::remove("rosmsg.tmp");
-            res.msgPackage = std::regex_replace(line, std::regex{R"(\[(.*)/\w+\]:)"} , "$1");
+            res.msgPackage = std::regex_replace(line, std::regex{R"(\[(.*)/\w+\]:)"}, "$1");
         }
 
         res.fieldType = res.fieldType | FieldTypes::Msg;
@@ -65,13 +61,11 @@ TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName
     }
 
     // is constexpr
-    if (std::regex_match(strName, is_constexpr))
-    {
+    if (std::regex_match(strName, is_constexpr)) {
         res.fieldType = res.fieldType | FieldTypes::Constexpr;
-        res.constData = std::regex_replace(strName, std::regex{R"(.*=[\t ]*([^ \t]*)[\t ]*)"} , "$1");
-        res.name = std::regex_replace(strName, std::regex{R"((\w+)[\t ]*=.*)"} , "$1");
-    }
-    else
+        res.constData = std::regex_replace(strName, std::regex{R"(.*=[\t ]*([^ \t]*)[\t ]*)"}, "$1");
+        res.name = std::regex_replace(strName, std::regex{R"((\w+)[\t ]*=.*)"}, "$1");
+    } else
         res.name = strName;
 
     return res;

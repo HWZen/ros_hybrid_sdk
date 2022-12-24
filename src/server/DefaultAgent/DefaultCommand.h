@@ -22,6 +22,4 @@ private:
     std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool)> pubFuncMap{};
 };
 
-
-
 #endif //ROS_HYBRID_SDK_DEFAULTCOMMAND_H
