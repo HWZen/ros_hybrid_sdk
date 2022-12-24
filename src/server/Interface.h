@@ -16,7 +16,7 @@ namespace hybrid
 class MsgPublisher
 {
 public:
-    MsgPublisher(const std::string &topic, uint32_t queue_size, bool latch = false) {};
+    MsgPublisher(const std::string &topic, uint32_t queue_size, bool is_protobuf, bool latch = false) {};
 
     virtual void publish(const std::string &msg) = 0;
 
@@ -27,7 +27,9 @@ public:
 class MsgSubscriber
 {
 public:
-    MsgSubscriber(const std::string &topic, uint32_t queue_size,
+    MsgSubscriber(const std::string &topic,
+                  uint32_t queue_size,
+                  bool is_protobuf,
                   const std::function<void(std::string)> &callback) {};
 
     virtual ~MsgSubscriber() = default;

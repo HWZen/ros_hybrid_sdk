@@ -36,10 +36,9 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
     DefaultCommand cmd;
     for (;;) {
 
-        auto delimiter = HYBRID_DELIMITER;
         auto [ec, len] = co_await asio::async_read_until(*client,
                                                          asio::dynamic_buffer(read_buffer, 1024 * 8),
-                                                         delimiter,
+                                                         client->agentConfig.delimiter(),
                                                          use_nothrow_awaitable);
 
         if (ec && ec != asio::error::eof) {
@@ -51,7 +50,7 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
             co_return 0;
         }
 
-        auto res = cmd.test(read_buffer.substr(0, len - HYBRID_DELIMITER_SIZE));
+        auto res = cmd.test(read_buffer.substr(0, len - client->agentConfig.delimiter().size()));
         auto [ec2, len2] = co_await client->async_write_some(buffer(res), use_nothrow_awaitable);
         if (ec2 && ec2 != asio::error::eof) {
             logger.error("write error: {}", ec2.message());

@@ -40,7 +40,7 @@ std::string DefaultCommand::test(const std::string &buffer)
         try {
             auto publisher_maker = MsgLoader::getPublisher(command.advertise().type());
             pubMap[advertise.topic()] = std::shared_ptr<hybrid::MsgPublisher>{
-                publisher_maker(advertise.topic(), advertise.queue_size(), advertise.latch())};
+                publisher_maker(advertise.topic(), advertise.queue_size(), true, advertise.latch())};
             res = command;
         }
         catch (std::runtime_error &e) {

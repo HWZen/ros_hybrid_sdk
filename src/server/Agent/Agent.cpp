@@ -188,6 +188,10 @@ start:
         }
     }, asio::detached);
 
+    /****************
+     * main loop
+     ***************/
+
     co_spawn(ctx, [&]() -> awaitable<void>
     {
         try {
@@ -268,6 +272,7 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
                 std::shared_ptr<hybrid::MsgPublisher>(publisher_maker(advertise.topic(),
                                                                       advertise.has_queue_size()
                                                                       ? advertise.queue_size() : 100,
+                                                                      client->agentConfig.is_protobuf(),
                                                                       advertise.has_latch() && advertise.latch()));
             logger.info("advertise topic: {}", advertise.topic());
         }
@@ -325,6 +330,7 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
                 std::shared_ptr<hybrid::MsgSubscriber>(subscriber_maker(subscribe.topic(),
                                                                         subscribe.has_queue_size()
                                                                         ? subscribe.queue_size() : 100,
+                                                                        client->agentConfig.is_protobuf(),
                                                                         [&, subscribe](const std::string &msg)
                                                                         {
                                                                             hybrid::Command command;

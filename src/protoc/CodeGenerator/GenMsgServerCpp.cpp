@@ -102,6 +102,7 @@ include += \
 #include <functional>
 #include <ros/node_handle.h>
 #include <interface.h>
+#include <google/protobuf/util/json_util.h>
 '''
 
 include += '#include <{}/{}.h>\n'.format(rosNamespace, msgName)
@@ -234,9 +235,11 @@ classMsgPublisher = \
 class {0}Publisher : public MsgPublisher
 {{
 public:
-    {0}Publisher(const std::string &topic, uint32_t queue_size, bool latch = false) : MsgPublisher(topic,
+    {0}Publisher(const std::string &topic, uint32_t queue_size, bool is_protobuf, bool latch = false) : MsgPublisher(topic,
                                                                                                   queue_size,
-                                                                                                  latch)
+                                                                                                  is_protobuf,
+                                                                                                  latch),
+                                                                                                  is_protobuf(is_protobuf)
     {{
         pub = nh.advertise<{3}>(topic, queue_size, latch);
     }}
@@ -244,9 +247,13 @@ public:
     void publish(const std::string &msgBuf) override
     {{
         {1}  protoMsg;
-        if (!protoMsg.ParseFromString(msgBuf))
-            throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
-
+        if (is_protobuf) {{
+            if (!protoMsg.ParseFromString(msgBuf))
+                throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
+        }} else {{
+            if (!google::protobuf::util::JsonStringToMessage(msgBuf, &protoMsg).ok())
+                throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
+        }}
         pub.publish({2}CoverToRos(protoMsg));
     }}
 
@@ -254,6 +261,7 @@ public:
     private:
         ros::NodeHandle nh{{}};
         ros::Publisher pub{{}};
+        bool is_protobuf{{}};
 }};
 '''.format(msgName, hybridMsgType, msgName, rosMsgType)
 
@@ -262,16 +270,27 @@ classMsgSubscriber = \
 class {0}Subscriber : public MsgSubscriber
 {{
 public:
-    {0}Subscriber(const std::string &topic, uint32_t queue_size, const std::function<void(std::string)> &callback)
+    {0}Subscriber(const std::string &topic, uint32_t queue_size, bool is_protobuf, const std::function<void(std::string)> &callback)
                 : MsgSubscriber(topic,
                                 queue_size,
+                                is_protobuf,
                                 callback)
     {{
         sub = nh.subscribe(topic, queue_size,
                                boost::function<void(const {1}::ConstPtr &ros_msg)>(
-                                       [callback](const {1}::ConstPtr &ros_msg)
+                                       [callback, is_protobuf](const {1}::ConstPtr &ros_msg)
                                        {{
-                                           callback({0}CoverToProto(*ros_msg).SerializeAsString());
+                                           auto protoMsg = {0}CoverToProto(*ros_msg);
+                                           if (is_protobuf)
+                                               callback({0}CoverToProto(*ros_msg).SerializeAsString());
+                                           else {{
+                                               std::string jsonStr;
+                                               auto state = google::protobuf::util::MessageToJsonString(protoMsg, &jsonStr);
+                                               if (!state.ok())
+                                                    throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
+                                               callback(jsonStr);
+                                           }}
+
                                        }}
                                )
        );
@@ -287,13 +306,13 @@ private:
 externCInterface = \
 '''
 extern "C" {{
-hybrid::MsgPublisher *make_publisher(const std::string &topic, uint32_t queue_size, bool latch)
+hybrid::MsgPublisher *make_publisher(const std::string &topic, uint32_t queue_size, bool is_protobuf, bool latch)
 {{
-    return new hybrid::{0}Publisher(topic, queue_size, latch);
+    return new hybrid::{0}Publisher(topic, queue_size, is_protobuf, latch);
 }}
-hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_size, const std::function<void(std::string)> &callback)
+hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_size, bool is_protobuf, const std::function<void(std::string)> &callback)
 {{
-    return new hybrid::{0}Subscriber(topic, queue_size, callback);
+    return new hybrid::{0}Subscriber(topic, queue_size, is_protobuf, callback);
 }}
 }}
 '''.format(msgName)
