@@ -248,7 +248,7 @@ public:
     {{
         pub = nh.advertise<{3}>(topic, queue_size, latch);
     }}
-    
+
     void publish(const std::string &msgBuf) override
     {{
         {1}  protoMsg;
@@ -256,8 +256,9 @@ public:
             if (!protoMsg.ParseFromString(msgBuf))
                 throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
         }} else {{
-            if (!google::protobuf::util::JsonStringToMessage(msgBuf, &protoMsg).ok())
-                throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
+            auto state = google::protobuf::util::JsonStringToMessage(msgBuf, &protoMsg);
+            if (!state.ok())
+                throw std::runtime_error(__func__ + "msgBuf parse fail: "s + state.ToString());
         }}
         pub.publish({2}CoverToRos(protoMsg));
     }}
@@ -267,7 +268,7 @@ public:
         ros::NodeHandle nh{{}};
         ros::Publisher pub{{}};
         bool is_protobuf{{}};
-}};                                                                            
+}};
 '''.format(msgName, hybridMsgType, msgName, rosMsgType)
 
 classMsgSubscriber = \
@@ -292,7 +293,7 @@ public:
                                                std::string jsonStr;
                                                auto state = google::protobuf::util::MessageToJsonString(protoMsg, &jsonStr);
                                                if (!state.ok())
-                                                    throw std::runtime_error(__func__ + "msgBuf parse fail!"s);
+                                                    throw std::runtime_error(__func__ + "msgBuf parse fail: "s + state.ToString());
                                                callback(jsonStr);
                                            }}
                                                

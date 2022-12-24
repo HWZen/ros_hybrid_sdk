@@ -172,8 +172,15 @@ start:
 
     rosSpinThread = new sstd::thread([&]()
                                      {
-                                         ros::spin();
-                                         logger.info("ros spin thread exit");
+                                         while(ros::ok()) {
+                                             try{
+                                                 ros::spin();
+                                             }
+                                             catch (const std::exception &e) {
+                                                 logger.error("catch ros::spin() exception, reason: {}", e.what());
+                                             }
+                                         }
+                                         logger.info("ros::spin() exit");
                                      });
 
     // check parent process if exit
@@ -286,6 +293,8 @@ awaitable<void> Agent::Impl::parseCommand(const std::string &commandStr)
             logger.error("publish data not found");
             break;
         }
+        if (command.mutable_publish()->has_string_data())
+            command.mutable_publish()->set_data(command.mutable_publish()->string_data());
         const auto &publish = command.publish();
         if (pubMap.count(publish.topic()) == 0) {
             logger.error("topic {} not found, please advertise it first", publish.topic());
