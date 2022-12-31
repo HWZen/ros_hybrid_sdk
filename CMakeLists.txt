@@ -15,6 +15,7 @@ add_definitions(-DASIO_SEPARATE_COMPILATION)
 ## is used, also find other catkin packages
 
 find_package(Protobuf CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
         actionlib
@@ -165,17 +166,11 @@ add_executable(${PROJECT_PREFIX}_server
         )
 target_compile_options(${PROJECT_PREFIX}_server PRIVATE -std=c++20)
 
-add_executable(${PROJECT_PREFIX}_protoc
-        src/protoc/main.cpp
-        src/protoc/Parser/MsgParser.cpp
-        src/protoc/CodeGenerator/GenMsgServerUseOnly.cpp
-        src/protoc/CodeGenerator/GenGoogleProtobuf.cpp
-        src/protoc/Parser/typedef.cpp
-        src/protoc/Parser/Preprocessor.cpp
-        src/protoc/CodeGenerator/GenServerMsgBuildPackage.cpp
-        src/protoc/CodeGenerator/GenMsgServerCpp.cpp
-        src/protoc/CodeGenerator/GenCmake.cpp)
-target_compile_options(${PROJECT_PREFIX}_protoc PRIVATE -std=c++17)
+option(BUILD_PROTOC "build ros_hybrid_protoc" ON)
+if(BUILD_PROTOC)
+    add_subdirectory(src/protoc)
+endif()
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -200,7 +195,6 @@ target_link_libraries(${PROJECT_PREFIX}_server
         protobuf::libprotobuf
         dl
         )
-
 
 #############
 ## Install ##
