@@ -153,7 +153,6 @@ start:
     client = make_client(ctx, asio::ip::tcp::v4(), fd);
     client->agentConfig = std::move(agentConfig);
     Impl::logger = std::make_shared<Log>("Agent_" + agentName, LogFlag::CONSOLE_CLIENT, client);
-    logger->debug("agent config {}", client->agentConfig.DebugString());
 
     auto &logger = *Impl::logger;
     // change process name

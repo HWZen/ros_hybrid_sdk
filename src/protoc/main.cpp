@@ -205,6 +205,11 @@ void parseParam(int argc, char **argv)
 
     auto result = options.parse(argc, argv);
 
+    if (result.count("help") || (g_config.inputs.empty() && g_config.packagePath.empty())) {
+        std::cout << options.help() << std::endl;
+        exit(0);
+    }
+
     if (g_config.server) {
         if (!std::filesystem::exists(g_config.output))
             g_config.packagePath = g_config.output;
