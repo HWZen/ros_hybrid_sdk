@@ -160,7 +160,6 @@ add_executable(${PROJECT_PREFIX}_server
         src/server/Agent/Agent.cpp
         src/server/Log.cpp
         src/server/DefaultAgent/ConnectInstance.cpp
-        src/server/DefaultAgent/DefaultCommand.cpp
         src/server/protoData/Command/Command.pb.cc
         src/server/protoData/AgentConfig/AgentConfig.pb.cc
         )
@@ -170,6 +169,9 @@ option(BUILD_PROTOC "build ros_hybrid_protoc" ON)
 if(BUILD_PROTOC)
     add_subdirectory(src/protoc)
 endif()
+
+add_executable(temp src/test.cpp)
+target_compile_options(temp PRIVATE -std=c++20)
 
 
 ## Rename C++ executable without prefix
@@ -195,6 +197,8 @@ target_link_libraries(${PROJECT_PREFIX}_server
         protobuf::libprotobuf
         dl
         )
+
+target_link_libraries(temp ${catkin_LIBRARIES})
 
 #############
 ## Install ##

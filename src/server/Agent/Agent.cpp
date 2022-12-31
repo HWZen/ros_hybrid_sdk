@@ -201,6 +201,7 @@ start:
     co_spawn(ctx, [&]() -> awaitable<void>
     {
         try {
+            logger.info("login success");
             std::string read_buffer;
             for (;;) {
                 auto [ec, len] = co_await asio::async_read_until(*client,
@@ -402,4 +403,5 @@ Agent::Impl::~Impl()
     logger->debug("agent exit");
     ros::shutdown();
     rosSpinThread->join();
+    delete rosSpinThread;
 }

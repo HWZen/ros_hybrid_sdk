@@ -38,7 +38,9 @@ struct DefaultAgentManager::Impl
 
     asio::io_context ctx{};
 
-    std::unordered_set<RefConnectInstance> connectInstances{};
+    sstd::BaseThread *rosSpinThread{nullptr};
+
+    virtual ~Impl();
 
 };
 
@@ -69,6 +71,19 @@ void DefaultAgentManager::Impl::MAIN()
 
     ros::init(g_argc, g_argv, "DefaultAgent");
     ros::start();
+
+    rosSpinThread = new sstd::thread([&]()
+                                     {
+                                         while(ros::ok()) {
+                                             try{
+                                                 ros::spin();
+                                             }
+                                             catch (const std::exception &e) {
+                                                 logger.error("catch ros::spin() exception, reason: {}", e.what());
+                                             }
+                                         }
+                                         logger.info("ros::spin() exit");
+                                     });
 
     this->logger.info("DefaultAgent::MAIN");
 
@@ -222,18 +237,18 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
 
             // TODO: create clientContext and push it into contextManager
             auto executor = client->get_executor();
-            co_spawn(executor, [client = std::move(client), this]() -> awaitable<void>
+            co_spawn(executor, [client = std::move(client), this] () mutable -> awaitable<void>
             {
-                auto refConnectInstance = std::make_shared<ConnectInstance>(client);
-                connectInstances.insert(refConnectInstance);
-                try {
-                    co_await refConnectInstance->MAIN();
+                try{
+                    ConnectInstance instance(std::move(client));
+                    if(co_await instance.MAIN() != 0){
+                        logger.warn("connect instance main not return 0");
+                    }
                 }
-                catch (std::exception &e) {
-                    logger.error("ConnectInstance::MAIN error, reason: {}", e.what());
+                catch(std::exception &e){
+                    logger.error("catch exception: {}", e.what());
                 }
-                connectInstances.erase(refConnectInstance);
-                co_return;
+                co_return ;
             }, asio::detached);
         }
         catch (std::exception &e) {
@@ -242,6 +257,13 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
 
     }
 
+}
+DefaultAgentManager::Impl::~Impl()
+{
+    logger.debug("DefaultAgentManager::Impl::~Impl()");
+    ros::shutdown();
+    rosSpinThread->join();
+    delete rosSpinThread;
 }
 
 

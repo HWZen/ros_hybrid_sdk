@@ -96,7 +96,7 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
     *log->mutable_time() = google::protobuf::util::TimeUtil::GetCurrentTime();
     log->set_message(formatted.data(), formatted.size());
     if (client->agentConfig.is_protobuf()) {
-        auto buf = command.SerializeAsString() + HYBRID_DELIMITER;
+        auto buf = command.SerializeAsString() + client->agentConfig.delimiter();
         client->async_write_some(asio::buffer(buf), sinkCallback);
     } else {
         // json timestamp is UTC time. convert it to local time?
@@ -105,7 +105,7 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
             spdlog::error("client sink error: {}", state.ToString());
             return;
         }
-        buf += HYBRID_DELIMITER;
+        buf += client->agentConfig.delimiter();
         client->async_write_some(asio::buffer(buf), sinkCallback);
     }
 }
