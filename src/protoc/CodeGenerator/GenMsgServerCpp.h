@@ -7,7 +7,7 @@
 #ifndef ROS_HYBRID_SDK_GENMSGSERVER_H
 #define ROS_HYBRID_SDK_GENMSGSERVER_H
 
-#include "GenCodeResult.h"
+#include "GenMsgCodeResult.h"
 #include "../Parser/typedef.h"
 
 GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<TypeTrail> &vars);

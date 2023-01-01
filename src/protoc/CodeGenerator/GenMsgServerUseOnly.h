@@ -7,7 +7,7 @@
 #ifndef ROS_HYBRID_SDK_GENMSGSERVERUSEONLY_H
 #define ROS_HYBRID_SDK_GENMSGSERVERUSEONLY_H
 
-#include "GenCodeResult.h"
+#include "GenMsgCodeResult.h"
 #include "../Parser/typedef.h"
 
 GenCodeResult GenMsgServerUseOnly(const std::string &msgFileName, const std::vector<TypeTrail> &vars);

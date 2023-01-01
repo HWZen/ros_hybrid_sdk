@@ -5,10 +5,10 @@ add_executable(ros_hybrid_protoc
         main.cpp
         Parser/MsgParser.cpp
         CodeGenerator/GenMsgServerUseOnly.cpp
-        CodeGenerator/GenGoogleProtobuf.cpp
+        CodeGenerator/GenMsgGoogleProtobuf.cpp
         Parser/typedef.cpp
         Parser/Preprocessor.cpp
         CodeGenerator/GenServerMsgBuildPackage.cpp
         CodeGenerator/GenMsgServerCpp.cpp
-        CodeGenerator/GenCmake.cpp)
+        CodeGenerator/GenMsgCmake.cpp)
 target_compile_options(ros_hybrid_protoc PRIVATE -std=c++17)

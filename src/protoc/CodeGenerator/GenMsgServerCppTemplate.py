@@ -114,7 +114,7 @@ include += '#include <{}/{}.h>\n'.format(rosNamespace, msgName)
 
 for var in msgVars:
     if var.fieldType & FieldTypes.Msg:  # FieldTypes::Msg
-        include += '#include <{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
+        include += '#include <msgs/{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
 
 include += 'using namespace std::string_literals;\n'
 
@@ -332,7 +332,7 @@ with open('{}.server.cpp'.format(msgName), 'w') as f:
     f.write(xxx_server_cpp)
 
 with open('result.txt', 'w') as f:
-    f.write(rosNamespace)
+    f.write('msgs/' + rosNamespace)
     f.write('\n')
     f.write('{}.server.cpp'.format(msgName))
 

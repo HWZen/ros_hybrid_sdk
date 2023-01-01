@@ -4,7 +4,7 @@
 
 #ifndef ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_MESSAGEGENERATOR_CODEGENERATOR_GENCMAKE_H
 #define ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_MESSAGEGENERATOR_CODEGENERATOR_GENCMAKE_H
-#include "GenCodeResult.h"
+#include "GenMsgCodeResult.h"
 #include "../Parser/typedef.h"
 
 GenCodeResult GenCmake(const std::string &msgFileName, const std::vector<TypeTrail> &vars);

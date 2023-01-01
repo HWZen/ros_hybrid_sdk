@@ -85,7 +85,7 @@ header = '''
 # wrapping message: {1}/{2}
 '''.format(time.asctime(time.localtime(time.time())), rosNamespace, msgName)
 
-addLibrary = 'add_library({1} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/{0}/{1}.pb.cc ${{CMAKE_CURRENT_SOURCE_DIR}}/{0}/{1}.server.cpp )\n'\
+addLibrary = 'add_library({1} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.pb.cc ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.server.cpp )\n'\
     .format(rosNamespace, msgName)
 compileDefinition = 'target_compile_definitions({} PRIVATE -DBUILD_{}_SHARED_LIB)\n'.format(msgName, msgName.upper())
 
@@ -107,6 +107,6 @@ with open('{}.cmake'.format(msgName), 'w') \
     f.write(xxx_cmake)
 
 with open('result.txt', 'w') as f:
-    f.write(rosNamespace)
+    f.write('msgs/' + rosNamespace)
     f.write('\n')
     f.write('{}.cmake'.format(msgName))

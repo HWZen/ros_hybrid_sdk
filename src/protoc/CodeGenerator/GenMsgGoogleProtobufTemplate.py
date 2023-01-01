@@ -1,21 +1,9 @@
-//
-// Created by HWZen on 2022/12/12.
-// Copyright (c) 2022 HWZen All rights reserved.
-// MIT License
-//
-#include "GenGoogleProtobuf.h"
-#include <vector>
-#include <fstream>
-using namespace std::string_literals;
-
-GenCodeResult GenGoogleProtobuf(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
-{
-    std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
-    auto GoogleProtobufGenerator_py_part1 = R"(
+msgFileName = "/home/pi/MyMsg.msg"  # will be replaced
 import re
 import sys
 import os
 import time
+from enum import IntEnum
 
 msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
 
@@ -29,9 +17,36 @@ class TypeTrail:
         self.arraySize = arraySize
         self.constData = constData
         self.varName = varName
-)"s;
 
-    auto GoogleProtobufGenerator_py_part2 = R"(
+
+# will be replaced
+msgVars = [
+    TypeTrail(17, 2, '', '', 0, '1', 'DEBUG'),
+    TypeTrail(17, 2, '', '', 0, '2', 'INFO'),
+    TypeTrail(17, 2, '', '', 0, '4', 'WARN'),
+    TypeTrail(17, 2, '', '', 0, '8', 'ERROR'),
+    TypeTrail(17, 2, '', '', 0, '16', 'FATAL'),
+    TypeTrail(2, 0, 'Header', 'std_msgs', 0, '', 'header'),
+    TypeTrail(1, 12, '', '', 0, '', 'str'),
+    TypeTrail(1, 2, '', '', 0, '', 'c'),
+    TypeTrail(1, 4, '', '', 0, '', 's'),
+    TypeTrail(1, 6, '', '', 0, '', 'i'),
+    TypeTrail(1, 8, '', '', 0, '', 'l'),
+    TypeTrail(1, 13, '', '', 0, '', 't'),
+    TypeTrail(1, 14, '', '', 0, '', 'du'),
+    TypeTrail(0x01 | 0x40, 6, '', '', 0, '', 'vi'),
+    TypeTrail(0x01 | 0x20, 12, '', '', 5, '', 'strs'),
+    TypeTrail(0x02 | 0x40, 0, 'Byte', 'std_msgs', 0, '', 'bytes'),
+    TypeTrail(0x02 | 0x20, 0, 'Int32', 'std_msgs', 5, '', 'int5'),
+    TypeTrail(0x02, 0, 'MultiArrayLayout', 'std_msgs', 0, '', 'layout'),
+]
+
+class FieldTypes(IntEnum):
+    BuiltIn         = 0x01
+    Msg             = 0x02
+    Constexpr       = 0x10
+    Array           = 0x20
+    Vector          = 0x40
 
 rosTypeBuiltInTypeProtoTypeMap = [
     'none',
@@ -73,7 +88,7 @@ syntax = "proto3";
 include = ''
 for var in msgVars:
     if var.fieldType & 0x02:  # FieldTypes::Msg
-        include += 'import "{0}/{1}.proto";\n'.format(var.msgPackage, var.msgType)
+        include += 'import "msgs/{0}/{1}.proto";\n'.format(var.msgPackage, var.msgType)
     if var.builtinType == 13:  # time
         include += 'import "google/protobuf/timestamp.proto";\n'
     if var.builtinType == 14:  # duration
@@ -155,54 +170,6 @@ with open('{}.proto'.format(msgName), 'w') as f:
     f.write(xxx_proto)
 
 with open('result.txt', 'w') as f:
-    f.write(rosNamespace)
+    f.write('msgs/' + rosNamespace)
     f.write('\n')
     f.write('{}.proto'.format(msgName))
-
-)"s;
-
-    std::string msgVars = R"(
-msgVars = [
-)";
-
-    auto toPythonTypeTrail = [](const TypeTrail &var) -> std::string
-    {
-        std::string result = "TypeTrail(";
-        result += std::to_string(static_cast<int>(var.fieldType)) + ", ";
-        result += std::to_string(static_cast<int>(var.builtInType)) + ", ";
-        result += "'" + var.msgType + "', ";
-        result += "'" + var.msgPackage + "', ";
-        result += std::to_string(var.arraySize) + ", ";
-        result += "'" + var.constData + "', ";
-        result += "'" + var.name + "'";
-        result += ")";
-        return result;
-    };
-
-    for (auto &var : vars) {
-        msgVars += "    " + toPythonTypeTrail(var) + ",\n";
-    }
-
-    msgVars += "]\n";
-
-    // write to file
-    auto GoogleProtobufGenerator_py =
-        msgFileNamePy + GoogleProtobufGenerator_py_part1 + msgVars + GoogleProtobufGenerator_py_part2;
-    std::ofstream ofs("GoogleProtobufGenerator.py");
-    ofs << GoogleProtobufGenerator_py;
-    ofs.close();
-
-    // run python script
-    auto systemRes = system("python3 GoogleProtobufGenerator.py");
-    if (systemRes != 0)
-        throw std::runtime_error("run python script failed!"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-
-    // read result
-    std::ifstream ifs("result.txt");
-    GenCodeResult result;
-    ifs >> result.path;
-    for (std::string tmp; ifs >> tmp;)
-        result.files.push_back(tmp);
-    ifs.close();
-    return result;
-}
