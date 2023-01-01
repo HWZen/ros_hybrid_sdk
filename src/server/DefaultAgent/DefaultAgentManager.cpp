@@ -235,7 +235,6 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
                          client->remote_endpoint().port());
             logger.debug("agent config: {}", client->agentConfig.DebugString());
 
-            // TODO: create clientContext and push it into contextManager
             auto executor = client->get_executor();
             co_spawn(executor, [client = std::move(client), this] () mutable -> awaitable<void>
             {

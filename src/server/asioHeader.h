@@ -18,7 +18,7 @@ using asio::ip::tcp;
 namespace this_coro = asio::this_coro;
 using namespace asio::experimental::awaitable_operators;
 using std::chrono::steady_clock;
-constexpr auto use_nothrow_awaitable = asio::experimental::as_tuple(asio::use_awaitable);
+inline constexpr auto use_nothrow_awaitable = asio::experimental::as_tuple(asio::use_awaitable);
 inline awaitable<void> timeout(steady_clock::duration duration)
 {
     asio::steady_timer timer(co_await this_coro::executor);
