@@ -51,6 +51,10 @@ int main(int argc, char **argv) try
         parsedFiles.emplace_back(fileName, MsgParser(fileContent));
 
     if (g_config.onlyServer) {
+        if (g_config.output.empty()){
+            std::cerr << "output path is empty\n";
+            return 1;
+        }
         for (const auto &[fileName, vars] : parsedFiles) {
             auto res = GenMsgServerUseOnly(fileName, vars);
             auto output = g_config.output + "/"s + res.path;
@@ -62,6 +66,10 @@ int main(int argc, char **argv) try
 
     std::vector<GenCodeResult> protobufResults;
     if (g_config.genProtobuf) {
+        if (g_config.output.empty()){
+            std::cerr << "output path is empty\n";
+            return 1;
+        }
         for (const auto &[fileName, vars] : parsedFiles) {
             auto protobuf = GenGoogleProtobuf(fileName, vars);
             auto output = g_config.output + "/"s + protobuf.path;
@@ -73,6 +81,10 @@ int main(int argc, char **argv) try
     }
 
     if (g_config.buildProtobuf) {
+        if (g_config.output.empty()){
+            std::cerr << "output path is empty\n";
+            return 1;
+        }
         for (const auto &protobuf : protobufResults) {
             const auto &file = protobuf.files[0];
             std::string cmd;
@@ -87,6 +99,10 @@ int main(int argc, char **argv) try
     }
 
     if (g_config.genServerCode) {
+        if (g_config.output.empty()){
+            std::cerr << "output path is empty\n";
+            return 1;
+        }
         for (const auto &[fileName, vars] : parsedFiles) {
             auto res = GenMsgServerCpp(fileName, vars);
             auto output = g_config.output + "/"s + res.path;
@@ -98,6 +114,10 @@ int main(int argc, char **argv) try
 
     std::vector<GenCodeResult> cmakeResults;
     if (g_config.genCmake) {
+        if (g_config.output.empty()){
+            std::cerr << "output path is empty\n";
+            return 1;
+        }
         for (const auto &[fileName, vars] : parsedFiles) {
             auto res = GenCmake(fileName, vars);
             auto output = g_config.output + "/"s + res.path;
@@ -132,6 +152,10 @@ int main(int argc, char **argv) try
     }
 
     if (g_config.buildServerMsg) {
+        if (g_config.output.empty())[[unlikely]]{
+            std::cerr << "output path is empty\n";
+            return 1;
+        }
         std::string cmd;
         cmd += "cd "s + g_config.output + "/../../"s;
         cmd += " && catkin_make";
@@ -160,10 +184,6 @@ void parseFile(const std::string &fileName, const std::string &fileContent)
         return;
     }
 
-    // TODO: gen code for transfer
-
-
-
     /* TODO:
      * 1. specify the file type (*.srv, *.msg) (done)
      * 2. parse them (done)
@@ -182,7 +202,7 @@ void parseParam(int argc, char **argv)
         ("h,help", "Print help")
         ("i,input", "Input files", cxxopts::value<std::vector<std::string>>(g_config.inputs), "<xxx.msg,xxx.srv>")
         ("server",
-         "Generate code for server, (will enable --create-package, --protobuf, --gen-server-code, --protobuf-cc, --build-server-msg, --gen-cmake)",
+         "Generate code for server, (will enable --create-package, --gen-protobuf, --gen-server-code, --protobuf-cc, --build-server-msg, --gen-cmake)",
          cxxopts::value<bool>(g_config.server))
         ("client", "Generate code for client", cxxopts::value<bool>(g_config.client))
         ("o,output", "Output directory", cxxopts::value<std::string>(g_config.output), "<path>")
@@ -211,6 +231,11 @@ void parseParam(int argc, char **argv)
     }
 
     if (g_config.server) {
+        if (g_config.output.empty())
+        {
+            std::cerr << "output directory is empty\n";
+            exit(1);
+        }
         if (!std::filesystem::exists(g_config.output))
             g_config.packagePath = g_config.output;
         g_config.buildServerMsg = true;
@@ -219,9 +244,6 @@ void parseParam(int argc, char **argv)
         g_config.genServerCode = true;
         g_config.genCmake = true;
     }
-
-
-    // TODO: check if protobuf, protobuf-cc and build-server-msg is legal
 }
 
 static void MsgMode(const std::string &fileName, const std::string &fileContent)
