@@ -6,13 +6,12 @@
 
 #include "ConnectInstance.h"
 #include "../Log.h"
+#include "../protoData/Command/Command.pb.h"
+#include "../MsgLoader.h"
+#include "CallbackQueues.h"
 #include <utility>
 #include <string>
 #include <google/protobuf/util/json_util.h>
-#include "../asioHeader.h"
-#include "../protoData/Command/Command.pb.h"
-#include "../Interface.h"
-#include "../MsgLoader.h"
 
 using namespace std::string_literals;
 
@@ -98,6 +97,7 @@ awaitable<void> ConnectInstance::Impl::parseCommand(std::string_view commandStr)
                 std::shared_ptr<hybrid::MsgPublisher>(publisher_maker(advertise.topic(),
                                                                       advertise.has_queue_size()
                                                                       ? advertise.queue_size() : 100,
+                                                                      &topicQueue,
                                                                       client->agentConfig.is_protobuf(),
                                                                       advertise.has_latch() && advertise.latch()));
             logger.info("advertise topic: {}", advertise.topic());
@@ -158,6 +158,7 @@ awaitable<void> ConnectInstance::Impl::parseCommand(std::string_view commandStr)
                 std::shared_ptr<hybrid::MsgSubscriber>(subscriber_maker(subscribe.topic(),
                                                                         subscribe.has_queue_size()
                                                                         ? subscribe.queue_size() : 100,
+                                                                        &topicQueue,
                                                                         client->agentConfig.is_protobuf(),
                                                                         [&, subscribe](const std::string &msg)
                                                                         {

@@ -7,6 +7,7 @@
 #include "../../SDKException.h"
 #include "../protoData/Command/Command.pb.h"
 #include "../MsgLoader.h"
+#include "../HybridSpinner.h"
 #include <sstl/thread.h>
 #include <sys/prctl.h>
 #include <ros/ros.h>
@@ -31,7 +32,8 @@ struct Agent::Impl
     std::unordered_map<std::string, std::shared_ptr<hybrid::MsgPublisher>> pubMap{};
     std::unordered_map<std::string, std::shared_ptr<hybrid::MsgSubscriber>> subMap{};
 
-    sstd::BaseThread *rosSpinThread{nullptr};
+    ros::CallbackQueue topicQueue{};
+    ros::CallbackQueue serviceQueue{};
 
     ~Impl();
 
@@ -153,6 +155,8 @@ start:
     client = make_client(ctx, asio::ip::tcp::v4(), fd);
     client->agentConfig = std::move(agentConfig);
     Impl::logger = std::make_shared<Log>("Agent_" + agentName, LogFlag::CONSOLE_CLIENT, client);
+    auto topicSpinner = HybridSpinner(agentName + "TopicSpinner", sstd::getCpuNums() / 4);
+    auto srvSpinner = HybridSpinner(agentName + "SrvSpinner", sstd::getCpuNums() / 4);
 
     auto &logger = *Impl::logger;
     // change process name
@@ -169,18 +173,8 @@ start:
     ros::init(g_argc, g_argv, agentName);
     ros::start();
 
-    rosSpinThread = new sstd::thread([&]()
-                                     {
-                                         while(ros::ok()) {
-                                             try{
-                                                 ros::spin();
-                                             }
-                                             catch (const std::exception &e) {
-                                                 logger.error("catch ros::spin() exception, reason: {}", e.what());
-                                             }
-                                         }
-                                         logger.info("ros::spin() exit");
-                                     });
+    topicSpinner.spin(&topicQueue);
+    srvSpinner.spin(&serviceQueue);
 
     // check parent process if exit
     co_spawn(ctx, [&]() -> awaitable<void>
@@ -280,6 +274,7 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
                 std::shared_ptr<hybrid::MsgPublisher>(publisher_maker(advertise.topic(),
                                                                       advertise.has_queue_size()
                                                                       ? advertise.queue_size() : 100,
+                                                                      &topicQueue,
                                                                       client->agentConfig.is_protobuf(),
                                                                       advertise.has_latch() && advertise.latch()));
             logger.info("advertise topic: {}", advertise.topic());
@@ -340,6 +335,7 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
                 std::shared_ptr<hybrid::MsgSubscriber>(subscriber_maker(subscribe.topic(),
                                                                         subscribe.has_queue_size()
                                                                         ? subscribe.queue_size() : 100,
+                                                                        &topicQueue,
                                                                         client->agentConfig.is_protobuf(),
                                                                         [&, subscribe](const std::string &msg)
                                                                         {
@@ -402,6 +398,4 @@ Agent::Impl::~Impl()
 {
     logger->debug("agent exit");
     ros::shutdown();
-    rosSpinThread->join();
-    delete rosSpinThread;
 }

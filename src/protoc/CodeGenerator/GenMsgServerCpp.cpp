@@ -235,12 +235,15 @@ classMsgPublisher = \
 class {0}Publisher : public MsgPublisher
 {{
 public:
-    {0}Publisher(const std::string &topic, uint32_t queue_size, bool is_protobuf, bool latch = false) : MsgPublisher(topic,
+    {0}Publisher(const std::string &topic, uint32_t queue_size, ros::CallbackQueue *callbackQueue, bool is_protobuf, bool latch = false) : MsgPublisher(topic,
                                                                                                   queue_size,
+                                                                                                  callbackQueue,
                                                                                                   is_protobuf,
                                                                                                   latch),
                                                                                                   is_protobuf(is_protobuf)
     {{
+        if (callbackQueue)
+            nh.setCallbackQueue(callbackQueue);
         pub = nh.advertise<{3}>(topic, queue_size, latch);
     }}
 
@@ -271,12 +274,15 @@ classMsgSubscriber = \
 class {0}Subscriber : public MsgSubscriber
 {{
 public:
-    {0}Subscriber(const std::string &topic, uint32_t queue_size, bool is_protobuf, const std::function<void(std::string)> &callback)
+    {0}Subscriber(const std::string &topic, uint32_t queue_size, ros::CallbackQueue *callbackQueue, bool is_protobuf, const std::function<void(std::string)> &callback)
                 : MsgSubscriber(topic,
                                 queue_size,
+                                callbackQueue,
                                 is_protobuf,
                                 callback)
     {{
+        if (callbackQueue)
+            nh.setCallbackQueue(callbackQueue);
         sub = nh.subscribe(topic, queue_size,
                                boost::function<void(const {1}::ConstPtr &ros_msg)>(
                                        [callback, is_protobuf](const {1}::ConstPtr &ros_msg)
@@ -307,13 +313,13 @@ private:
 externCInterface = \
 '''
 extern "C" {{
-hybrid::MsgPublisher *make_publisher(const std::string &topic, uint32_t queue_size, bool is_protobuf, bool latch)
+hybrid::MsgPublisher *make_publisher(const std::string &topic, uint32_t queue_size, ros::CallbackQueue *callbackQueue, bool is_protobuf, bool latch)
 {{
-    return new hybrid::{0}Publisher(topic, queue_size, is_protobuf, latch);
+    return new hybrid::{0}Publisher(topic, queue_size, callbackQueue, is_protobuf, latch);
 }}
-hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_size, bool is_protobuf, const std::function<void(std::string)> &callback)
+hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_size, ros::CallbackQueue *callbackQueue, bool is_protobuf, const std::function<void(std::string)> &callback)
 {{
-    return new hybrid::{0}Subscriber(topic, queue_size, is_protobuf, callback);
+    return new hybrid::{0}Subscriber(topic, queue_size, callbackQueue, is_protobuf, callback);
 }}
 }}
 '''.format(msgName)

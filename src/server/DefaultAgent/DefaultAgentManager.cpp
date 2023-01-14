@@ -4,7 +4,9 @@
 #include "DefaultAgentManager.h"
 #include "ConnectInstance.h"
 #include "../Log.h"
-#include "sstl/thread.h"
+#include "../HybridSpinner.h"
+#include "CallbackQueues.h"
+#include <sstl/thread.h>
 #include <ros/ros.h>
 #include <unordered_set>
 #include <semaphore>
@@ -38,7 +40,8 @@ struct DefaultAgentManager::Impl
 
     asio::io_context ctx{};
 
-    sstd::BaseThread *rosSpinThread{nullptr};
+    HybridSpinner topicSpinner{"DefaultTopicSpinner", sstd::getCpuNums() / 4};
+    HybridSpinner srvSpinner{"DefaultSrvSpinner", sstd::getCpuNums() / 2};
 
     virtual ~Impl();
 
@@ -72,18 +75,9 @@ void DefaultAgentManager::Impl::MAIN()
     ros::init(g_argc, g_argv, "DefaultAgent");
     ros::start();
 
-    rosSpinThread = new sstd::thread([&]()
-                                     {
-                                         while(ros::ok()) {
-                                             try{
-                                                 ros::spin();
-                                             }
-                                             catch (const std::exception &e) {
-                                                 logger.error("catch ros::spin() exception, reason: {}", e.what());
-                                             }
-                                         }
-                                         logger.info("ros::spin() exit");
-                                     });
+
+    topicSpinner.spin(&topicQueue);
+    srvSpinner.spin(&serviceQueue);
 
     this->logger.info("DefaultAgent::MAIN");
 
@@ -242,7 +236,7 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
             co_spawn(executor, [client = std::move(client), this] () mutable -> awaitable<void>
             {
                 try{
-                    ConnectInstance instance(std::move(client));
+                    ConnectInstance instance{std::move(client)};
                     if(co_await instance.MAIN() != 0){
                         logger.warn("connect instance main not return 0");
                     }
@@ -263,9 +257,9 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
 DefaultAgentManager::Impl::~Impl()
 {
     logger.debug("DefaultAgentManager::Impl::~Impl()");
+    topicSpinner.stop();
+    srvSpinner.stop();
     ros::shutdown();
-    rosSpinThread->join();
-    delete rosSpinThread;
 }
 
 

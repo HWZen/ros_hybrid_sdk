@@ -28,7 +28,7 @@ public:
             auto pVoid = dlsym(dlHandleMap[name], "make_publisher");
             if (!pVoid)
                 throw SDKException("dlsym error: " + std::string(dlerror()));
-            auto func = reinterpret_cast<hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool, bool)>(pVoid);
+            auto func = reinterpret_cast<hybrid::MsgPublisher *(*)(const std::string &, uint32_t, ros::CallbackQueue*, bool, bool)>(pVoid);
             pubFuncMap[name] = func;
         }
         return pubFuncMap[name];
@@ -49,6 +49,7 @@ public:
                 throw SDKException("dlsym error: " + std::string(dlerror()));
             auto func = reinterpret_cast<hybrid::MsgSubscriber *(*)(const std::string &,
                                                                     uint32_t,
+                                                                    ros::CallbackQueue*,
                                                                     bool,
                                                                     const std::function<void(std::string)> &)>(pVoid);
             subFuncMap[name] = func;
@@ -58,11 +59,12 @@ public:
 
 private:
     inline static std::unordered_map<std::string, void *> dlHandleMap{};
-    inline static std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, bool, bool)>
+    inline static std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, ros::CallbackQueue*, bool, bool)>
         pubFuncMap{};
     inline static std::unordered_map<std::string,
                                      hybrid::MsgSubscriber *(*)(const std::string &,
                                                                 uint32_t,
+                                                                ros::CallbackQueue*,
                                                                 bool,
                                                                 const std::function<void(std::string)> &)> subFuncMap{};
 

@@ -1,0 +1,12 @@
+//
+// Created by HWZ on 2023/1/14.
+//
+
+#ifndef ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_SERVER_DEFAULTAGENT_CALLBACKQUEUES_H
+#define ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_SERVER_DEFAULTAGENT_CALLBACKQUEUES_H
+#include <ros/callback_queue.h>
+
+inline ros::CallbackQueue topicQueue{};
+inline ros::CallbackQueue serviceQueue{};
+
+#endif //ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_SERVER_DEFAULTAGENT_CALLBACKQUEUES_H
