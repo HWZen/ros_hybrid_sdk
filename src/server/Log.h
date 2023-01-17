@@ -37,6 +37,8 @@ class Log
 {
 public:
     Log(std::string_view name, LogFlag flag = LogFlag::CONSOLE_LOGGER, const ref_client &client = nullptr);
+    Log(const Log &) = delete;
+    Log(Log &&) noexcept;
 
     void log(int level, std::string_view msg);
 

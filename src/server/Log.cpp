@@ -167,3 +167,8 @@ Log::~Log()
 {
     delete implPtr;
 }
+Log::Log(Log &&other) noexcept
+{
+    implPtr = other.implPtr;
+    other.implPtr = nullptr;
+}
