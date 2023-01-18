@@ -1,8 +1,9 @@
+
 //
 // Created by HWZen on 2022/12/13.
 // Copyright (c) 2022 HWZen All rights reserved.
 // MIT License
-// 
+//
 
 #ifndef ROS_HYBRID_DYNAMIC_MSGS_INTERFACE_H
 #define ROS_HYBRID_DYNAMIC_MSGS_INTERFACE_H
@@ -41,6 +42,34 @@ public:
     virtual ~MsgSubscriber() = default;
 
 };
+
+class SrvAdvertiser
+{
+public:
+    SrvAdvertiser(const std::string &topic,
+                  ros::CallbackQueue* callbackQueue,
+                  bool is_protobuf,
+                  const std::function<std::string(std::string)> &callback) {};
+    uint64_t seq{0};
+    virtual ~SrvAdvertiser() = default;
+
+};
+
+class SrvCaller
+{
+public:
+    SrvCaller(const std::string &topic, ros::CallbackQueue* callbackQueue, bool is_protobuf) {};
+
+    virtual std::string call(const std::string &req) = 0;
+
+    virtual ~SrvCaller() = default;
+
+    uint64_t seq{0};
+
+    std::unordered_map<uint64_t,void *> reqMap{};
+
+};
+
 }
 
 #endif //ROS_HYBRID_DYNAMIC_MSGS_INTERFACE_H

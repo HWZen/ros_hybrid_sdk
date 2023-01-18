@@ -189,6 +189,30 @@ public:
     virtual ~MsgSubscriber() = default;
 
 };
+
+class SrvAdvertiser
+{
+public:
+    SrvAdvertiser(const std::string &topic,
+                  ros::CallbackQueue* callbackQueue,
+                  bool is_protobuf,
+                  const std::function<std::string(std::string)> &callback) {};
+
+    virtual ~SrvAdvertiser() = default;
+
+};
+
+class SrvCaller
+{
+public:
+    SrvCaller(const std::string &topic, ros::CallbackQueue* callbackQueue, bool is_protobuf) {};
+
+    virtual std::string call(const std::string &req) = 0;
+
+    virtual ~SrvCaller() = default;
+
+};
+
 }
 
 #endif //ROS_HYBRID_DYNAMIC_MSGS_INTERFACE_H

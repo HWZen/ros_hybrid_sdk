@@ -57,6 +57,28 @@ public:
         return subFuncMap[name];
     }
 
+    static auto getSeriviceServer(const std::string &name)
+    {
+        if (dlHandleMap.count(name) == 0) {
+            auto dllName = "lib" + name + ".so";
+            auto res = dlopen(dllName.c_str(), RTLD_LAZY);
+            if (!res)
+                throw SDKException("dlopen error: " + std::string(dlerror()));
+            dlHandleMap[name] = res;
+        }
+        if (serviceServerFuncMap.count(name) == 0) {
+            auto pVoid = dlsym(dlHandleMap[name], "make_service_server");
+            if (!pVoid)
+                throw SDKException("dlsym error: " + std::string(dlerror()));
+            auto func = reinterpret_cast<hybrid::SrvAdvertiser *(*)(const std::string &,
+                                                                    ros::CallbackQueue*,
+                                                                    bool,
+                                                                    const std::function<std::string(std::string)> &)>(pVoid);
+            serviceServerFuncMap[name] = func;
+        }
+        return serviceServerFuncMap[name];
+    }
+
 private:
     inline static std::unordered_map<std::string, void *> dlHandleMap{};
     inline static std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, ros::CallbackQueue*, bool, bool)>
@@ -67,6 +89,11 @@ private:
                                                                 ros::CallbackQueue*,
                                                                 bool,
                                                                 const std::function<void(std::string)> &)> subFuncMap{};
+
+    inline static std::unordered_map<std::string, hybrid::SrvAdvertiser *(*)(const std::string &,
+                                                                             ros::CallbackQueue*,
+                                                                             bool,
+                                                                             const std::function<std::string(std::string)> &)> serviceServerFuncMap{};
 
 };
 

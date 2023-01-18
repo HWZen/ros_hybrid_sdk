@@ -68,11 +68,10 @@ add_message_files(
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+   FILES
+   MyService.srv
+ )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -171,7 +170,7 @@ if(BUILD_PROTOC)
 endif()
 
 add_executable(temp src/test.cpp)
-target_compile_options(temp PRIVATE -std=c++20)
+target_compile_options(temp PRIVATE -std=c++17)
 
 
 ## Rename C++ executable without prefix
