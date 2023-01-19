@@ -8,6 +8,7 @@
 #include <fstream>
 using namespace std::string_literals;
 
+// TODO: xxxCoverTOxxx 声明与实现分离
 GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
 {
     std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";

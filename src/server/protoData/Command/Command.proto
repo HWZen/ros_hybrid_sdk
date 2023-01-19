@@ -37,6 +37,7 @@ message Command{
 
   message CallService{
     string service = 1;
+    string type = 2;
     bytes data = 3;
     optional string string_data = 4;
     uint64 seq = 5;
@@ -53,9 +54,12 @@ message Command{
 
   message ResponseService {
     string service = 1;
-    bytes data = 2;
-    optional string string_data = 3;
-    uint64 seq = 4;
+    bool success = 2;
+    bytes data = 3;
+    optional string string_data = 4;
+    uint64 seq = 5;
+    optional string error_message = 6;
+
   }
 
   message Log{

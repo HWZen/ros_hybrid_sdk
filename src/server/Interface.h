@@ -14,11 +14,10 @@
 
 namespace hybrid
 {
-// return ros::Publisher and ros::Subscriber is better?
 class MsgPublisher
 {
 public:
-    MsgPublisher(const std::string &topic,
+    MsgPublisher(const std::string &topicName,
                  uint32_t queue_size,
                  ros::CallbackQueue* callbackQueue,
                  bool is_protobuf,
@@ -33,7 +32,7 @@ public:
 class MsgSubscriber
 {
 public:
-    MsgSubscriber(const std::string &topic,
+    MsgSubscriber(const std::string &topicName,
                   uint32_t queue_size,
                   ros::CallbackQueue* callbackQueue,
                   bool is_protobuf,
@@ -46,11 +45,11 @@ public:
 class SrvAdvertiser
 {
 public:
-    SrvAdvertiser(const std::string &topic,
+    SrvAdvertiser(const std::string &serviceName,
                   ros::CallbackQueue* callbackQueue,
                   bool is_protobuf,
                   const std::function<std::string(std::string)> &callback) {};
-    uint64_t seq{0};
+
     virtual ~SrvAdvertiser() = default;
 
 };
@@ -58,18 +57,15 @@ public:
 class SrvCaller
 {
 public:
-    SrvCaller(const std::string &topic, ros::CallbackQueue* callbackQueue, bool is_protobuf) {};
+    SrvCaller(const std::string &serviceName, ros::CallbackQueue* callbackQueue, bool is_protobuf) {};
 
     virtual std::string call(const std::string &req) = 0;
 
     virtual ~SrvCaller() = default;
-
-    uint64_t seq{0};
-
-    std::unordered_map<uint64_t,void *> reqMap{};
 
 };
 
 }
 
 #endif //ROS_HYBRID_DYNAMIC_MSGS_INTERFACE_H
+

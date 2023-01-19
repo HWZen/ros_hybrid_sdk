@@ -44,6 +44,7 @@ struct Agent::Impl
     };
 
     std::unordered_map<std::string, ServiceData> srvServerMap{};
+    std::unordered_map<std::string, std::shared_ptr<hybrid::SrvCaller>> srvClientMap{};
 
 
     ros::CallbackQueue topicQueue{};
@@ -208,34 +209,35 @@ start:
 
     co_spawn(ctx, [&]() -> awaitable<void>
     {
-        try {
             logger.info("login success");
             std::string read_buffer;
+
             for (;;) {
-                auto [ec, len] = co_await asio::async_read_until(*client,
-                                                                 asio::dynamic_buffer(read_buffer, 4096),
-                                                                 client->agentConfig.delimiter(),
-                                                                 use_nothrow_awaitable);
+                try {
+                    auto [ec, len] = co_await asio::async_read_until(*client,
+                                                                     asio::dynamic_buffer(read_buffer, 4096),
+                                                                     client->agentConfig.delimiter(),
+                                                                     use_nothrow_awaitable);
 
-                if (ec && ec != asio::error::eof) {
-                    logger.error("read error: {}", ec.message());
-                    ctx.stop();
-                    exit(1);
-                }
-                if (ec == asio::error::eof) {
-                    logger.info("disconnect");
-                    ctx.stop();
-                    co_return;
-                }
+                    if (ec && ec != asio::error::eof) {
+                        logger.error("read error: {}", ec.message());
+                        ctx.stop();
+                        exit(1);
+                    }
+                    if (ec == asio::error::eof) {
+                        logger.info("disconnect");
+                        ctx.stop();
+                        co_return;
+                    }
 
-                co_await parseCommand(std::string_view(read_buffer.data(),
-                                                       len - client->agentConfig.delimiter().size()));
-                read_buffer.erase(0, len);
+                    co_await parseCommand(std::string_view(read_buffer.data(),
+                                                           len - client->agentConfig.delimiter().size()));
+                    read_buffer.erase(0, len);
+                }
+                catch (std::exception &e) {
+                    logger.error("catch exception: ", e.what());
+                }
             }
-        }
-        catch (const std::exception &e) {
-            logger.error("catch exception: ", e.what());
-        }
     }, asio::detached);
 
     ctx.run();
@@ -306,6 +308,7 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
         if (command.mutable_publish()->has_string_data())
             command.mutable_publish()->set_data(command.mutable_publish()->string_data());
         const auto &publish = command.publish();
+        // TODO: 不再使用std::map::count, 使用find，能够减少一次查找
         if (pubMap.count(publish.topic()) == 0) {
             logger.error("topic {} not found, please advertise it first", publish.topic());
             break;
@@ -486,18 +489,97 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             reqPair.second = responseService.data();
         else
             reqPair.second = responseService.string_data();
-        logger.debug("{}", responseService.DebugString());
         reqPair.first->release();
         break;
     }
-    case hybrid::Command_Type_CALL_SERVICE:
-    case hybrid::Command_Type_UNADVERTISE_SERVICE:
-    case hybrid::Command_Type_LOG:
-    case hybrid::Command_Type_PING:
-    case hybrid::Command_Type_Command_Type_INT_MIN_SENTINEL_DO_NOT_USE_:
-    case hybrid::Command_Type_Command_Type_INT_MAX_SENTINEL_DO_NOT_USE_:
-        logger.info("command not implement");
+    case hybrid::Command_Type_CALL_SERVICE:{
+        hybrid::Command responseCommand;
+        responseCommand.set_type(hybrid::Command_Type_RESPONSE_SERVICE);
+        auto &responseService = *responseCommand.mutable_response_service();
+        responseService.set_success(false);
+        std::string res;
+        [&](){
+            if (!command.has_call_service()) {
+                logger.error("call service data not found");
+                responseService.set_error_message("call service data not found");
+                return;
+            }
+            const auto &callService = command.call_service();
+            auto &serverCaller = srvClientMap[callService.service()];
+            if (serverCaller == nullptr) {
+                auto client_maker = MsgLoader::getServiceClient(callService.type());
+                serverCaller = std::shared_ptr<hybrid::SrvCaller>(client_maker(
+                    callService.service(),
+                    &serviceQueue,
+                    client->agentConfig.is_protobuf()));
+            }
+            // TODO: 加入处理队列
+            try{
+                if (client->agentConfig.is_protobuf())
+                    res = serverCaller->call(callService.data());
+                else
+                    res = serverCaller->call(callService.string_data());
+            }
+            catch(std::runtime_error &e){
+                logger.error("call service {} error: {}", callService.service(), e.what());
+                responseService.set_error_message("call service error: "s + e.what());
+                return;
+            }
+            if (res.empty()) {
+                logger.error("call service {} failed", callService.service());
+                responseService.set_error_message("call service failed");
+                return;
+            }
+            responseService.set_success(true);
+            responseService.set_service(callService.service());
+            responseService.set_seq(callService.seq());
+        }();
+
+        if (client->agentConfig.is_protobuf()){
+            responseService.set_data(res);
+            co_await asio::async_write(*client,
+                                       asio::buffer(responseCommand.SerializeAsString() + client->agentConfig.delimiter()),
+                                       asio::use_awaitable);
+        }
+        else {
+            responseService.set_string_data(res);
+            std::string resBuf;
+            auto status = google::protobuf::util::MessageToJsonString(responseCommand, &resBuf);
+            if (!status.ok()) {
+                this->logger->error("protobuf to json error, reason: {}", status.ToString());
+                break;
+            }
+            co_await asio::async_write(*client,
+                                       asio::buffer(resBuf + client->agentConfig.delimiter()),
+                                       asio::use_awaitable);
+        }
         break;
+    }
+    case hybrid::Command_Type_UNADVERTISE_SERVICE:{
+        if (!command.has_unadvertise_service()) {
+            logger.error("unadvertise service data not found");
+            break;
+        }
+        const auto &unadvertiseService = command.unadvertise_service();
+        if (auto it = srvServerMap.find(unadvertiseService.service()); it == srvServerMap.end()) {
+            logger.error("service {} not found", unadvertiseService.service());
+        }
+        else {
+            srvServerMap.erase(it);
+            logger.info("unadvertise service: {}", unadvertiseService.service());
+        }
+        break;
+    }
+    case hybrid::Command_Type_LOG:{
+        if (!command.has_log()) {
+            logger.error("log data not found");
+            break;
+        }
+        const auto &log = command.log();
+        this->logger->log(log.level(), log.message());
+        break;
+    }
+    case hybrid::Command_Type_PING:
     default:
         logger.error("unknown command: {}", command.type());
     }

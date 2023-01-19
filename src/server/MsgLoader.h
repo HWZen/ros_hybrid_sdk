@@ -79,6 +79,27 @@ public:
         return serviceServerFuncMap[name];
     }
 
+    static auto getServiceClient(const std::string &name)
+    {
+        if (dlHandleMap.count(name) == 0) {
+            auto dllName = "lib" + name + ".so";
+            auto res = dlopen(dllName.c_str(), RTLD_LAZY);
+            if (!res)
+                throw SDKException("dlopen error: " + std::string(dlerror()));
+            dlHandleMap[name] = res;
+        }
+        if (serviceClientFuncMap.count(name) == 0) {
+            auto pVoid = dlsym(dlHandleMap[name], "make_service_client");
+            if (!pVoid)
+                throw SDKException("dlsym error: " + std::string(dlerror()));
+            auto func = reinterpret_cast<hybrid::SrvCaller *(*)(const std::string &,
+                                                                ros::CallbackQueue*,
+                                                                bool)>(pVoid);
+            serviceClientFuncMap[name] = func;
+        }
+        return serviceClientFuncMap[name];
+    }
+
 private:
     inline static std::unordered_map<std::string, void *> dlHandleMap{};
     inline static std::unordered_map<std::string, hybrid::MsgPublisher *(*)(const std::string &, uint32_t, ros::CallbackQueue*, bool, bool)>
@@ -94,6 +115,10 @@ private:
                                                                              ros::CallbackQueue*,
                                                                              bool,
                                                                              const std::function<std::string(std::string)> &)> serviceServerFuncMap{};
+
+    inline static std::unordered_map<std::string, hybrid::SrvCaller *(*)(const std::string &,
+                                                                         ros::CallbackQueue*,
+                                                                         bool)> serviceClientFuncMap{};
 
 };
 

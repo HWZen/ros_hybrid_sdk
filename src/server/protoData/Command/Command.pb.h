@@ -1180,6 +1180,7 @@ class Command_CallService final :
 
   enum : int {
     kServiceFieldNumber = 1,
+    kTypeFieldNumber = 2,
     kDataFieldNumber = 3,
     kStringDataFieldNumber = 4,
     kSeqFieldNumber = 5,
@@ -1196,6 +1197,20 @@ class Command_CallService final :
   const std::string& _internal_service() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_service(const std::string& value);
   std::string* _internal_mutable_service();
+  public:
+
+  // string type = 2;
+  void clear_type();
+  const std::string& type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_type();
+  PROTOBUF_NODISCARD std::string* release_type();
+  void set_allocated_type(std::string* type);
+  private:
+  const std::string& _internal_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_type(const std::string& value);
+  std::string* _internal_mutable_type();
   public:
 
   // bytes data = 3;
@@ -1250,6 +1265,7 @@ class Command_CallService final :
     ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr type_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr string_data_;
     uint64_t seq_;
@@ -1703,9 +1719,11 @@ class Command_ResponseService final :
 
   enum : int {
     kServiceFieldNumber = 1,
-    kDataFieldNumber = 2,
-    kStringDataFieldNumber = 3,
-    kSeqFieldNumber = 4,
+    kDataFieldNumber = 3,
+    kStringDataFieldNumber = 4,
+    kErrorMessageFieldNumber = 6,
+    kSeqFieldNumber = 5,
+    kSuccessFieldNumber = 2,
   };
   // string service = 1;
   void clear_service();
@@ -1721,7 +1739,7 @@ class Command_ResponseService final :
   std::string* _internal_mutable_service();
   public:
 
-  // bytes data = 2;
+  // bytes data = 3;
   void clear_data();
   const std::string& data() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1735,7 +1753,7 @@ class Command_ResponseService final :
   std::string* _internal_mutable_data();
   public:
 
-  // optional string string_data = 3;
+  // optional string string_data = 4;
   bool has_string_data() const;
   private:
   bool _internal_has_string_data() const;
@@ -1753,13 +1771,40 @@ class Command_ResponseService final :
   std::string* _internal_mutable_string_data();
   public:
 
-  // uint64 seq = 4;
+  // optional string error_message = 6;
+  bool has_error_message() const;
+  private:
+  bool _internal_has_error_message() const;
+  public:
+  void clear_error_message();
+  const std::string& error_message() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_error_message(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_error_message();
+  PROTOBUF_NODISCARD std::string* release_error_message();
+  void set_allocated_error_message(std::string* error_message);
+  private:
+  const std::string& _internal_error_message() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_error_message(const std::string& value);
+  std::string* _internal_mutable_error_message();
+  public:
+
+  // uint64 seq = 5;
   void clear_seq();
   uint64_t seq() const;
   void set_seq(uint64_t value);
   private:
   uint64_t _internal_seq() const;
   void _internal_set_seq(uint64_t value);
+  public:
+
+  // bool success = 2;
+  void clear_success();
+  bool success() const;
+  void set_success(bool value);
+  private:
+  bool _internal_success() const;
+  void _internal_set_success(bool value);
   public:
 
   // @@protoc_insertion_point(class_scope:hybrid.Command.ResponseService)
@@ -1775,7 +1820,9 @@ class Command_ResponseService final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr string_data_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr error_message_;
     uint64_t seq_;
+    bool success_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_Command_2eproto;
@@ -3093,6 +3140,56 @@ inline void Command_CallService::set_allocated_service(std::string* service) {
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.CallService.service)
 }
 
+// string type = 2;
+inline void Command_CallService::clear_type() {
+  _impl_.type_.ClearToEmpty();
+}
+inline const std::string& Command_CallService::type() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.CallService.type)
+  return _internal_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Command_CallService::set_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.Command.CallService.type)
+}
+inline std::string* Command_CallService::mutable_type() {
+  std::string* _s = _internal_mutable_type();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.CallService.type)
+  return _s;
+}
+inline const std::string& Command_CallService::_internal_type() const {
+  return _impl_.type_.Get();
+}
+inline void Command_CallService::_internal_set_type(const std::string& value) {
+  
+  _impl_.type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Command_CallService::_internal_mutable_type() {
+  
+  return _impl_.type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Command_CallService::release_type() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.CallService.type)
+  return _impl_.type_.Release();
+}
+inline void Command_CallService::set_allocated_type(std::string* type) {
+  if (type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.type_.SetAllocated(type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.type_.IsDefault()) {
+    _impl_.type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.CallService.type)
+}
+
 // bytes data = 3;
 inline void Command_CallService::clear_data() {
   _impl_.data_.ClearToEmpty();
@@ -3443,7 +3540,27 @@ inline void Command_ResponseService::set_allocated_service(std::string* service)
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.ResponseService.service)
 }
 
-// bytes data = 2;
+// bool success = 2;
+inline void Command_ResponseService::clear_success() {
+  _impl_.success_ = false;
+}
+inline bool Command_ResponseService::_internal_success() const {
+  return _impl_.success_;
+}
+inline bool Command_ResponseService::success() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.ResponseService.success)
+  return _internal_success();
+}
+inline void Command_ResponseService::_internal_set_success(bool value) {
+  
+  _impl_.success_ = value;
+}
+inline void Command_ResponseService::set_success(bool value) {
+  _internal_set_success(value);
+  // @@protoc_insertion_point(field_set:hybrid.Command.ResponseService.success)
+}
+
+// bytes data = 3;
 inline void Command_ResponseService::clear_data() {
   _impl_.data_.ClearToEmpty();
 }
@@ -3493,7 +3610,7 @@ inline void Command_ResponseService::set_allocated_data(std::string* data) {
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.ResponseService.data)
 }
 
-// optional string string_data = 3;
+// optional string string_data = 4;
 inline bool Command_ResponseService::_internal_has_string_data() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;
@@ -3561,7 +3678,7 @@ inline void Command_ResponseService::set_allocated_string_data(std::string* stri
   // @@protoc_insertion_point(field_set_allocated:hybrid.Command.ResponseService.string_data)
 }
 
-// uint64 seq = 4;
+// uint64 seq = 5;
 inline void Command_ResponseService::clear_seq() {
   _impl_.seq_ = uint64_t{0u};
 }
@@ -3579,6 +3696,74 @@ inline void Command_ResponseService::_internal_set_seq(uint64_t value) {
 inline void Command_ResponseService::set_seq(uint64_t value) {
   _internal_set_seq(value);
   // @@protoc_insertion_point(field_set:hybrid.Command.ResponseService.seq)
+}
+
+// optional string error_message = 6;
+inline bool Command_ResponseService::_internal_has_error_message() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline bool Command_ResponseService::has_error_message() const {
+  return _internal_has_error_message();
+}
+inline void Command_ResponseService::clear_error_message() {
+  _impl_.error_message_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const std::string& Command_ResponseService::error_message() const {
+  // @@protoc_insertion_point(field_get:hybrid.Command.ResponseService.error_message)
+  return _internal_error_message();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Command_ResponseService::set_error_message(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000002u;
+ _impl_.error_message_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:hybrid.Command.ResponseService.error_message)
+}
+inline std::string* Command_ResponseService::mutable_error_message() {
+  std::string* _s = _internal_mutable_error_message();
+  // @@protoc_insertion_point(field_mutable:hybrid.Command.ResponseService.error_message)
+  return _s;
+}
+inline const std::string& Command_ResponseService::_internal_error_message() const {
+  return _impl_.error_message_.Get();
+}
+inline void Command_ResponseService::_internal_set_error_message(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.error_message_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Command_ResponseService::_internal_mutable_error_message() {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.error_message_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Command_ResponseService::release_error_message() {
+  // @@protoc_insertion_point(field_release:hybrid.Command.ResponseService.error_message)
+  if (!_internal_has_error_message()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* p = _impl_.error_message_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.error_message_.IsDefault()) {
+    _impl_.error_message_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void Command_ResponseService::set_allocated_error_message(std::string* error_message) {
+  if (error_message != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.error_message_.SetAllocated(error_message, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.error_message_.IsDefault()) {
+    _impl_.error_message_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:hybrid.Command.ResponseService.error_message)
 }
 
 // -------------------------------------------------------------------
