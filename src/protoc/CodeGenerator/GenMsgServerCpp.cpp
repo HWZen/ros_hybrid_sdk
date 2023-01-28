@@ -8,7 +8,6 @@
 #include <fstream>
 using namespace std::string_literals;
 
-// TODO: xxxCoverTOxxx 声明与实现分离
 GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
 {
     std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
@@ -113,6 +112,16 @@ for var in msgVars:
         include += '#include <msgs/{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
 
 include += 'using namespace std::string_literals;\n'
+
+xxxCoverToProtoDeclare = \
+'''
+{0} {1}CoverToProto(const {2} &rosMsg);
+'''.format(hybridMsgType, msgName, rosMsgType)
+
+xxxCoverToRosDeclare = \
+'''
+{0} {1}CoverToRos(const {2} &protoMsg);
+'''.format(rosMsgType, msgName, hybridMsgType)
 
 xxxCoverToProtoContent = ''
 for var in msgVars:
@@ -326,8 +335,9 @@ hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_
 '''.format(msgName)
 
 # output file
-xxx_server_cpp = header + defineStart + include + xxxCoverToProtoStartEnd + xxxCoverToRosStartEnd + \
-                 Build_xxx_SHARED_LIB_defineStart + namespaceStart + classMsgPublisher + classMsgSubscriber + \
+xxx_server_cpp = header + defineStart + include + xxxCoverToProtoDeclare + xxxCoverToRosDeclare + \
+                 Build_xxx_SHARED_LIB_defineStart + xxxCoverToProtoStartEnd + xxxCoverToRosStartEnd + \
+                 namespaceStart + classMsgPublisher + classMsgSubscriber + \
                  namespaceEnd + externCInterface + Build_xxx_SHARED_LIB_defineEnd + defineEnd
 
 with open('{}.server.cpp'.format(msgName), 'w') as f:

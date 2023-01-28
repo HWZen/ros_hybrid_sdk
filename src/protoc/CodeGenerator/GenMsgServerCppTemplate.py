@@ -118,6 +118,16 @@ for var in msgVars:
 
 include += 'using namespace std::string_literals;\n'
 
+xxxCoverToProtoDeclare = \
+'''
+{0} {1}CoverToProto(const {2} &rosMsg);
+'''.format(hybridMsgType, msgName, rosMsgType)
+
+xxxCoverToRosDeclare = \
+'''
+{0} {1}CoverToRos(const {2} &protoMsg);
+'''.format(rosMsgType, msgName, hybridMsgType)
+
 xxxCoverToProtoContent = ''
 for var in msgVars:
     if var.fieldType & FieldTypes.Constexpr:
@@ -330,8 +340,9 @@ hybrid::MsgSubscriber *make_subscriber(const std::string &topic, uint32_t queue_
 '''.format(msgName)
 
 # output file
-xxx_server_cpp = header + defineStart + include + xxxCoverToProtoStartEnd + xxxCoverToRosStartEnd + \
-                 Build_xxx_SHARED_LIB_defineStart + namespaceStart + classMsgPublisher + classMsgSubscriber + \
+xxx_server_cpp = header + defineStart + include + xxxCoverToProtoDeclare + xxxCoverToRosDeclare + \
+                 Build_xxx_SHARED_LIB_defineStart + xxxCoverToProtoStartEnd + xxxCoverToRosStartEnd + \
+                 namespaceStart + classMsgPublisher + classMsgSubscriber + \
                  namespaceEnd + externCInterface + Build_xxx_SHARED_LIB_defineEnd + defineEnd
 
 with open('{}.server.cpp'.format(msgName), 'w') as f:
