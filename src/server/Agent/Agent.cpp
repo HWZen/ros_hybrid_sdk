@@ -46,6 +46,10 @@ struct Agent::Impl
     std::unordered_map<std::string, ServiceData> srvServerMap{};
     std::unordered_map<std::string, std::shared_ptr<hybrid::SrvCaller>> srvClientMap{};
 
+    std::vector<std::shared_ptr<sstd::BaseThread>> srvCallThreads{sstd::getCpuNums() / 2};
+
+    awaitable<std::string> async_call_server(const std::string &serviceName, const std::string &req);
+
 
     ros::CallbackQueue topicQueue{};
     ros::CallbackQueue serviceQueue{};
@@ -268,7 +272,6 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
         if (auto state = google::protobuf::util::JsonStringToMessage(commandStr, &command); !state.ok())
             logger.error("parse command error: {}", state.ToString());
     }
-//    logger.debug("command: {}", command.DebugString());
 
     switch (command.type()) {
     case hybrid::Command_Type_UNKNOWN:
@@ -308,16 +311,17 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
         if (command.mutable_publish()->has_string_data())
             command.mutable_publish()->set_data(command.mutable_publish()->string_data());
         const auto &publish = command.publish();
-        // TODO: 不再使用std::map::count, 使用find，能够减少一次查找
-        if (pubMap.count(publish.topic()) == 0) {
+        if (auto it = pubMap.find(publish.topic()); it == pubMap.end()) {
             logger.error("topic {} not found, please advertise it first", publish.topic());
-            break;
         }
-        try {
-            pubMap[publish.topic()]->publish(publish.data());
-        }
-        catch (std::runtime_error &e) {
-            logger.error("publish exception: {}", e.what());
+        else{
+            try {
+                it->second->publish(publish.data());
+            }
+            catch (std::runtime_error &e) {
+                logger.error("publish exception: {}", e.what());
+            }
+
         }
         break;
     }
@@ -327,11 +331,12 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             break;
         }
         const auto &unadvertise = command.unadvertise();
-        if (pubMap.count(unadvertise.topic()) == 0) {
+        if (auto it = pubMap.find(unadvertise.topic()); it == pubMap.end()) {
             logger.error("topic {} not found", unadvertise.topic());
             break;
         }
-        pubMap.erase(unadvertise.topic());
+        else
+            pubMap.erase(it);
         logger.info("unadvertise topic: {}", unadvertise.topic());
         break;
     }
@@ -384,11 +389,12 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             break;
         }
         const auto &unsubscribe = command.unsubscribe();
-        if (subMap.count(unsubscribe.topic()) == 0) {
+        if (auto it = subMap.find(unsubscribe.topic()); it == subMap.end()) {
             logger.error("topic {} not found", unsubscribe.topic());
             break;
         }
-        subMap.erase(unsubscribe.topic());
+        else
+            subMap.erase(it);
         logger.info("unsubscribe topic: {}", unsubscribe.topic());
         break;
     }
@@ -475,16 +481,18 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             break;
         }
         const auto &responseService = command.response_service();
-        if (srvServerMap.count(responseService.service()) == 0) {
+        auto srvServerIt = srvServerMap.find(responseService.service());
+        if (srvServerIt == srvServerMap.end()) {
             logger.error("service {} not found", responseService.service());
             break;
         }
-        auto &serverData = srvServerMap[responseService.service()];
-        if (serverData.reqMap.count(responseService.seq()) == 0) {
+        auto &serverData = srvServerIt->second;
+        auto serverDataIt = serverData.reqMap.find(responseService.seq());
+        if (serverDataIt == serverData.reqMap.end()) {
             logger.error("service {} seq {} not found", responseService.service(), responseService.seq());
             break;
         }
-        auto &reqPair = serverData.reqMap[responseService.seq()];
+        auto &reqPair = serverDataIt->second;
         if (client->agentConfig.is_protobuf())
             reqPair.second = responseService.data();
         else
