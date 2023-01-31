@@ -203,17 +203,19 @@ awaitable<void> DispatchServer::Impl::listen()
         }
 
         auto executor = client.get_executor();
+        // fixme: 'this' weill changed
         co_spawn(executor, [this, client = std::move(client)]() mutable -> awaitable<void>
         {
             try {
-                auto ref_client = make_client(std::move(client));
-                auto res = co_await dispatch(ref_client);
+                auto refClient = make_client(std::move(client));
+                auto thisBackup = this;
+                auto res = co_await dispatch(refClient);
                 if (res == DispatchResultCode::FAIL)
                     logger.error("Dispatch failed");
                 else if (res == DispatchResultCode::DEFAULT_AGENT)
-                    toDefaultAgent(ref_client);
+                    toDefaultAgent(refClient);
                 else if (res == DispatchResultCode::NEW_AGENT)
-                    toNewAgent(ref_client);
+                    thisBackup->toNewAgent(refClient);
             }
             catch (std::exception &e) {
                 this->logger.error("Catch dispatch exception: {}", e.what());
@@ -238,7 +240,6 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
         logger.error("Read error: {}", ec.message());
         co_return DispatchResultCode::FAIL;
     }
-    buff_[len] = '\0';
 
     /*******************************
      * parse param
@@ -252,18 +253,18 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
             co_return DispatchResultCode::FAIL;
         }
         logger.debug("parse protobuf, agent config: {}", client->agentConfig.DebugString());
-        co_return client->agentConfig.node() == "default" ? DispatchResultCode::DEFAULT_AGENT
-                                                          : DispatchResultCode::NEW_AGENT;
-    }
 
-    // json style parse
-
-    auto state = google::protobuf::util::JsonStringToMessage(std::string_view(buff_.data(), len), &client->agentConfig);
-    if (!state.ok()) {
-        logger.error("Config string is not a protobuf or json : {}", state.ToString());
-        co_await client->async_write_some(asio::buffer("Config string is not a protobuf or json : " + state.ToString()),
-                                          use_nothrow_awaitable);
-        co_return DispatchResultCode::FAIL;
+    } else {
+        // json style parse
+        auto state = google::protobuf::util::JsonStringToMessage(std::string_view(buff_.data(), len), &client->agentConfig);
+        if (!state.ok()) {
+            logger.error("Config string is not a protobuf or json : {}", state.ToString());
+            co_await client->async_write_some(asio::buffer(
+                                                  "Config string is not a protobuf or json : " + state.ToString()),
+                                              use_nothrow_awaitable);
+            co_return DispatchResultCode::FAIL;
+        }
+        logger.debug("parse json, agent config: {}", client->agentConfig.DebugString());
     }
 
     auto &agentConfig = client->agentConfig;
@@ -282,8 +283,6 @@ awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispat
         agentConfig.set_is_protobuf(false);
     if (!agentConfig.has_log_level())
         agentConfig.set_log_level(2);
-
-    logger.debug("parse json, agent config: {}", client->agentConfig.DebugString());
 
 
     /*******************************

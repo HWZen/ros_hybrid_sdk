@@ -233,7 +233,7 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
             logger.debug("agent config: {}", client->agentConfig.DebugString());
 
             auto executor = client->get_executor();
-            co_spawn(executor, [client = std::move(client), this] () mutable -> awaitable<void>
+            co_spawn(executor, [this] (auto client) mutable -> awaitable<void>
             {
                 try{
                     ConnectInstance instance{std::move(client)};
@@ -245,7 +245,7 @@ awaitable<void> DefaultAgentManager::Impl::listenFd()
                     logger.error("catch exception: {}", e.what());
                 }
                 co_return ;
-            }, asio::detached);
+            }(std::move(client)), asio::detached);
         }
         catch (std::exception &e) {
             logger.error("catch exception in {}@{} : {}", __FILE__, __LINE__, e.what());

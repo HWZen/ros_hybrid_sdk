@@ -42,7 +42,6 @@ public:
                     logger.error("catch exception: {}", e.what());
                 }
             }
-            logger.debug("stop spin");
         };
 
         for (size_t i = 0; i < thread_num; ++i)
