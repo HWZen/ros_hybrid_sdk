@@ -36,7 +36,9 @@ struct DispatchServer::Impl
 
     int send_fd(int pipe_fd, SOCKET fd);
 
-    awaitable<DispatchResultCode> dispatch(ref_client &client);
+    awaitable<DispatchResultCode> getConfig(ref_client &client);
+
+    awaitable<void> dispatch(ref_client client);
 
     void toDefaultAgent(const ref_client &client);
 
@@ -203,29 +205,11 @@ awaitable<void> DispatchServer::Impl::listen()
         }
 
         auto executor = client.get_executor();
-        // fixme: 'this' weill changed
-        co_spawn(executor, [this, client = std::move(client)]() mutable -> awaitable<void>
-        {
-            try {
-                auto refClient = make_client(std::move(client));
-                auto thisBackup = this;
-                auto res = co_await dispatch(refClient);
-                if (res == DispatchResultCode::FAIL)
-                    logger.error("Dispatch failed");
-                else if (res == DispatchResultCode::DEFAULT_AGENT)
-                    toDefaultAgent(refClient);
-                else if (res == DispatchResultCode::NEW_AGENT)
-                    thisBackup->toNewAgent(refClient);
-            }
-            catch (std::exception &e) {
-                this->logger.error("Catch dispatch exception: {}", e.what());
-                this->logger.info("listen continue");
-            }
-        }, asio::detached);
+        co_spawn(executor, dispatch(make_client(std::move(client))),asio::detached);
     }
 }
 
-awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::dispatch(ref_client &client)
+awaitable<DispatchServer::Impl::DispatchResultCode> DispatchServer::Impl::getConfig(ref_client &client)
 {
 
     if (!client->is_open()) {
@@ -311,5 +295,21 @@ void DispatchServer::Impl::toNewAgent(const ref_client &client)
     sendSocketor(preBootAgentPip, client);
     auto buf = client->agentConfig.SerializeAsString();
     write(preBootAgentPip, buf.data(), buf.size());
+}
+awaitable<void> DispatchServer::Impl::dispatch(ref_client client)
+{
+    try {
+        auto res = co_await getConfig(client);
+        if (res == DispatchResultCode::FAIL)
+            logger.error("Dispatch failed");
+        else if (res == DispatchResultCode::DEFAULT_AGENT)
+            toDefaultAgent(client);
+        else if (res == DispatchResultCode::NEW_AGENT)
+            toNewAgent(client);
+    }
+    catch (std::exception &e) {
+        logger.error("Catch dispatch exception: {}", e.what());
+        logger.info("listen continue");
+    }
 }
 
