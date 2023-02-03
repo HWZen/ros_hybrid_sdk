@@ -1,0 +1,3 @@
+MyMsg myMsg
+---
+std_msgs/Header header
