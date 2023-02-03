@@ -8,7 +8,7 @@
 
 using namespace std::string_literals;
 
-GenCodeResult GenMsgServerUseOnly(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
+GenCodeResult GenMsgServerUseOnly(const std::string &msgFileName, const MsgTrial &vars)
 {
     auto msgFileNamePython = R"(msgFileName = ")" + msgFileName + "\"\n";
     std::string GenMsgServerUseOnlyResult_py_part1 =

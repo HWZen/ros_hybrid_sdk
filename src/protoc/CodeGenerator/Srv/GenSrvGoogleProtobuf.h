@@ -1,0 +1,13 @@
+//
+// Created by HWZ on 2023/2/1.
+//
+
+#ifndef ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_PROTOC_CODEGENERATOR_SRV_GENSRVGOOGLEPROTOBUF_H
+#define ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_PROTOC_CODEGENERATOR_SRV_GENSRVGOOGLEPROTOBUF_H
+
+#include "../GenCodeResult.h"
+#include "../../Parser/typedef.h"
+
+GenCodeResult GenSrvGoogleProtobuf(const std::string &srvFileName, const SrvTrial &vars);
+
+#endif //ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_PROTOC_CODEGENERATOR_SRV_GENSRVGOOGLEPROTOBUF_H

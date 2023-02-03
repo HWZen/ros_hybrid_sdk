@@ -4,14 +4,14 @@
 // MIT License
 // 
 
-#include "GenServerMsgBuildPackage.h"
+#include "GenServerBuildPackage.h"
 #include <fstream>
 #include <filesystem>
 #include "../Config.h"
 
 using namespace std::string_literals;
 
-void GenServerMsgBuildPackage(const std::string &path)
+void GenServerBuildPackage(const std::string &path)
 {
     /*********************
      * Prepare files string

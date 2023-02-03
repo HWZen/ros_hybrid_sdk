@@ -138,29 +138,32 @@ for var in msgVars:
                 xxxCoverToProtoContent += \
 '''
     for (auto &data : rosMsg.{0}) {{
-        auto *p = protoMsg.add_{0}();
+        auto *p = protoMsg.add_{1}();
         p->set_seconds(data.sec);
-        p->set_nanos(static_cast<int32_t>(data.nsec));    
-'''.format(var.varName)
+        p->set_nanos(static_cast<int32_t>(data.nsec)); 
+    }}   
+'''.format(var.varName, var.varName.lower())
                 continue
             else:
                 xxxCoverToProtoContent += \
 '''
-    protoMsg.mutable_{0}()->set_seconds(rosMsg.{0}.sec);
-    protoMsg.mutable_{0}()->set_nanos(static_cast<int32_t>(rosMsg.{0}.nsec));
-'''.format(var.varName)
+    protoMsg.mutable_{1}()->set_seconds(rosMsg.{0}.sec);
+    protoMsg.mutable_{1}()->set_nanos(static_cast<int32_t>(rosMsg.{0}.nsec));
+'''.format(var.varName, var.varName.lower())
                 continue
         if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
-            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) protoMsg.add_{0}(data); \n'.format(var.varName)
+            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) protoMsg.add_{1}(data); \n'.\
+                format(var.varName, var.varName.lower())
         else:
-            xxxCoverToProtoContent += '    protoMsg.set_{0}(rosMsg.{0}); \n'.format(var.varName)
+            xxxCoverToProtoContent += '    protoMsg.set_{1}(rosMsg.{0}); \n'.format(var.varName, var.varName.lower())
     elif var.fieldType & FieldTypes.Msg:
         if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
-            xxxCoverToProtoContent += '    for (auto &data : rosMsg.{0}) *protoMsg.add_{0}() = {1}CoverToProto(data); \n'.format(
-                var.varName, var.msgType)
+            xxxCoverToProtoContent += \
+                '    for (auto &data : rosMsg.{0}) *protoMsg.add_{2}() = {1}CoverToProto(data); \n'.\
+                    format(var.varName, var.msgType, var.varName.lower())
         else:
-            xxxCoverToProtoContent += '    *protoMsg.mutable_{0}() = {1}CoverToProto(rosMsg.{0}); \n'\
-                .format(var.varName, var.msgType)
+            xxxCoverToProtoContent += '    *protoMsg.mutable_{2}() = {1}CoverToProto(rosMsg.{0}); \n'\
+                .format(var.varName, var.msgType, var.varName.lower())
 
 
 xxxCoverToProtoStartEnd = \
@@ -182,49 +185,50 @@ for var in msgVars:
             if var.fieldType & FieldTypes.Array or var.fieldType & FieldTypes.Vector:
                 xxxCoverToRosContent += \
 '''
-    for (auto &data : protoMsg.{0}())
+    for (auto &data : protoMsg.{1}())
         rosMsg.{0}.emplace_back(ros::Time(data.seconds(), data.nanos()));
-'''.format(var.varName)
+'''.format(var.varName, var.varName.lower())
                 continue
             else:
                 xxxCoverToRosContent += \
 '''
-    rosMsg.{0}.sec = protoMsg.{0}().seconds();
-    rosMsg.{0}.nsec = protoMsg.{0}().nanos();
-'''.format(var.varName)
+    rosMsg.{0}.sec = protoMsg.{1}().seconds();
+    rosMsg.{0}.nsec = protoMsg.{1}().nanos();
+'''.format(var.varName, var.varName.lower())
                 continue
         if var.fieldType & FieldTypes.Array:
             xxxCoverToRosContent += \
 '''
-    if (protoMsg.{0}_size() != {1}::_{0}_type::size())
+    if (protoMsg.{2}_size() != {1}::_{0}_type::size())
         throw std::runtime_error("size of {0} is not match!");
     for (size_t i = 0; i < {1}::_{0}_type::size(); ++i)
-        rosMsg.{0}[i] = protoMsg.{0}(static_cast<int>(i));    
-'''.format(var.varName, rosMsgType)
+        rosMsg.{0}[i] = protoMsg.{2}(static_cast<int>(i));    
+'''.format(var.varName, rosMsgType, var.varName.lower())
         elif var.fieldType & FieldTypes.Vector:
-            xxxCoverToRosContent += '    std::copy(protoMsg.{0}().begin(), protoMsg.{0}().end(), std::back_inserter(rosMsg.{0}));\n'\
-                .format(var.varName)
+            xxxCoverToRosContent += \
+                '    std::copy(protoMsg.{1}().begin(), protoMsg.{1}().end(), std::back_inserter(rosMsg.{0}));\n'\
+                    .format(var.varName, var.varName.lower())
         else:
-            xxxCoverToRosContent += '    rosMsg.{0} = protoMsg.{0}(); \n'.format(var.varName)
+            xxxCoverToRosContent += '    rosMsg.{0} = protoMsg.{1}(); \n'.format(var.varName, var.varName.lower())
     else:
         if var.fieldType & FieldTypes.Array:
             xxxCoverToRosContent += \
 '''
-    if (protoMsg.{0}_size() != {1}::_{0}_type::size())
+    if (protoMsg.{3}_size() != {1}::_{0}_type::size())
         throw std::runtime_error("size of {0} is not match!");
     for (size_t i = 0; i < {1}::_{0}_type::size(); ++i)
-        rosMsg.{0}[i] = {2}CoverToRos(protoMsg.{0}(static_cast<int>(i)));
-'''.format(var.varName, rosMsgType, var.msgType)
+        rosMsg.{0}[i] = {2}CoverToRos(protoMsg.{3}(static_cast<int>(i)));
+'''.format(var.varName, rosMsgType, var.msgType, var.varName.lower())
         elif var.fieldType & FieldTypes.Vector:
             xxxCoverToRosContent += \
 '''
-    rosMsg.{0}.reserve(protoMsg.{0}_size());
-    for (const auto &data : protoMsg.{0}())
+    rosMsg.{0}.reserve(protoMsg.{2}_size());
+    for (const auto &data : protoMsg.{2}())
         rosMsg.{0}.emplace_back({1}CoverToRos(data));
-'''.format(var.varName, var.msgType)
+'''.format(var.varName, var.msgType, var.varName.lower())
         else:
-            xxxCoverToRosContent += '    rosMsg.{0} = {1}CoverToRos(protoMsg.{0}()); \n'\
-                .format(var.varName, var.msgType)
+            xxxCoverToRosContent += '    rosMsg.{0} = {1}CoverToRos(protoMsg.{2}()); \n'\
+                .format(var.varName, var.msgType, var.varName.lower())
 
 
 xxxCoverToRosStartEnd = \

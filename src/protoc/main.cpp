@@ -7,21 +7,20 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include "Parser/MsgParser.h"
+#include "Parser/Parser.h"
 #include "CodeGenerator/CodeGenerator.h"
 #include "Config.h"
 using namespace std::string_literals;
 
 void parseParam(int argc, char **argv);
 
-void parseFile(const std::string &fileName, const std::string &fileContent);
-
+// TODO: cache result of system call 'rosmsg show / rossrv show'
 int main(int argc, char **argv) try
 {
     parseParam(argc, argv);
 
     if (!g_config.packagePath.empty()) {
-        GenServerMsgBuildPackage(g_config.packagePath);
+        GenServerBuildPackage(g_config.packagePath);
     }
 
     std::vector<std::pair<std::string, std::string>> files;
@@ -46,9 +45,10 @@ int main(int argc, char **argv) try
         files.emplace_back(input, std::move(buf));
     }
 
-    std::vector<std::pair<std::string, std::vector<TypeTrail>>> parsedFiles;
-    for (const auto &[fileName, fileContent] : files)
-        parsedFiles.emplace_back(fileName, MsgParser(fileContent));
+    std::vector<std::pair<std::string, Trial>> parsedFiles;
+    for (const auto &[fileName, fileContent] : files){
+        parsedFiles.emplace_back(fileName, parser(fileName,fileContent));
+    }
 
     if (g_config.onlyServer) {
         if (g_config.output.empty()){
@@ -56,11 +56,13 @@ int main(int argc, char **argv) try
             return 1;
         }
         for (const auto &[fileName, vars] : parsedFiles) {
-            auto res = GenMsgServerUseOnly(fileName, vars);
-            auto output = g_config.output + "/"s + res.path;
-            std::filesystem::create_directories(output);
-            for (const auto &file : res.files)
-                std::filesystem::rename(file, output + "/"s + file);
+            if (auto p = std::get_if<0>(&vars); p != nullptr){
+                auto res = GenMsgServerUseOnly(fileName, *p);
+                auto output = g_config.output + "/"s + res.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : res.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+            }
         }
     }
 
@@ -71,12 +73,22 @@ int main(int argc, char **argv) try
             return 1;
         }
         for (const auto &[fileName, vars] : parsedFiles) {
-            auto protobuf = GenGoogleProtobuf(fileName, vars);
-            auto output = g_config.output + "/"s + protobuf.path;
-            std::filesystem::create_directories(output);
-            for (const auto &file : protobuf.files)
-                std::filesystem::rename(file, output + "/"s + file);
-            protobufResults.emplace_back(std::move(protobuf));
+            if (auto p = std::get_if<0>(&vars); p != nullptr){
+                auto protobuf = GenMsgGoogleProtobuf(fileName, *p);
+                auto output = g_config.output + "/"s + protobuf.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : protobuf.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+                protobufResults.emplace_back(std::move(protobuf));
+
+            } else if (auto p2 = std::get_if<1>(&vars); p2 != nullptr){
+                auto protobuf = GenSrvGoogleProtobuf(fileName, *p2);
+                auto output = g_config.output + "/"s + protobuf.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : protobuf.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+                protobufResults.emplace_back(std::move(protobuf));
+            }
         }
     }
 
@@ -104,11 +116,19 @@ int main(int argc, char **argv) try
             return 1;
         }
         for (const auto &[fileName, vars] : parsedFiles) {
-            auto res = GenMsgServerCpp(fileName, vars);
-            auto output = g_config.output + "/"s + res.path;
-            std::filesystem::create_directories(output);
-            for (const auto &file : res.files)
-                std::filesystem::rename(file, output + "/"s + file);
+            if (auto p = std::get_if<0>(&vars); p != nullptr){
+                auto res = GenMsgServerCpp(fileName, *p);
+                auto output = g_config.output + "/"s + res.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : res.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+            } else if (auto p2 = std::get_if<1>(&vars); p2 != nullptr){
+                auto res = GenSrvServerCpp(fileName, *p2);
+                auto output = g_config.output + "/"s + res.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : res.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+            }
         }
     }
 
@@ -119,12 +139,22 @@ int main(int argc, char **argv) try
             return 1;
         }
         for (const auto &[fileName, vars] : parsedFiles) {
-            auto res = GenCmake(fileName, vars);
-            auto output = g_config.output + "/"s + res.path;
-            std::filesystem::create_directories(output);
-            for (const auto &file : res.files)
-                std::filesystem::rename(file, output + "/"s + file);
-            cmakeResults.emplace_back(std::move(res));
+            std::vector<TypeTrail> types;
+            if (auto p = std::get_if<0>(&vars); p != nullptr){
+                auto res = GenMsgCmake(fileName, *p);
+                auto output = g_config.output + "/"s + res.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : res.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+                cmakeResults.emplace_back(std::move(res));
+            } else if (auto p2 = std::get_if<1>(&vars); p2 != nullptr){
+                auto res = GenSrvCmake(fileName, *p2);
+                auto output = g_config.output + "/"s + res.path;
+                std::filesystem::create_directories(output);
+                for (const auto &file : res.files)
+                    std::filesystem::rename(file, output + "/"s + file);
+                cmakeResults.emplace_back(std::move(res));
+            }
         }
     }
 
@@ -167,32 +197,6 @@ catch (std::exception &e) {
     std::cerr << "catch exception: " << e.what();
 }
 
-static void MsgMode(const std::string &fileName, const std::string &fileContent);
-static void SrvMode(const std::string &fileName, const std::string &fileContent);
-static void ActionMode(const std::string &fileName, const std::string &fileContent);
-
-void parseFile(const std::string &fileName, const std::string &fileContent)
-{
-    if (auto res = fileName.find(".msg");res != std::string::npos && res == fileName.size() - 4) {
-        MsgMode(fileName, fileContent);
-    } else if (res = fileName.find(".srv");res != std::string::npos && res == fileName.size() - 4) {
-        SrvMode(fileName, fileContent);
-    } else if (res = fileName.find(".action");res != std::string::npos && res == fileName.size() - 7) {
-        ActionMode(fileName, fileContent);
-    } else {
-        std::cerr << "unknown file type\n";
-        return;
-    }
-
-    /* TODO:
-     * 1. specify the file type (*.srv, *.msg) (done)
-     * 2. parse them (done)
-     * 3. generate code (done)
-     * 4. output to file
-     * 5. compile
-     */
-
-}
 
 void parseParam(int argc, char **argv)
 {
@@ -244,59 +248,4 @@ void parseParam(int argc, char **argv)
         g_config.genServerCode = true;
         g_config.genCmake = true;
     }
-}
-
-static void MsgMode(const std::string &fileName, const std::string &fileContent)
-{
-
-    auto parseRes = MsgParser(fileContent);
-    if (g_config.onlyServer) {
-        auto res = GenMsgServerUseOnly(fileName, parseRes);
-        std::string outPath = g_config.output + "/" + res.path;
-        // move  files to outPath
-        std::filesystem::create_directories(outPath);
-        for (auto &file : res.files) {
-            try {
-                if (file == "CMakeLists.txt") {
-                    auto systemRes = std::system(("cat "s + file + " >> "s + outPath + "/" + file).c_str());
-                    if (systemRes != 0) {
-                        throw std::runtime_error(
-                            "cat file fail"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-                    }
-                    std::filesystem::remove(file);
-                    continue;
-                }
-                auto systemRes = std::system(("mv "s + file + " "s + outPath + "/"s).c_str());
-                if (systemRes != 0)
-                    throw std::runtime_error(
-                        "move file: " + file + " fail"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-            }
-            catch (std::exception &e) {
-                std::cerr << e.what();
-            }
-        }
-    } else if (g_config.server) {
-        // if outPath not exist, create it as ros package
-        if (!std::filesystem::exists(g_config.output))
-            GenServerMsgBuildPackage(g_config.output);
-        // 1. generate xxx.proto
-        auto res = GenGoogleProtobuf(fileName, parseRes);
-        // TODO: in this case, add a param: ros_package_dir, same as -o
-        std::string outPath = g_config.output + "/" + res.path;
-        // move  files to outPath
-        for (auto &file : res.files)
-            std::filesystem::rename(file, outPath + "/"s + file);
-        // 2. generate xxx.h, xxx.cpp
-
-    }
-}
-
-void SrvMode(const std::string &fileName, const std::string &fileContent)
-{
-
-}
-
-void ActionMode(const std::string &fileName, const std::string &fileContent)
-{
-
 }

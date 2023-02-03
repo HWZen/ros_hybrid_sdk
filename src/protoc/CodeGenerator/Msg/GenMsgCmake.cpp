@@ -1,4 +1,15 @@
-msgFileName = "/home/pi/MyMsg.msg"  # will be replaced
+//
+// Created by HWZ on 2022/12/16.
+//
+
+#include "GenMsgCmake.h"
+#include <fstream>
+using namespace std::string_literals;
+
+GenCodeResult GenMsgCmake(const std::string &msgFileName, const MsgTrial &vars)
+{
+    std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
+    std::string GenCmake_py_part1 = R"(
 import re
 import sys
 import os
@@ -20,28 +31,9 @@ class TypeTrail:
         self.varName = varName
 
 
-# will be replaced
-msgVars = [
-    TypeTrail(17, 2, '', '', 0, '1', 'DEBUG'),
-    TypeTrail(17, 2, '', '', 0, '2', 'INFO'),
-    TypeTrail(17, 2, '', '', 0, '4', 'WARN'),
-    TypeTrail(17, 2, '', '', 0, '8', 'ERROR'),
-    TypeTrail(17, 2, '', '', 0, '16', 'FATAL'),
-    TypeTrail(2, 0, 'Header', 'std_msgs', 0, '', 'header'),
-    TypeTrail(1, 12, '', '', 0, '', 'str'),
-    TypeTrail(1, 2, '', '', 0, '', 'c'),
-    TypeTrail(1, 4, '', '', 0, '', 's'),
-    TypeTrail(1, 6, '', '', 0, '', 'i'),
-    TypeTrail(1, 8, '', '', 0, '', 'l'),
-    TypeTrail(1, 13, '', '', 0, '', 't'),
-    TypeTrail(1, 14, '', '', 0, '', 'du'),
-    TypeTrail(0x01 | 0x40, 6, '', '', 0, '', 'vi'),
-    TypeTrail(0x01 | 0x20, 12, '', '', 5, '', 'strs'),
-    TypeTrail(0x02 | 0x40, 0, 'Byte', 'std_msgs', 0, '', 'bytes'),
-    TypeTrail(0x02 | 0x20, 0, 'Int32', 'std_msgs', 5, '', 'int5'),
-    TypeTrail(0x02, 0, 'MultiArrayLayout', 'std_msgs', 0, '', 'layout'),
-]
+)";
 
+    std::string GenCmake_py_part2 = R"(
 
 class FieldTypes(IntEnum):
     BuiltIn = 0x01
@@ -89,10 +81,10 @@ addLibrary = 'add_library({1} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.
     .format(rosNamespace, msgName)
 compileDefinition = 'target_compile_definitions({} PRIVATE -DBUILD_{}_SHARED_LIB)\n'.format(msgName, msgName.upper())
 
-linkLibs = ''
-for msgVar in msgVars:
-    if msgVar.fieldType & FieldTypes.Msg:
-        linkLibs += msgVar.msgType + ' '
+
+linkLibs = {msgVar.msgType for msgVar in msgVars if msgVar.fieldType & FieldTypes.Msg}
+
+linkLibs = ' '.join(linkLibs)
 
 linkLibs = 'target_link_libraries({} PRIVATE {} protobuf::libprotobuf ${{catkin_LIBRARIES}} HybridOption)\n'.format(msgName, linkLibs)
 
@@ -110,3 +102,50 @@ with open('result.txt', 'w') as f:
     f.write('msgs/' + rosNamespace)
     f.write('\n')
     f.write('{}.cmake'.format(msgName))
+
+)";
+
+    std::string msgVars = R"(
+msgVars = [
+)";
+
+    auto toPythonTypeTrail = [](const TypeTrail &var) -> std::string
+    {
+        std::string result = "TypeTrail(";
+        result += std::to_string(static_cast<int>(var.fieldType)) + ", ";
+        result += std::to_string(static_cast<int>(var.builtInType)) + ", ";
+        result += "'" + var.msgType + "', ";
+        result += "'" + var.msgPackage + "', ";
+        result += std::to_string(var.arraySize) + ", ";
+        result += "'" + var.constData + "', ";
+        result += "'" + var.name + "'";
+        result += ")";
+        return result;
+    };
+
+    for (auto &var : vars) {
+        msgVars += "    " + toPythonTypeTrail(var) + ",\n";
+    }
+
+    msgVars += "]\n";
+
+    // write to file
+    auto GenCmake_py = msgFileNamePy + GenCmake_py_part1 + msgVars + GenCmake_py_part2;
+    std::ofstream ofs("GenCmake.py");
+    ofs << GenCmake_py;
+    ofs.close();
+
+    // run python script
+    auto systemRes = system("python3 GenCmake.py");
+    if (systemRes != 0)
+        throw std::runtime_error("run python script failed!"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
+
+    // read result
+    std::ifstream ifs("result.txt");
+    GenCodeResult result;
+    ifs >> result.path;
+    for (std::string tmp; ifs >> tmp;)
+        result.files.push_back(tmp);
+    ifs.close();
+    return result;
+}

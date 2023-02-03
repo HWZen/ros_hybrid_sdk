@@ -1,14 +1,14 @@
 //
-// Created by HWZ on 2022/12/16.
+// Created by HWZ on 2023/2/1.
 //
 
-#include "GenMsgCmake.h"
 #include <fstream>
+#include "GenSrvCmake.h"
 using namespace std::string_literals;
 
-GenCodeResult GenCmake(const std::string &msgFileName, const std::vector<TypeTrail> &vars)
+GenCodeResult GenSrvCmake(std::string_view srvFileName, const SrvTrial &vars)
 {
-    std::string msgFileNamePy = "msgFileName = '" + msgFileName + "'\n";
+    std::string srvFileNamePy = "srvFileName = '" + std::string(srvFileName) + "'\n";
     std::string GenCmake_py_part1 = R"(
 import re
 import sys
@@ -16,8 +16,7 @@ import os
 import time
 from enum import IntEnum
 
-msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
-
+srvName = re.search(R'(.*[/\\])?(\w+)\.srv', srvFileName).group(2)
 
 class TypeTrail:
     def __init__(self, fieldType: int, builtinType: int, msgType: str, msgPackage: str, arraySize: int, constData: str,
@@ -30,10 +29,9 @@ class TypeTrail:
         self.constData = constData
         self.varName = varName
 
-
 )";
-
     std::string GenCmake_py_part2 = R"(
+
 
 class FieldTypes(IntEnum):
     BuiltIn = 0x01
@@ -61,52 +59,52 @@ rosTypeBuiltInTypeProtoTypeMap = [
     'google.protobuf.Duration',
 ]
 
-systemRes = os.system('rosmsg show {} > {}.tmp'.format(msgName, msgName))
+systemRes = os.system('rossrv show {} > {}.tmp'.format(srvName, srvName))
 if systemRes != 0:
-    print('rosmsg show {} failed!'.format(msgName))
+    print('rossrv show {} failed!'.format(srvName))
     sys.exit(1)
 
-with open('{}.tmp'.format(msgName), 'r') as f:
+with open('{}.tmp'.format(srvName), 'r') as f:
     [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
     rosMsgType = rosNamespace + '::' + rosMsgType
-os.remove('{}.tmp'.format(msgName))
+os.remove('{}.tmp'.format(srvName))
 
 header = '''
 # generated automatically by ros_hybrid_protoc on {0}
 # Do not Edit!
 # wrapping message: {1}/{2}
-'''.format(time.asctime(time.localtime(time.time())), rosNamespace, msgName)
+'''.format(time.asctime(time.localtime(time.time())), rosNamespace, srvName)
 
-addLibrary = 'add_library({1} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.pb.cc ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.server.cpp )\n'\
-    .format(rosNamespace, msgName)
-compileDefinition = 'target_compile_definitions({} PRIVATE -DBUILD_{}_SHARED_LIB)\n'.format(msgName, msgName.upper())
+addLibrary = 'add_library({1} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/srv/{0}/{1}.pb.cc ${{CMAKE_CURRENT_SOURCE_DIR}}/srv/{0}/{1}.server.cpp )\n' \
+    .format(rosNamespace, srvName)
+compileDefinition = 'target_compile_definitions({} PRIVATE -DBUILD_{}_SHARED_LIB)\n'.format(srvName, srvName.upper())
 
-linkLibs = ''
-for msgVar in msgVars:
-    if msgVar.fieldType & FieldTypes.Msg:
-        linkLibs += msgVar.msgType + ' '
 
-linkLibs = 'target_link_libraries({} PRIVATE {} protobuf::libprotobuf ${{catkin_LIBRARIES}} HybridOption)\n'.format(msgName, linkLibs)
+linkLibs = {msgVar.msgType for msgVar in srvVars if msgVar.fieldType & FieldTypes.Msg}
+
+linkLibs = ' '.join(linkLibs)
+
+linkLibs = 'target_link_libraries({} PRIVATE {} protobuf::libprotobuf ${{catkin_LIBRARIES}} HybridOption)\n'.format(srvName, linkLibs)
 
 compileOption = \
-    'target_compile_options({} PRIVATE -std=c++17 -fPIC -Wl,--version-script=${{CMAKE_CURRENT_SOURCE_DIR}}/serverDll.map)\n'\
-        .format(msgName)
+    'target_compile_options({} PRIVATE -std=c++17 -fPIC -Wl,--version-script=${{CMAKE_CURRENT_SOURCE_DIR}}/serverDll.map)\n' \
+        .format(srvName)
 
 xxx_cmake = header + addLibrary + compileDefinition + linkLibs + compileOption
 
-with open('{}.cmake'.format(msgName), 'w') \
+with open('{}.cmake'.format(srvName), 'w') \
         as f:
     f.write(xxx_cmake)
 
 with open('result.txt', 'w') as f:
-    f.write('msgs/' + rosNamespace)
+    f.write('srv/' + rosNamespace)
     f.write('\n')
-    f.write('{}.cmake'.format(msgName))
+    f.write('{}.cmake'.format(srvName))
 
 )";
 
-    std::string msgVars = R"(
-msgVars = [
+    std::string srvVars = R"(
+srvVars = [
 )";
 
     auto toPythonTypeTrail = [](const TypeTrail &var) -> std::string
@@ -123,14 +121,15 @@ msgVars = [
         return result;
     };
 
-    for (auto &var : vars) {
-        msgVars += "    " + toPythonTypeTrail(var) + ",\n";
-    }
+    for (const auto &var : vars.request)
+        srvVars += toPythonTypeTrail(var) + ",\n";
+    for (const auto &var : vars.response)
+        srvVars += toPythonTypeTrail(var) + ",\n";
 
-    msgVars += "]\n";
+    srvVars += "]\n";
 
     // write to file
-    auto GenCmake_py = msgFileNamePy + GenCmake_py_part1 + msgVars + GenCmake_py_part2;
+    auto GenCmake_py = srvFileNamePy + GenCmake_py_part1 + srvVars + GenCmake_py_part2;
     std::ofstream ofs("GenCmake.py");
     ofs << GenCmake_py;
     ofs.close();

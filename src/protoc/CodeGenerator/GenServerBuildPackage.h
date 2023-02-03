@@ -7,6 +7,6 @@
 #ifndef ROS_HYBRID_SDK_GENSERVERMSGBUILDPACKAGE_H
 #define ROS_HYBRID_SDK_GENSERVERMSGBUILDPACKAGE_H
 #include <string>
-void GenServerMsgBuildPackage(const std::string &path);
+void GenServerBuildPackage(const std::string &path);
 
 #endif //ROS_HYBRID_SDK_GENSERVERMSGBUILDPACKAGE_H

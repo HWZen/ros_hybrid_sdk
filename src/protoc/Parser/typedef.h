@@ -9,6 +9,8 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
+#include <variant>
 
 enum class FieldTypes : int
 {
@@ -86,6 +88,16 @@ struct TypeTrail
     std::string constData{};
     std::string name{};
 };
+
+using MsgTrial = std::vector<TypeTrail>;
+
+struct SrvTrial{
+    MsgTrial request;
+    MsgTrial response;
+};
+
+using Trial = std::variant<MsgTrial, SrvTrial>;
+
 
 TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName);
 

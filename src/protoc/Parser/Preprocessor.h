@@ -8,5 +8,5 @@
 #define ROS_HYBRID_SDK_PREPROCESSOR_H
 #include <string>
 #include <vector>
-std::vector<std::pair<std::string, std::string>> Preprocessor(const std::string &fileBuf);
+std::vector<std::pair<std::string, std::string>> Preprocessor(std::string_view fileBuf);
 #endif //ROS_HYBRID_SDK_PREPROCESSOR_H

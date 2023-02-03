@@ -5,7 +5,7 @@
 //
 #include "Preprocessor.h"
 #include <regex>
-std::vector<std::pair<std::string, std::string>> Preprocessor(const std::string &fileBuf)
+std::vector<std::pair<std::string, std::string>> Preprocessor(std::string_view fileBuf)
 {
 
     std::string buf;
