@@ -245,6 +245,7 @@ start:
                         exit(1);
                     }
                     if (ec == asio::error::eof) {
+                        client->close();
                         logger->info("disconnect");
                         ctx.stop();
                         co_return;

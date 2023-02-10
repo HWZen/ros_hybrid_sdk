@@ -45,17 +45,15 @@ public:
         };
 
         for (size_t i = 0; i < thread_num; ++i)
-            threads.emplace_back(new sstd::thread(threadFunc));
+            threads.emplace_back(sstd::thread(threadFunc));
 
     }
 
     void stop()
     {
         stop_flag = true;
-        for (auto &thread : threads){
-            thread->join();
-            delete thread;
-        }
+        for (auto &thread : threads)
+            thread.join();
         threads.clear();
     }
 
@@ -68,7 +66,7 @@ private:
     size_t thread_num{};
     Log logger{"HybridSpinner", LogFlag::CONSOLE_LOGGER};
     volatile bool stop_flag{false};
-    std::vector<sstd::BaseThread*> threads;
+    std::vector<sstd::any_thread> threads;
 };
 
 

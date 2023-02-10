@@ -97,7 +97,8 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
     log->set_message(formatted.data(), formatted.size());
     if (client->agentConfig.is_protobuf()) {
         auto buf = command.SerializeAsString() + client->agentConfig.delimiter();
-        client->async_write_some(asio::buffer(buf), sinkCallback);
+        if (client->is_open())
+            client->async_write_some(asio::buffer(buf), sinkCallback);
     } else {
         // json timestamp is UTC time. convert it to local time?
         std::string buf{};
@@ -106,7 +107,8 @@ void client_sink::sink_it_(const spdlog::details::log_msg &msg)
             return;
         }
         buf += client->agentConfig.delimiter();
-        client->async_write_some(asio::buffer(buf), sinkCallback);
+        if (client->is_open())
+            client->async_write_some(asio::buffer(buf), sinkCallback);
     }
 }
 

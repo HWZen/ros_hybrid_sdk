@@ -5,7 +5,7 @@
 #include "ConnectInstance.h"
 #include "../Log.h"
 #include "../HybridSpinner.h"
-#include "CallbackQueues.h"
+#include "GlobalVars.h"
 #include <sstl/thread.h>
 #include <ros/ros.h>
 #include <unordered_set>
@@ -31,7 +31,7 @@ struct DefaultAgentManager::Impl
 
     awaitable<void> listenFd();
 
-    std::shared_ptr<sstd::BaseThread> recvFdThread{};
+    std::shared_ptr<sstd::any_thread> recvFdThread{};
     std::shared_ptr<std::function<void(SOCKET, hybrid::AgentConfig)>> task_ref;
     std::binary_semaphore task_sem{0};
 
@@ -40,8 +40,8 @@ struct DefaultAgentManager::Impl
 
     asio::io_context ctx{};
 
-    HybridSpinner topicSpinner{"DefaultTopicSpinner", sstd::getCpuNums() / 4};
-    HybridSpinner srvSpinner{"DefaultSrvSpinner", sstd::getCpuNums() / 2};
+    HybridSpinner topicSpinner{"DefaultTopicSpinner", g_topicThreadNums};
+    HybridSpinner srvSpinner{"DefaultSrvSpinner", g_srvThreadNums};
 
     virtual ~Impl();
 
@@ -76,8 +76,13 @@ void DefaultAgentManager::Impl::MAIN()
     ros::start();
 
 
-    topicSpinner.spin(&topicQueue);
-    srvSpinner.spin(&serviceQueue);
+    topicSpinner.spin(&g_topicQueue);
+    srvSpinner.spin(&g_serviceQueue);
+
+    g_serviceCallPool = std::make_unique<asio::thread_pool>(g_srvThreadNums);
+    asio::post(*g_serviceCallPool, [&](){
+        logger.debug("service call pool ready");
+    });
 
     this->logger.info("DefaultAgent::MAIN");
 
@@ -95,7 +100,13 @@ void DefaultAgentManager::Impl::MAIN()
 
     co_spawn(ctx, listenFd(), asio::detached);
 
-    ctx.run();
+    asio::thread_pool coro_pool{g_coroThreadNums};
+    auto threadFunc = [&](){
+        ctx.run();
+    };
+    for (auto i = 0; i < g_coroThreadNums; ++i)
+        asio::post(coro_pool, threadFunc);
+    coro_pool.join();
     exit(0);
 }
 
@@ -103,7 +114,7 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
 {
     pipeFd = pipe;
     recvFdThread =
-        std::shared_ptr<sstd::BaseThread>(new sstd::thread([this]
+        std::shared_ptr<sstd::any_thread>(new sstd::any_thread(sstd::thread([this]
                                                            {
                                                                for (;;) {
                                                                    auto fd = recv_fd();
@@ -122,9 +133,9 @@ void DefaultAgentManager::Impl::setSocketPipe(int pipe)
                                                                    task_ref = nullptr;
                                                                    (*task)(fd, std::move(agentConfig));
                                                                }
-                                                           }),
+                                                           })),
             // destroy thread
-                                          [](sstd::BaseThread *th)
+                                          [](sstd::any_thread *th)
                                           {
                                               if (th)
                                                   th->terminate();
