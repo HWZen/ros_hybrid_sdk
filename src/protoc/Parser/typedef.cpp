@@ -6,6 +6,7 @@
 #include "typedef.h"
 #include <regex>
 #include <fstream>
+#include <filesystem>
 using namespace std::string_literals;
 
 TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName)
@@ -40,19 +41,23 @@ TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName
 
         if (res.msgPackage.empty()) {
             // get msg package by system call 'rosmsg show'
-            auto systemRes = system(("rosmsg show " + removeSuffixType + " > rosmsg.tmp").c_str());
-            if (systemRes != 0)
-                throw std::runtime_error(
-                    "rosmsg show " + removeSuffixType + " > rosmsg.tmp failed" " file: " __FILE__ " line: "s
-                        + std::to_string(__LINE__));
-            std::ifstream ifs("rosmsg.tmp");
+            auto filePath = ".cache/msg_" + removeSuffixType;
+            if(!std::filesystem::exists(filePath)) {
+                auto systemRes = system(("rosmsg show " + removeSuffixType + " > " + filePath).c_str());
+                if (systemRes != 0)
+                    throw std::runtime_error(
+                            "rosmsg show " + removeSuffixType + " > " + filePath + " failed" " file: " __FILE__ " line: "s
+                            + std::to_string(__LINE__));
+
+            }
+
+            std::ifstream ifs(filePath);
             if (!ifs.is_open())
                 throw std::runtime_error(
-                    "rosmsg.tmp open failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
+                    filePath + " open failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
             std::string line;
             std::getline(ifs, line);
             ifs.close();
-            std::remove("rosmsg.tmp");
             res.msgPackage = std::regex_replace(line, std::regex{R"(\[(.*)/\w+\]:)"}, "$1");
         }
 

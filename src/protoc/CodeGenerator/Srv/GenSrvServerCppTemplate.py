@@ -68,15 +68,17 @@ builtInTypeCppTypeMap = [
     "ros::Duration"
 ]
 
-systemRes = os.system('rossrv show {} > {}.tmp'.format(srvName, srvName))
-if systemRes != 0:
-    print('rossrv show {} failed!'.format(srvName))
-    sys.exit(1)
+cacheFile = '.cache/srv_' + srvName
+if not os.path.exists(cacheFile):
+    systemRes = os.system('rossrv show {} > {}'.format(srvName, cacheFile))
+    if systemRes != 0:
+        print('rossrv show {} failed!'.format(srvName))
+        sys.exit(1)
 
-with open('{}.tmp'.format(srvName), 'r') as f:
+with open(cacheFile, 'r') as f:
     [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
     rosMsgType = '::' + rosNamespace + '::' + rosMsgType
-os.remove('{}.tmp'.format(srvName))
+
 hybridMsgType = '::hybrid' + rosMsgType
 
 defineStart = \

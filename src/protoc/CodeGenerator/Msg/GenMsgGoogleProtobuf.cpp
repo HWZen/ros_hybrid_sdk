@@ -50,15 +50,15 @@ rosTypeBuiltInTypeProtoTypeMap = [
     'google.protobuf.Duration',
 ]
 
-systemRes = os.system('rosmsg show {} > {}.tmp'.format(msgName, msgName))
+cacheFile = '.cache/msg_' + msgName
+systemRes = os.system('rosmsg show {} > {}'.format(msgName, cacheFile))
 if systemRes != 0:
     print('rosmsg show {} failed!'.format(msgName))
     sys.exit(1)
 
-with open('{}.tmp'.format(msgName), 'r') as f:
+with open(cacheFile, 'r') as f:
     [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
     rosMsgType = rosNamespace + '::' + rosMsgType
-os.remove('{}.tmp'.format(msgName))
 
 header = '''
 // generated automatically by ros_hybrid_protoc on  {0}

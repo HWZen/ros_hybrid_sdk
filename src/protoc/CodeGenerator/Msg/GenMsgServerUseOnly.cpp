@@ -85,15 +85,16 @@ builtInTypeCppTypeMap = [
 
 hybridMsgType = 'hybrid::' + msgName
 
-systemRes = os.system('rosmsg show {} > {}.tmp'.format(msgName, msgName))
-if systemRes != 0:
-    print('rosmsg show {} failed!'.format(msgName))
-    sys.exit(1)
+cacheFile = '.cache/msg_' + msgName
+if not os.path.exists(cacheFile):
+    systemRes = os.system('rosmsg show {} > {}'.format(msgName, msgName))
+    if systemRes != 0:
+        print('rosmsg show {} failed!'.format(msgName))
+        sys.exit(1)
 
-with open('{}.tmp'.format(msgName), 'r') as f:
+with open(cacheFile, 'r') as f:
     [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
     rosMsgType = rosNamespace + '::' + rosMsgType
-os.remove('{}.tmp'.format(msgName))
 
 ####################
 # xxx.h

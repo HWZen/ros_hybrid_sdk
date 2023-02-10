@@ -14,9 +14,11 @@ using namespace std::string_literals;
 
 void parseParam(int argc, char **argv);
 
-// TODO: cache result of system call 'rosmsg show / rossrv show'
 int main(int argc, char **argv) try
 {
+
+    std::filesystem::create_directories(".cache");
+
     parseParam(argc, argv);
 
     if (!g_config.packagePath.empty()) {
@@ -191,6 +193,8 @@ int main(int argc, char **argv) try
         cmd += " && catkin_make";
         system(cmd.c_str());
     }
+
+    std::filesystem::remove_all(".cache");
 
 }
 catch (std::exception &e) {
