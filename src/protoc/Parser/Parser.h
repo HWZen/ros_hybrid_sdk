@@ -10,9 +10,9 @@
 
 Trial parser(std::string_view fileName, const std::string &fileBuf){
     if(fileName.find(".srv") != std::string::npos)
-        return SrvParser(fileBuf);
+        return SrvParser(fileBuf, fileName);
     else if(fileName.find(".msg") != std::string::npos)
-        return MsgParser(fileBuf);
+        return MsgParser(fileBuf, fileName);
     else
         throw std::runtime_error("unknown file type: " + std::string(fileName));
 }

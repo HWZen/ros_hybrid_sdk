@@ -12,8 +12,6 @@ GenCodeResult GenSrvServerCpp(const std::string &srvFileName, const SrvTrial &va
     auto SrvServerCppGenerator_py_part1 =
 R"(
 import re
-import sys
-import os
 import time
 from enum import IntEnum
 
@@ -75,16 +73,8 @@ builtInTypeCppTypeMap = [
     "ros::Duration"
 ]
 
-cacheFile = '.cache/srv_' + srvName
-if 'srv_' + srvName not in os.listdir('.cache'):
-    systemRes = os.system('rossrv show {} > {}'.format(srvName, cacheFile))
-    if systemRes != 0:
-        print('rossrv show {} failed!'.format(srvName))
-        sys.exit(1)
-
-with open(cacheFile, 'r') as f:
-    [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
-    rosMsgType = '::' + rosNamespace + '::' + rosMsgType
+rosNamespace = re.search(r'.*/(\w+)/srv/.*', srvFileName).group(1)
+rosMsgType = '::' + rosNamespace + '::' + srvName
 
 hybridMsgType = '::hybrid' + rosMsgType
 

@@ -1,7 +1,5 @@
-msgFileName = "/home/pi/MyMsg.msg"  # will be replaced
+msgFileName = "/home/ros_hybrid_sdk/msg/MyMsg.msg"  # will be replaced
 import re
-import sys
-import os
 import time
 
 msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
@@ -58,16 +56,9 @@ rosTypeBuiltInTypeProtoTypeMap = [
     'google.protobuf.Duration',
 ]
 
-cacheFile = '.cache/msg_' + msgName
-if 'msg_' + msgName not in os.listdir('.cache'):
-    systemRes = os.system('rosmsg show {} > {}'.format(msgName, cacheFile))
-    if systemRes != 0:
-        print('rosmsg show {} failed!'.format(msgName))
-        sys.exit(1)
 
-with open(cacheFile, 'r') as f:
-    [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
-    rosMsgType = rosNamespace + '::' + rosMsgType
+rosNamespace = re.search(r'.*/(\w+)/msg/.*', msgFileName).group(1)
+rosMsgType = rosNamespace + '::' + msgName
 
 header = '''
 // generated automatically by ros_hybrid_protoc on  {0}

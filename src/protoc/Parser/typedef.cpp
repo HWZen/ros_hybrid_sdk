@@ -9,7 +9,7 @@
 #include <filesystem>
 using namespace std::string_literals;
 
-TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName)
+TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName, std::string_view defaultPkgName)
 {
 
     TypeTrail res;
@@ -40,25 +40,10 @@ TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName
             res.msgPackage = std::regex_replace(strType, std::regex{R"((.*)/.*)"}, "$1");
 
         if (res.msgPackage.empty()) {
-            // get msg package by system call 'rosmsg show'
-            auto filePath = ".cache/msg_" + removeSuffixType;
-            if(!std::filesystem::exists(filePath)) {
-                auto systemRes = system(("rosmsg show " + removeSuffixType + " > " + filePath).c_str());
-                if (systemRes != 0)
-                    throw std::runtime_error(
-                            "rosmsg show " + removeSuffixType + " > " + filePath + " failed" " file: " __FILE__ " line: "s
-                            + std::to_string(__LINE__));
-
-            }
-
-            std::ifstream ifs(filePath);
-            if (!ifs.is_open())
-                throw std::runtime_error(
-                    filePath + " open failed"" file: " __FILE__ " line: "s + std::to_string(__LINE__));
-            std::string line;
-            std::getline(ifs, line);
-            ifs.close();
-            res.msgPackage = std::regex_replace(line, std::regex{R"(\[(.*)/\w+\]:)"}, "$1");
+            if (strType == "Header")
+                res.msgPackage = "std_msgs";
+            else
+                res.msgPackage = defaultPkgName;
         }
 
         res.fieldType = res.fieldType | FieldTypes::Msg;

@@ -1,7 +1,5 @@
 srvFileName = "/home/pi/MyService.srv"  # will be replaced
 import re
-import sys
-import os
 import time
 from enum import IntEnum
 
@@ -105,16 +103,8 @@ rosTypeBuiltinTypeProtoTypeMap = [
     'google.protobuf.Duration',
 ]
 
-cacheFile = '.cache/srv_' + msgName
-if 'srv_' + msgName not in os.listdir('.cache'):
-    systemRes = os.system('rossrv show {} > {}'.format(msgName, cacheFile))
-    if systemRes != 0:
-        print('rossrv show {} failed!'.format(msgName))
-        sys.exit(1)
-
-with open(cacheFile, 'r') as f:
-    [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
-    rosMsgType = rosNamespace + '::' + rosMsgType
+rosNamespace = re.search(r'.*/(\w+)/srv/.*', srvFileName).group(1)
+rosMsgType = rosNamespace + '::' + msgName
 
 header = '''
 // generated automatically by ros_hybrid_protoc on  {0}

@@ -2,11 +2,13 @@
 // Created by HWZ on 2023/2/1.
 //
 
-#include <stdexcept>
 #include "Preprocessor.h"
 #include "SrvParse.h"
-SrvTrial SrvParser(const std::string &fileBuf)
+#include <regex>
+#include <stdexcept>
+SrvTrial SrvParser(const std::string &fileBuf, std::string_view fileName)
 {
+    auto defaultPkgName = std::regex_replace(std::string{fileName.data(), fileName.size()}, std::regex(R"(.*/(\w+)/srv/.*)"), "$1");
     auto dividing_line = fileBuf.find("---");
     if (dividing_line == std::string::npos)
         throw std::runtime_error("SrvParser: dividing line not found");
@@ -16,8 +18,8 @@ SrvTrial SrvParser(const std::string &fileBuf)
     auto preprocessResponse = Preprocessor(responseStr);
     SrvTrial res;
     for (auto &var : preprocessRequest)
-        res.request.emplace_back(TypeTrailParser(var));
+        res.request.emplace_back(TypeTrailParser(var, defaultPkgName));
     for (auto &var : preprocessResponse)
-        res.response.emplace_back(TypeTrailParser(var));
+        res.response.emplace_back(TypeTrailParser(var, defaultPkgName));
     return res;
 }

@@ -9,6 +9,6 @@
 
 #include "typedef.h"
 
-MsgTrial MsgParser(const std::string &fileBuf);
+std::vector<TypeTrail> MsgParser(const std::string &fileBuf, std::string_view fileName);
 
 #endif //ROS_HYBRID_SDK_MSGPARSER_H

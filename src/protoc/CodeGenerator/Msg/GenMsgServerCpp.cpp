@@ -14,8 +14,6 @@ GenCodeResult GenMsgServerCpp(const std::string &msgFileName, const std::vector<
     std::string GenMsgServerCpp_py_part1 =
         R"(
 import re
-import sys
-import os
 import time
 from enum import IntEnum
 
@@ -72,16 +70,8 @@ builtInTypeCppTypeMap = [
     "ros::Duration"
 ]
 
-cacheFile = '.cache/msg_' + msgName
-if 'msg_' + msgName not in os.listdir('.cache'):
-    systemRes = os.system('rosmsg show {} > {}'.format(msgName, cacheFile))
-    if systemRes != 0:
-        print('rosmsg show {} failed!'.format(msgName))
-        sys.exit(1)
-
-with open(cacheFile, 'r') as f:
-    [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
-    rosMsgType = '::' + rosNamespace + '::' + rosMsgType
+rosNamespace = re.search(r'.*/(\w+)/msg/.*', msgFileName).group(1)
+rosMsgType = '::' + rosNamespace + '::' + msgName
 hybridMsgType = '::hybrid' + rosMsgType
 
 defineStart = \

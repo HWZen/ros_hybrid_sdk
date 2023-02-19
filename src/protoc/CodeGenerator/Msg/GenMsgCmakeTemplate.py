@@ -1,7 +1,5 @@
 msgFileName = "/home/pi/MyMsg.msg"  # will be replaced
 import re
-import sys
-import os
 import time
 from enum import IntEnum
 
@@ -69,16 +67,8 @@ rosTypeBuiltInTypeProtoTypeMap = [
     'google.protobuf.Duration',
 ]
 
-cacheFile = '.cache/msg_' + msgName
-if 'msg_' + msgName not in os.listdir('.cache'):
-    systemRes = os.system('rosmsg show {} > {}'.format(msgName, msgName))
-    if systemRes != 0:
-        print('rosmsg show {} failed!'.format(msgName))
-        sys.exit(1)
-
-with open(cacheFile, 'r') as f:
-    [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
-    rosMsgType = rosNamespace + '::' + rosMsgType
+rosNamespace = re.search(r'.*/(\w+)/msg/.*', msgFileName).group(1)
+rosMsgType = rosNamespace + '::' + msgName
 
 header = '''
 # generated automatically by ros_hybrid_protoc on {0}
@@ -86,20 +76,21 @@ header = '''
 # wrapping message: {1}/{2}
 '''.format(time.asctime(time.localtime(time.time())), rosNamespace, msgName)
 
-addLibrary = 'add_library({1} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.pb.cc ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.server.cpp )\n'\
-    .format(rosNamespace, msgName)
-compileDefinition = 'target_compile_definitions({} PRIVATE -DBUILD_{}_SHARED_LIB)\n'.format(msgName, msgName.upper())
+targetName = 'msg' + rosNamespace + msgName
+addLibrary = 'add_library({2} SHARED ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.pb.cc ${{CMAKE_CURRENT_SOURCE_DIR}}/msgs/{0}/{1}.server.cpp )\n'\
+    .format(rosNamespace, msgName, targetName)
+compileDefinition = 'target_compile_definitions({} PRIVATE -DBUILD_{}_SHARED_LIB)\n'.format(targetName, msgName.upper())
 
 
-linkLibs = {msgVar.msgType for msgVar in msgVars if msgVar.fieldType & FieldTypes.Msg}
+linkLibs = {'msg' + msgVar.msgPackage + msgVar.msgType for msgVar in msgVars if msgVar.fieldType & FieldTypes.Msg}
 
 linkLibs = ' '.join(linkLibs)
 
-linkLibs = 'target_link_libraries({} PRIVATE {} protobuf::libprotobuf ${{catkin_LIBRARIES}} HybridOption)\n'.format(msgName, linkLibs)
+linkLibs = 'target_link_libraries({} PRIVATE {} protobuf::libprotobuf ${{catkin_LIBRARIES}} HybridOption)\n'.format(targetName, linkLibs)
 
 compileOption = \
     'target_compile_options({} PRIVATE -std=c++17 -fPIC -Wl,--version-script=${{CMAKE_CURRENT_SOURCE_DIR}}/serverDll.map)\n'\
-        .format(msgName)
+        .format(targetName)
 
 xxx_cmake = header + addLibrary + compileDefinition + linkLibs + compileOption
 

@@ -17,8 +17,6 @@ void parseParam(int argc, char **argv);
 int main(int argc, char **argv) try
 {
 
-    std::filesystem::create_directories(".cache");
-
     parseParam(argc, argv);
 
     if (!g_config.packagePath.empty()) {
@@ -194,7 +192,6 @@ int main(int argc, char **argv) try
         system(cmd.c_str());
     }
 
-    std::filesystem::remove_all(".cache");
 
 }
 catch (std::exception &e) {

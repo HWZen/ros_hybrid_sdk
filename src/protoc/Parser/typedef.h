@@ -99,6 +99,6 @@ struct SrvTrial{
 using Trial = std::variant<MsgTrial, SrvTrial>;
 
 
-TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName);
+TypeTrail TypeTrailParser(const std::pair<std::string, std::string> &strTypeName, std::string_view defaultPkgName);
 
 #endif //ROS_HYBRID_SDK_TYPE_H

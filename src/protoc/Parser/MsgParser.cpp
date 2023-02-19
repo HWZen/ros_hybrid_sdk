@@ -7,14 +7,14 @@
 #include "Preprocessor.h"
 #include <regex>
 
-std::vector<TypeTrail> MsgParser(const std::string &fileBuf)
+std::vector<TypeTrail> MsgParser(const std::string &fileBuf, std::string_view fileName)
 {
 
     auto preprocessRes = Preprocessor(fileBuf);
-
+    auto defaultPkgName = std::regex_replace(std::string{fileName.data(), fileName.size()}, std::regex(R"(.*/(\w+)/msg/.*)"), "$1");
     std::vector<TypeTrail> res;
     for (auto &var : preprocessRes) {
-        res.emplace_back(TypeTrailParser(var));
+        res.emplace_back(TypeTrailParser(var, defaultPkgName));
     }
 
     return res;
