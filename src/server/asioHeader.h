@@ -4,6 +4,9 @@
 
 #ifndef ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_ASIOHEADER_H
 #define ROS_HYBRID_SDK_SRC_ROS_HYBRID_SDK_SRC_ASIOHEADER_H
+#ifndef ASIO_SEPARATE_COMPILATION
+#warning "ASIO_SEPARATE_COMPILATION no define, please check CMakeLists.txt"
+#endif // ASIO_SEPARATE_COMPILATION
 #include <asio/ip/tcp.hpp>
 #include <asio/experimental/as_tuple.hpp>
 #include <asio/experimental/awaitable_operators.hpp>
