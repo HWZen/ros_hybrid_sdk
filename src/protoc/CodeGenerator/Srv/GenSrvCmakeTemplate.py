@@ -52,7 +52,7 @@ rosTypeBuiltInTypeProtoTypeMap = [
 ]
 
 cacheFile = '.cache/srv_' + srvName
-if not os.path.exists(cacheFile):
+if 'srv_' + srvName not in os.listdir('.cache'):
     systemRes = os.system('rossrv show {} > '.format(srvName) + cacheFile)
     if systemRes != 0:
         print('rossrv show {} failed!'.format(srvName))

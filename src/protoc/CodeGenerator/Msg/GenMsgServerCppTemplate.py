@@ -78,8 +78,8 @@ builtInTypeCppTypeMap = [
 ]
 
 cacheFile = '.cache/msg_' + msgName
-if not os.path.exists(cacheFile):
-    systemRes = os.system('rosmsg show {} > {}'.format(msgName, msgName))
+if 'msg_' + msgName not in os.listdir('.cache'):
+    systemRes = os.system('rosmsg show {} > {}'.format(msgName, cacheFile))
     if systemRes != 0:
         print('rosmsg show {} failed!'.format(msgName))
         sys.exit(1)
@@ -113,10 +113,11 @@ include += \
 
 include += '#include <{}/{}.h>\n'.format(rosNamespace, msgName)
 
+include_set = set()
 for var in msgVars:
     if var.fieldType & FieldTypes.Msg:  # FieldTypes::Msg
-        include += '#include <msgs/{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
-
+        include_set.add('#include <msgs/{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType))
+include += ''.join(include_set)
 include += 'using namespace std::string_literals;\n'
 
 xxxCoverToProtoDeclare = \

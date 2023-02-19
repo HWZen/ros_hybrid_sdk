@@ -106,7 +106,7 @@ rosTypeBuiltinTypeProtoTypeMap = [
 ]
 
 cacheFile = '.cache/srv_' + msgName
-if not os.path.exists(cacheFile):
+if 'srv_' + msgName not in os.listdir('.cache'):
     systemRes = os.system('rossrv show {} > {}'.format(msgName, cacheFile))
     if systemRes != 0:
         print('rossrv show {} failed!'.format(msgName))
@@ -125,25 +125,26 @@ syntax = "proto3";
 
 '''.format(time.asctime(time.localtime(time.time())), rosNamespace, msgName)
 
-include = ''
+include = set()
 for var in srvVars:
     if var.fieldType & 0x02:  # FieldTypes::Msg
-        include += 'import "msgs/{0}/{1}.proto";\n'.format(var.msgPackage, var.msgType)
+        include.add('import "msgs/{0}/{1}.proto";\n'.format(var.msgPackage, var.msgType))
     if var.builtinType == 13:  # time
-        include += 'import "google/protobuf/timestamp.proto";\n'
+        include.add('import "google/protobuf/timestamp.proto";\n')
     if var.builtinType == 14:  # duration
-        include += 'import "google/protobuf/duration.proto";\n'
+        include.add('import "google/protobuf/duration.proto";\n')
+include = ''.join(include)
 
 arrayFieldOption = False
-for var in requestVars:
-    if var.fieldType & 0x20:  # FieldTypes::Array
+for var in srvVars:
+    if var.fieldType & 0x20 and not var.fieldType & 0x10:  # FieldTypes::Array
         arrayFieldOption = True
         break
 
 
 dataRangeFieldOption = False
-for var in requestVars:
-    if var.fieldType & 0x01:
+for var in srvVars:
+    if var.fieldType & 0x01 and var.builtinType in range(2, 6) and not var.fieldType & 0x10:
         dataRangeFieldOption = True
         break
 

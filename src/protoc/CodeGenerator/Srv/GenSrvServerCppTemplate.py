@@ -69,7 +69,7 @@ builtInTypeCppTypeMap = [
 ]
 
 cacheFile = '.cache/srv_' + srvName
-if not os.path.exists(cacheFile):
+if 'srv_' + srvName not in os.listdir('.cache'):
     systemRes = os.system('rossrv show {} > {}'.format(srvName, cacheFile))
     if systemRes != 0:
         print('rossrv show {} failed!'.format(srvName))
@@ -103,10 +103,11 @@ include += \
 
 include += '#include <{}/{}.h>\n'.format(rosNamespace, srvName)
 
+include_set = set()
 for var in srvVars:
     if var.fieldType & FieldTypes.Msg:
-        include += '#include <msgs/{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType)
-
+        include_set.add('#include <msgs/{}/{}.server.cpp>\n'.format(var.msgPackage, var.msgType))
+include += ''.join(include_set)
 include += 'using namespace std::string_literals;\n'
 
 xxxRequestCoverToProtoDeclare = \

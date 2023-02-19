@@ -43,8 +43,14 @@ std::vector<std::pair<std::string, std::string>> Preprocessor(std::string_view f
     for (auto &line : lines) {
         if (line.empty())
             continue;
-        std::regex reg(R"([ \t]*([^ \t]*)[ \t]*([^ \t]*)[ \t]*)");
-        res.emplace_back(std::regex_replace(line, reg, "$1"), std::regex_replace(line, reg, "$2"));
+        line = std::regex_replace(line, std::regex(R"([ \t]*$)"), "");
+        line = std::regex_replace(line, std::regex(R"(^[ \t]*)"), "");
+        if (line.empty())
+            continue;
+        std::regex reg(R"(([^ \t]*)[ \t]*(.*))");
+        auto type = std::regex_replace(line, reg, "$1");
+        auto name = std::regex_replace(line, reg, "$2");
+        res.emplace_back(type, name);
     }
 
     return res;

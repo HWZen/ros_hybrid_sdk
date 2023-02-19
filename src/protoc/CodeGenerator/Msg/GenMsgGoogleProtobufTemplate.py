@@ -3,7 +3,6 @@ import re
 import sys
 import os
 import time
-from enum import IntEnum
 
 msgName = re.search(R'(.*[/\\])?(\w+)\.msg', msgFileName).group(2)
 
@@ -41,13 +40,6 @@ msgVars = [
     TypeTrail(0x02, 0, 'MultiArrayLayout', 'std_msgs', 0, '', 'layout'),
 ]
 
-class FieldTypes(IntEnum):
-    BuiltIn         = 0x01
-    Msg             = 0x02
-    Constexpr       = 0x10
-    Array           = 0x20
-    Vector          = 0x40
-
 rosTypeBuiltInTypeProtoTypeMap = [
     'none',
     'bool',
@@ -67,10 +59,11 @@ rosTypeBuiltInTypeProtoTypeMap = [
 ]
 
 cacheFile = '.cache/msg_' + msgName
-systemRes = os.system('rosmsg show {} > {}'.format(msgName, cacheFile))
-if systemRes != 0:
-    print('rosmsg show {} failed!'.format(msgName))
-    sys.exit(1)
+if 'msg_' + msgName not in os.listdir('.cache'):
+    systemRes = os.system('rosmsg show {} > {}'.format(msgName, cacheFile))
+    if systemRes != 0:
+        print('rosmsg show {} failed!'.format(msgName))
+        sys.exit(1)
 
 with open(cacheFile, 'r') as f:
     [rosNamespace, rosMsgType] = re.search(r'\[(.*)]:', f.readline()).group(1).split('/')
@@ -85,31 +78,31 @@ syntax = "proto3";
 
 '''.format(time.asctime(time.localtime(time.time())), rosNamespace, msgName)
 
-include = ''
+include = set()
 for var in msgVars:
     if var.fieldType & 0x02:  # FieldTypes::Msg
-        include += 'import "msgs/{0}/{1}.proto";\n'.format(var.msgPackage, var.msgType)
+        include.add('import "msgs/{0}/{1}.proto";\n'.format(var.msgPackage, var.msgType))
     if var.builtinType == 13:  # time
-        include += 'import "google/protobuf/timestamp.proto";\n'
+        include.add('import "google/protobuf/timestamp.proto";\n')
     if var.builtinType == 14:  # duration
-        include += 'import "google/protobuf/duration.proto";\n'
+        include.add('import "google/protobuf/duration.proto";\n')
 
 
 arrayFieldOption = False
 for var in msgVars:
-    if var.fieldType & 0x20:  # FieldTypes::Array
+    if var.fieldType & 0x20 and not var.fieldType & 0x10:  # FieldTypes::Array
         arrayFieldOption = True
         break
 
 
 dataRangeFieldOption = False
 for var in msgVars:
-    if var.fieldType & 0x01 and var.builtinType in range(2, 6):
+    if var.fieldType & 0x01 and var.builtinType in range(2, 6) and not var.fieldType & 0x10:
         dataRangeFieldOption = True
         break
 
 if arrayFieldOption or dataRangeFieldOption:
-    include += 'import "HybridOption.proto";\n'
+    include.add('import "HybridOption.proto";\n')
 
 package = 'package hybrid.{0};\n'.format(rosNamespace)
 
@@ -163,6 +156,8 @@ message {0}{{
 {1}
 }}
 '''.format(msgName, messageContent)
+
+include = ''.join(include)
 
 xxx_proto = header + include + package + messageStartEnd
 

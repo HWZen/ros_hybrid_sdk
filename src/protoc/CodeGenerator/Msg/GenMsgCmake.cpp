@@ -62,7 +62,7 @@ rosTypeBuiltInTypeProtoTypeMap = [
 ]
 
 cacheFile = '.cache/msg_' + msgName
-if not os.path.exists(cacheFile):
+if 'msg_' + msgName not in os.listdir('.cache'):
     systemRes = os.system('rosmsg show {} > {}'.format(msgName, msgName))
     if systemRes != 0:
         print('rosmsg show {} failed!'.format(msgName))
