@@ -140,10 +140,6 @@ include_directories(
 add_subdirectory(src/server/MsgWrapper/rosgraph_msgs)
 add_subdirectory(src/server/MsgWrapper/std_msgs)
 
-add_library(asio STATIC src/server/asio.cpp)
-target_compile_options(asio PRIVATE -std=c++20)
-
-
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -161,6 +157,7 @@ add_executable(${PROJECT_PREFIX}_server
         src/server/DefaultAgent/ConnectInstance.cpp
         src/server/protoData/Command/Command.pb.cc
         src/server/protoData/AgentConfig/AgentConfig.pb.cc
+        src/server/asio.cpp
         )
 target_compile_options(${PROJECT_PREFIX}_server PRIVATE -std=c++20)
 
@@ -185,16 +182,14 @@ target_compile_options(temp PRIVATE -std=c++17)
 
 ## Specify libraries to link a library or executable target against
 
-target_link_libraries(asio pthread)
-
 target_link_libraries(${PROJECT_PREFIX}_server
         ${catkin_LIBRARIES}
         spdlog
-        asio
         wrapperLog
         wrapperHeader
         protobuf::libprotobuf
         dl
+        pthread
         )
 
 target_link_libraries(temp ${catkin_LIBRARIES})
