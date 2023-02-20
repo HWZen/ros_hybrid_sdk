@@ -13,8 +13,16 @@
 #include <string>
 #include <google/protobuf/util/json_util.h>
 #include <asio/thread_pool.hpp>
+#include <regex>
 
 using namespace std::string_literals;
+
+auto checkAndGetType(const std::string &proto_type) -> std::string {
+    const std::regex type_regex{R"((\w+)/(\w+))"};
+    if (!std::regex_match(proto_type, type_regex))
+        return {};
+    return std::regex_replace(proto_type, type_regex, "$1$2");
+}
 
 struct ConnectInstance::Impl
 {
@@ -67,8 +75,6 @@ awaitable<int> ConnectInstance::Impl::MAIN() try
         co_await parseCommand(std::string_view(read_buffer.data(), len - client->agentConfig.delimiter().size()));
         read_buffer.erase(0, len);
     }
-
-    co_return 0;
 }
 catch (std::exception &e) {
     logger.error("catch exception: {}", e.what());
@@ -80,7 +86,7 @@ auto ConnectInstance::Impl::async_call_server(std::shared_ptr<hybrid::SrvCaller>
                                               const std::string &callData,
                                               CompletionToken &&token)
 {
-    auto init = [this](asio::completion_handler_for<void(bool, std::string)> auto handler,
+    auto init = [](asio::completion_handler_for<void(bool, std::string)> auto handler,
                        std::shared_ptr<hybrid::SrvCaller> serviceCaller,
                        const std::string &callData)
     {
@@ -149,8 +155,13 @@ awaitable<void> ConnectInstance::Impl::parseCommand(std::string_view commandStr)
                 break;
             }
 
+            auto type = checkAndGetType(advertise.type());
+            if (type.empty()){
+                logger.error("type {} no match", advertise.type());
+                break;
+            }
             try {
-                auto publisher_maker = MsgLoader::getPublisher(advertise.type());
+                auto publisher_maker = MsgLoader::getPublisher(type);
                 pubMap[advertise.topic()] =
                         std::shared_ptr<hybrid::MsgPublisher>(publisher_maker(advertise.topic(),
                                                                               advertise.has_queue_size()
@@ -212,9 +223,14 @@ awaitable<void> ConnectInstance::Impl::parseCommand(std::string_view commandStr)
                 logger.error("topic {} already exist", subscribe.topic());
                 break;
             }
+            auto type = checkAndGetType(subscribe.type());
+            if (type.empty()){
+                logger.error("type {} no match", subscribe.type());
+                break;
+            }
             try {
                 logger.info("subscribe topic: {}", subscribe.topic());
-                auto subscriber_maker = MsgLoader::getSubscriber(subscribe.type());
+                auto subscriber_maker = MsgLoader::getSubscriber(type);
                 subMap[subscribe.topic()] =
                         std::shared_ptr<hybrid::MsgSubscriber>(
                                 subscriber_maker(subscribe.topic(),
@@ -308,9 +324,15 @@ awaitable<void> ConnectInstance::Impl::call_server(hybrid::Command command)
             co_return;
         }
         const auto &callService = command.call_service();
+        auto type = checkAndGetType(callService.type());
+        if (type.empty()) {
+            this->logger.error("type {} no match", callService.type());
+            responseService.set_error_message("type {} no match"s + callService.type());
+            co_return ;
+        }
         auto &serverCaller = srvClientMap[callService.service()];
         if (serverCaller == nullptr) {
-            auto client_maker = MsgLoader::getServiceClient(callService.type());
+            auto client_maker = MsgLoader::getServiceClient(type);
             serverCaller = std::shared_ptr<hybrid::SrvCaller>(client_maker(
                     callService.service(),
                     &g_serviceQueue,

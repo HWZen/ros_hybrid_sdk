@@ -15,8 +15,9 @@
 class MsgLoader
 {
 public:
-    static auto getPublisher(const std::string &name)
+    static auto getPublisher(const std::string &libName)
     {
+        auto name = "msg" + libName;
         if (dlHandleMap.count(name) == 0) {
             auto dllName = "lib" + name + ".so";
             auto res = dlopen(dllName.c_str(), RTLD_LAZY);
@@ -34,8 +35,9 @@ public:
         return pubFuncMap[name];
     }
 
-    static auto getSubscriber(const std::string &name)
+    static auto getSubscriber(const std::string &libName)
     {
+        auto name = "msg" + libName;
         if (dlHandleMap.count(name) == 0) {
             auto dllName = "lib" + name + ".so";
             auto res = dlopen(dllName.c_str(), RTLD_LAZY);
@@ -57,8 +59,9 @@ public:
         return subFuncMap[name];
     }
 
-    static auto getSeriviceServer(const std::string &name)
+    static auto getSeriviceServer(const std::string &libName)
     {
+        auto name = "srv" + libName;
         if (dlHandleMap.count(name) == 0) {
             auto dllName = "lib" + name + ".so";
             auto res = dlopen(dllName.c_str(), RTLD_LAZY);
@@ -79,8 +82,9 @@ public:
         return serviceServerFuncMap[name];
     }
 
-    static auto getServiceClient(const std::string &name)
+    static auto getServiceClient(const std::string &libName)
     {
+        auto name = "srv" + libName;
         if (dlHandleMap.count(name) == 0) {
             auto dllName = "lib" + name + ".so";
             auto res = dlopen(dllName.c_str(), RTLD_LAZY);

@@ -25,6 +25,9 @@ static auto coroThreadNums = [](){auto res = sstd::getCpuNums() / 8; return res 
 
 static constexpr auto g_serviceTimeout = 10s;
 
+// implement in ../DefaultAgent/ConnectionInstance.cpp
+// Why do this: in Release build type, Agent.cpp can't use std::regex. (Maybe just a bug of gcc13.0.0)
+auto checkAndGetType(const std::string &proto_type) -> std::string;
 
 struct Agent::Impl
 {
@@ -337,7 +340,6 @@ auto Agent::Impl::async_call_server(std::shared_ptr<hybrid::SrvCaller> serviceCa
 
 awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
 {
-    
     hybrid::Command command;
 
     if (client->agentConfig.is_protobuf()) {
@@ -362,8 +364,14 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             break;
         }
 
+        auto type = checkAndGetType(advertise.type());
+        if (type.empty()) {
+            logger->error("type {} not match", advertise.type());
+            break;
+        }
+
         try {
-            auto publisher_maker = MsgLoader::getPublisher(advertise.type());
+            auto publisher_maker = MsgLoader::getPublisher(type);
             pubMap[advertise.topic()] =
                 std::shared_ptr<hybrid::MsgPublisher>(publisher_maker(advertise.topic(),
                                                                       advertise.has_queue_size()
@@ -425,9 +433,13 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             logger->error("topic {} already exist", subscribe.topic());
             break;
         }
+        auto type = checkAndGetType(subscribe.type());
+        if (type.empty()) {
+            logger->error("type {} not match", subscribe.type());
+            break;
+        }
         try {
-            logger->info("subscribe topic: {}", subscribe.topic());
-            auto subscriber_maker = MsgLoader::getSubscriber(subscribe.type());
+            auto subscriber_maker = MsgLoader::getSubscriber(type);
             subMap[subscribe.topic()] =
                 std::shared_ptr<hybrid::MsgSubscriber>(
                     subscriber_maker(subscribe.topic(),
@@ -452,6 +464,7 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
                                                                   });
                                      }
                     ));
+            logger->info("subscribe topic: {}", subscribe.topic());
         }
         catch (std::runtime_error &e) {
             logger->error("subscribe exception: {}", e.what());
@@ -483,8 +496,13 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
             logger->error("service {} already exist", advertiseService.service());
             break;
         }
+        auto type = checkAndGetType(advertiseService.type());
+        if (type.empty()) {
+            logger->error("type {} not match", advertiseService.type());
+            break;
+        }
         try {
-            auto server_maker = MsgLoader::getSeriviceServer(advertiseService.type());
+            auto server_maker = MsgLoader::getSeriviceServer(type);
             auto &serverData = srvServerMap[advertiseService.service()];
             serverData.advertiser =
                 std::shared_ptr<hybrid::SrvAdvertiser>(
@@ -629,6 +647,12 @@ awaitable<void> Agent::Impl::call_server(hybrid::Command command)
             co_return;
         }
         const auto &callService = command.call_service();
+        auto type = checkAndGetType(callService.type());
+        if (type.empty()){
+            this->logger->error("call service type {} no match", callService.type());
+            responseService.set_error_message("call service type no match");
+            co_return;
+        }
         auto &serverCaller = srvClientMap[callService.service()];
         if (serverCaller == nullptr) {
             auto client_maker = MsgLoader::getServiceClient(callService.type());
