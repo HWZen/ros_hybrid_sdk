@@ -524,7 +524,7 @@ awaitable<void> Agent::Impl::parseCommand(std::string_view commandStr)
                                      if (client->agentConfig.is_protobuf()) {
                                          callService.set_data(req);
                                          asio::write(*client,
-                                                     asio::buffer(command.SerializeAsString()),
+                                                     asio::buffer(command.SerializeAsString() + client->agentConfig.delimiter()),
                                                      asio::transfer_all(),
                                                      ec);
                                      }
