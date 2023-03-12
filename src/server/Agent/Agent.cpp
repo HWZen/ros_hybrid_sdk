@@ -21,7 +21,7 @@ using namespace std::chrono_literals;
 
 static auto topicThreadNums = [](){auto res = sstd::getCpuNums() / 6; return res == 0 ? 1 : res; }();
 static auto srvThreadNums = [](){auto res = sstd::getCpuNums() / 4; return res == 0 ? 1 : res; }();
-static auto coroThreadNums = [](){auto res = sstd::getCpuNums() / 8; return res == 0 ? 1 : res; }();
+static auto coroThreadNums = [](){auto res = sstd::getCpuNums() / 6; return res == 0 ? 1 : res; }();
 
 static constexpr auto g_serviceTimeout = 10s;
 
@@ -633,7 +633,7 @@ Agent::Impl::~Impl()
     logger->debug("agent exit");
     ros::shutdown();
 }
-awaitable<void> Agent::Impl::call_server(hybrid::Command command)
+awaitable<void> Agent::Impl::call_server(hybrid::Command command) try
 {
     hybrid::Command responseCommand;
     responseCommand.set_type(hybrid::Command_Type_RESPONSE_SERVICE);
@@ -655,7 +655,7 @@ awaitable<void> Agent::Impl::call_server(hybrid::Command command)
         }
         auto &serverCaller = srvClientMap[callService.service()];
         if (serverCaller == nullptr) {
-            auto client_maker = MsgLoader::getServiceClient(callService.type());
+            auto client_maker = MsgLoader::getServiceClient(type);
             serverCaller = std::shared_ptr<hybrid::SrvCaller>(client_maker(
                 callService.service(),
                 &serviceQueue,
@@ -677,8 +677,8 @@ awaitable<void> Agent::Impl::call_server(hybrid::Command command)
         }
         responseService.set_service(callService.service());
         responseService.set_seq(callService.seq());
+        co_return;
     }();
-
     if (client->agentConfig.is_protobuf()){
         responseService.set_data(res);
         co_await asio::async_write(*client,
@@ -697,4 +697,11 @@ awaitable<void> Agent::Impl::call_server(hybrid::Command command)
                                    asio::buffer(resBuf + client->agentConfig.delimiter()),
                                    asio::use_awaitable);
     }
+}
+catch(const std::exception &e) {
+    logger->error("call server catch exception: {}", e.what());
+}
+catch(...) {
+    logger->error("call server catch unknown exception");
+    throw;
 }
