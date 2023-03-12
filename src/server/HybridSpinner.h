@@ -7,15 +7,15 @@
 
 #include <ros/callback_queue.h>
 #include <csignal>
-#include <sstl/thread.h>
 #include <ros/node_handle.h>
+#include <thread>
 #include "Log.h"
 
 class HybridSpinner
 {
 public:
     HybridSpinner() = default;
-    explicit HybridSpinner(std::string_view name, size_t thread_num = sstd::getCpuNums()) :
+    explicit HybridSpinner(std::string_view name, size_t thread_num = std::thread::hardware_concurrency()) :
         logger(name, LogFlag::CONSOLE_LOGGER),
         thread_num(thread_num) {}
     void spin(ros::CallbackQueue *queue)
@@ -45,7 +45,7 @@ public:
         };
 
         for (size_t i = 0; i < thread_num; ++i)
-            threads.emplace_back(sstd::thread(threadFunc));
+            threads.emplace_back(threadFunc);
 
     }
 
@@ -59,6 +59,7 @@ public:
 
     ~HybridSpinner()
     {
+        logger.debug("HybridSpinner destructor");
         stop();
     }
 
@@ -66,7 +67,7 @@ private:
     size_t thread_num{};
     Log logger{"HybridSpinner", LogFlag::CONSOLE_LOGGER};
     volatile bool stop_flag{false};
-    std::vector<sstd::any_thread> threads;
+    std::vector<std::thread> threads;
 };
 
 
