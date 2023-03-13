@@ -92,7 +92,7 @@ void Agent::Impl::MAIN()
                                                logger->info("parent process is dead, exit");
                                                exit(0);
                                            }
-                                           sstd::ThisThread::sleep(1000);
+                                           sstd::ThisThread::sleep(100);
                                            pthread_testcancel();
                                        }
                                    });
@@ -216,7 +216,7 @@ start:
                 this->logger->info("parent process is dead, exit");
                 exit(0);
             }
-            co_await timeout(1s);
+            co_await timeout(100ms);
         }
     }, asio::detached);
 

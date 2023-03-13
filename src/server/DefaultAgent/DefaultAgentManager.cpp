@@ -92,9 +92,11 @@ void DefaultAgentManager::Impl::MAIN()
         for (;;) {
             if (getppid() == 1) {
                 this->logger.info("parent process is dead, exit");
-                exit(0);
+                topicSpinner.stop();
+                srvSpinner.stop();
+                ctx.stop();
             }
-            co_await timeout(1s);
+            co_await timeout(100ms);
         }
     }, asio::detached);
 
@@ -107,7 +109,6 @@ void DefaultAgentManager::Impl::MAIN()
     for (auto i = 0; i < g_coroThreadNums; ++i)
         asio::post(coro_pool, threadFunc);
     coro_pool.join();
-    exit(0);
 }
 
 void DefaultAgentManager::Impl::setSocketPipe(int pipe)
